@@ -1,0 +1,1054 @@
+{
+  "quizzes": [
+	{
+	  "factId": "1",
+	  "question": "What increases the likelihood of someone complying with a request?",
+	  "options": ["A sense of urgency", "Providing any reason, even a weak one", "Speaking in a loud tone", "Offering a financial reward"],
+	  "correctIndex": 1,
+	  "teaserType": "MYTH_BUSTER"
+	},
+	{
+	  "factId": "2",
+	  "question": "What is the 'chameleon effect' in social psychology?",
+	  "options": ["Changing opinions to match a group", "Mimicking the body language of others", "Avoiding social interactions", "Trying to stand out in a crowd"],
+	  "correctIndex": 1,
+	  "teaserType": "HIDDEN_STAT"
+	},
+	{
+	  "factId": "3",
+	  "question": "The 'spotlight effect' refers to our tendency to:",
+	  "options": ["Want to be the center of attention", "Overestimate how much others notice us", "Forget important social details", "Pay too much attention to others' mistakes"],
+	  "correctIndex": 1,
+	  "teaserType": "MYTH_BUSTER"
+	},
+	{
+	  "factId": "4",
+	  "question": "What happens to individual caution during group decision-making?",
+	  "options": ["It remains constant", "It significantly increases", "It often decreases (group polarization)", "It varies by age group"],
+	  "correctIndex": 2,
+	  "teaserType": "HIDDEN_STAT"
+	},
+	{
+	  "factId": "5",
+	  "question": "How does the presence of others affect performance on complex tasks?",
+	  "options": ["It generally improves it", "It has no measurable effect", "It tends to hurt performance", "It makes the task feel easier"],
+	  "correctIndex": 2,
+	  "teaserType": "MYTH_BUSTER"
+	},
+	{
+	  "factId": "6",
+	  "question": "What is 'illusory superiority'?",
+	  "options": ["Rating oneself as above average in most skills", "Believing others are better than us", "Thinking we are inferior to peers", "A sudden boost in confidence"],
+	  "correctIndex": 0,
+	  "teaserType": "HIDDEN_STAT"
+	},
+	{
+	  "factId": "7",
+	  "question": "Which type of wait feels more frustrating to people?",
+	  "options": ["A long explained wait", "A short explained wait", "An unexplained wait", "A wait with entertainment"],
+	  "correctIndex": 2,
+	  "teaserType": "MYTH_BUSTER"
+	},
+	{
+	  "factId": "8",
+	  "question": "In an emergency, when is a stranger most likely to receive help?",
+	  "options": ["When many people are watching", "When only one witness is present", "When the sun is shining", "When they are in a famous location"],
+	  "correctIndex": 1,
+	  "teaserType": "HIDDEN_STAT"
+	},
+	{
+	  "factId": "9",
+	  "question": "The 'foot-in-the-door' effect suggests that:",
+	  "options": ["Big requests lead to small ones", "Small commitments lead to larger ones", "Rejecting a request leads to guilt", "Physical proximity increases compliance"],
+	  "correctIndex": 1,
+	  "teaserType": "MYTH_BUSTER"
+	},
+	{
+	  "factId": "10",
+	  "question": "What is 'negativity bias' in human psychology?",
+	  "options": ["Expecting the worst in every situation", "Remembering negative experiences more strongly", "Ignoring positive feedback entirely", "A preference for dark colors"],
+	  "correctIndex": 1,
+	  "teaserType": "HIDDEN_STAT"
+	},
+	{
+	  "factId": "11",
+	  "question": "The 'availability heuristic' causes people to judge events based on:",
+	  "options": ["Actual statistical data", "How easily examples come to mind", "Advice from experts", "Past personal failures only"],
+	  "correctIndex": 1,
+	  "teaserType": "MYTH_BUSTER"
+	},
+	{
+	  "factId": "12",
+	  "question": "What is a common result of 'choice overload'?",
+	  "options": ["Increased satisfaction with the choice", "Faster decision-making", "Lower satisfaction with the final decision", "A more thorough evaluation of options"],
+	  "correctIndex": 2,
+	  "teaserType": "HIDDEN_STAT"
+	},
+	{
+	  "factId": "13",
+	  "question": "Why do people often conform to group opinions they know are wrong?",
+	  "options": ["They want to be right", "To maintain social harmony/avoid conflict", "Because groups are usually correct", "Due to a lack of personal opinion"],
+	  "correctIndex": 1,
+	  "teaserType": "MYTH_BUSTER"
+	},
+	{
+	  "factId": "14",
+	  "question": "Commitment bias often leads people to:",
+	  "options": ["Admit mistakes quickly", "Justify bad decisions instead of admitting error", "Change their minds frequently", "Avoid making any decisions at all"],
+	  "correctIndex": 1,
+	  "teaserType": "HIDDEN_STAT"
+	},
+	{
+	  "factId": "15",
+	  "question": "Which is generally more persuasive to the average person?",
+	  "options": ["Raw statistical data", "Stories and personal anecdotes", "Scientific charts", "Expert testimonials without context"],
+	  "correctIndex": 1,
+	  "teaserType": "MYTH_BUSTER"
+	},
+	{
+	  "factId": "16",
+	  "question": "How can chronic stress physically affect the brain?",
+	  "options": ["It increases brain volume", "It shrinks areas for memory and emotion", "It has no physical impact", "It improves neural speed"],
+	  "correctIndex": 1,
+	  "teaserType": "HIDDEN_STAT"
+	},
+	{
+	  "factId": "17",
+	  "question": "How does physical exercise compare to therapy for mild depression?",
+	  "options": ["It is largely ineffective", "It is about as effective as some therapy", "It is only helpful for severe cases", "It works much slower than therapy"],
+	  "correctIndex": 1,
+	  "teaserType": "MYTH_BUSTER"
+	},
+	{
+	  "factId": "18",
+	  "question": "What can writing about a stressful experience daily achieve?",
+	  "options": ["Increase anxiety levels", "Reduce anxiety and improve mood", "Cause more stress", "Have no measurable benefit"],
+	  "correctIndex": 1,
+	  "teaserType": "HIDDEN_STAT"
+	},
+	{
+	  "factId": "19",
+	  "question": "Social isolation has health risks comparable to:",
+	  "options": ["Lack of vitamins", "Smoking or obesity", "Poor eyesight", "Seasonal allergies"],
+	  "correctIndex": 1,
+	  "teaserType": "MYTH_BUSTER"
+	},
+	{
+	  "factId": "20",
+	  "question": "What is 'affect labeling'?",
+	  "options": ["Ignoring an emotion", "Naming an emotion out loud to reduce intensity", "Judging others' emotions", "Drawing emotions on paper"],
+	  "correctIndex": 1,
+	  "teaserType": "HIDDEN_STAT"
+	},
+	{
+	  "factId": "21",
+	  "question": "How does sleep deprivation affect our perception of neutral situations?",
+	  "options": ["Makes them seem more positive", "Has no effect on perception", "Makes them more likely to seem negative", "Increases logical reasoning"],
+	  "correctIndex": 2,
+	  "teaserType": "MYTH_BUSTER"
+	},
+	{
+	  "factId": "22",
+	  "question": "What is true about people with a strong sense of purpose?",
+	  "options": ["They avoid hardship", "They report higher life satisfaction", "They are less likely to work hard", "They have fewer relationships"],
+	  "correctIndex": 1,
+	  "teaserType": "HIDDEN_STAT"
+	},
+	{
+	  "factId": "23",
+	  "question": "Spending time in nature is linked to lower activity in brain regions associated with:",
+	  "options": ["Math and logic", "Rumination and negative self-focus", "Motor skills", "Language processing"],
+	  "correctIndex": 1,
+	  "teaserType": "MYTH_BUSTER"
+	},
+	{
+	  "factId": "24",
+	  "question": "Perfectionism is more strongly linked to:",
+	  "options": ["High achievement", "Anxiety and burnout", "Financial success", "Social popularity"],
+	  "correctIndex": 1,
+	  "teaserType": "HIDDEN_STAT"
+	},
+	{
+	  "factId": "25",
+	  "question": "What is a measurable benefit of daily gratitude practices?",
+	  "options": ["Increased weight loss", "Measurable increases in wellbeing", "Better vision", "Faster running speed"],
+	  "correctIndex": 1,
+	  "teaserType": "MYTH_BUSTER"
+	},
+	{
+	  "factId": "26",
+	  "question": "What is the typical result of suppressing emotions?",
+	  "options": ["It calms the body", "It increases physiological stress", "It improves mental clarity", "It makes the emotion disappear"],
+	  "correctIndex": 1,
+	  "teaserType": "HIDDEN_STAT"
+	},
+	{
+	  "factId": "27",
+	  "question": "What is a strong predictor of long-term emotional resilience?",
+	  "options": ["A high-paying job", "At least one close, trusted relationship", "Living in a large city", "Frequent travel"],
+	  "correctIndex": 1,
+	  "teaserType": "MYTH_BUSTER"
+	},
+	{
+	  "factId": "28",
+	  "question": "Passive scrolling on social media is associated with:",
+	  "options": ["Increased knowledge", "Increased feelings of loneliness", "Better social skills", "Improved attention span"],
+	  "correctIndex": 1,
+	  "teaserType": "HIDDEN_STAT"
+	},
+	{
+	  "factId": "29",
+	  "question": "Deep, slow breathing helps reduce stress by activating the:",
+	  "options": ["Sympathetic nervous system", "Parasympathetic nervous system", "Digestive system", "Skeletal system"],
+	  "correctIndex": 1,
+	  "teaserType": "MYTH_BUSTER"
+	},
+	{
+	  "factId": "30",
+	  "question": "Self-compassion is linked to lower anxiety than:",
+	  "options": ["Meditation", "Self-criticism", "Positive thinking", "Regular exercise"],
+	  "correctIndex": 1,
+	  "teaserType": "HIDDEN_STAT"
+	},
+	{
+	  "factId": "31",
+	  "question": "The human brain uses about what percentage of the body's total energy?",
+	  "options": ["2 percent", "10 percent", "20 percent", "50 percent"],
+	  "correctIndex": 2,
+	  "teaserType": "MYTH_BUSTER"
+	},
+	{
+	  "factId": "32",
+	  "question": "What is 'neuroplasticity'?",
+	  "options": ["The brain's ability to resist change", "The formation of new neural connections throughout life", "The hardening of brain tissue", "A type of artificial intelligence"],
+	  "correctIndex": 1,
+	  "teaserType": "HIDDEN_STAT"
+	},
+	{
+	  "factId": "33",
+	  "question": "Which sense does the brain process the fastest?",
+	  "options": ["Hearing", "Touch", "Visual", "Smell"],
+	  "correctIndex": 2,
+	  "teaserType": "MYTH_BUSTER"
+	},
+	{
+	  "factId": "34",
+	  "question": "How many pieces of information can short-term memory typically hold at once?",
+	  "options": ["One to three", "Four to seven", "Ten to fifteen", "Over twenty"],
+	  "correctIndex": 1,
+	  "teaserType": "HIDDEN_STAT"
+	},
+	{
+	  "factId": "35",
+	  "question": "When does the brain consolidate memories most effectively?",
+	  "options": ["During intense study", "While eating", "During deep sleep", "While exercising"],
+	  "correctIndex": 2,
+	  "teaserType": "MYTH_BUSTER"
+	},
+	{
+	  "factId": "36",
+	  "question": "What is the brain actually doing during 'multitasking'?",
+	  "options": ["Simultaneously processing everything", "Rapidly switching attention between tasks", "Increasing processing power", "Ignoring half the information"],
+	  "correctIndex": 1,
+	  "teaserType": "HIDDEN_STAT"
+	},
+	{
+	  "factId": "37",
+	  "question": "Dopamine is released by the brain primarily:",
+	  "options": ["Only after a reward is received", "In anticipation of a reward", "When feeling sad", "When physically tired"],
+	  "correctIndex": 1,
+	  "teaserType": "MYTH_BUSTER"
+	},
+	{
+	  "factId": "38",
+	  "question": "The corpus callosum is responsible for:",
+	  "options": ["Regulating heart rate", "Communication between the brain's hemispheres", "Processing smells", "Controlling sleep cycles"],
+	  "correctIndex": 1,
+	  "teaserType": "HIDDEN_STAT"
+	},
+	{
+	  "factId": "39",
+	  "question": "How does the brain handle gaps in visual information?",
+	  "options": ["It leaves them blank", "It fills them in automatically", "It stops processing the image", "It alerts the conscious mind"],
+	  "correctIndex": 1,
+	  "teaserType": "MYTH_BUSTER"
+	},
+	{
+	  "factId": "40",
+	  "question": "Chronic digital multitasking has been linked to:",
+	  "options": ["Reduced attention span", "Improved working memory", "Faster reading speed", "Better vision"],
+	  "correctIndex": 0,
+	  "teaserType": "HIDDEN_STAT"
+	},
+	{
+	  "factId": "41",
+	  "question": "At what age does the prefrontal cortex fully mature?",
+	  "options": ["Age 12", "Age 18", "Mid-20s", "Late 40s"],
+	  "correctIndex": 2,
+	  "teaserType": "MYTH_BUSTER"
+	},
+	{
+	  "factId": "42",
+	  "question": "Learning a new skill causes the brain to:",
+	  "options": ["Shrink slightly", "Physically change its structure", "Stop creating neurons", "Use less energy over time"],
+	  "correctIndex": 1,
+	  "teaserType": "HIDDEN_STAT"
+	},
+	{
+	  "factId": "43",
+	  "question": "On which type of work can the brain NOT effectively multitask?",
+	  "options": ["Walking and talking", "Complex cognitive work", "Listening to music and drawing", "Breathing and eating"],
+	  "correctIndex": 1,
+	  "teaserType": "MYTH_BUSTER"
+	},
+	{
+	  "factId": "44",
+	  "question": "What is the role of 'mirror neurons'?",
+	  "options": ["Reflecting light in the eye", "Firing when performing or watching an action", "Controlling balance", "Processing facial symmetry"],
+	  "correctIndex": 1,
+	  "teaserType": "HIDDEN_STAT"
+	},
+	{
+	  "factId": "45",
+	  "question": "Which brain region can grow new neurons even in adulthood?",
+	  "options": ["Cerebellum", "Hippocampus", "Amygdala", "Medulla"],
+	  "correctIndex": 1,
+	  "teaserType": "MYTH_BUSTER"
+	},
+	{
+	  "factId": "46",
+	  "question": "Why might people feel more attraction after an exciting experience?",
+	  "options": ["Increased hunger", "Misattribution of arousal", "Better lighting", "A sense of shared relief"],
+	  "correctIndex": 1,
+	  "teaserType": "HIDDEN_STAT"
+	},
+	{
+	  "factId": "47",
+	  "question": "Which is a better predictor of long-term relationship satisfaction?",
+	  "options": ["Similarity in hobbies", "Similarity in values and habits", "Having the same favorite movie", "Physical height similarity"],
+	  "correctIndex": 1,
+	  "teaserType": "MYTH_BUSTER"
+	},
+	{
+	  "factId": "48",
+	  "question": "How does expressing gratitude affect couples?",
+	  "options": ["It has no significant effect", "It reports significantly higher satisfaction", "It leads to more arguments", "It makes the relationship boring"],
+	  "correctIndex": 1,
+	  "teaserType": "HIDDEN_STAT"
+	},
+	{
+	  "factId": "49",
+	  "question": "What can increase feelings of closeness faster than conversation alone?",
+	  "options": ["Eating together", "Eye contact", "Shared silence", "Playing a game"],
+	  "correctIndex": 1,
+	  "teaserType": "MYTH_BUSTER"
+	},
+	{
+	  "factId": "50",
+	  "question": "The reward system in early romantic love resembles activity from:",
+	  "options": ["Eating vegetables", "Addictive substances", "Solving math problems", "Watching the news"],
+	  "correctIndex": 1,
+	  "teaserType": "HIDDEN_STAT"
+	},
+	{
+	  "factId": "51",
+	  "question": "The 'mere exposure effect' suggests we like things more because they are:",
+	  "options": ["Rare and expensive", "Familiar and repeated", "New and surprising", "Recommended by experts"],
+	  "correctIndex": 1,
+	  "teaserType": "MYTH_BUSTER"
+	},
+	{
+	  "factId": "52",
+	  "question": "Constructive arguing in relationships focuses on:",
+	  "options": ["Character attacks", "Winning the point", "The issue at hand", "Winning by silence"],
+	  "correctIndex": 2,
+	  "teaserType": "HIDDEN_STAT"
+	},
+	{
+	  "factId": "53",
+	  "question": "People unconsciously seek partners whose personality traits:",
+	  "options": ["Exactly mirror their own", "Complement their own", "Are completely random", "Are opposite to their parents"],
+	  "correctIndex": 1,
+	  "teaserType": "MYTH_BUSTER"
+	},
+	{
+	  "factId": "54",
+	  "question": "Physical touch like a hug can raise levels of which 'bonding' hormone?",
+	  "options": ["Adrenaline", "Oxytocin", "Melatonin", "Thyroxine"],
+	  "correctIndex": 1,
+	  "teaserType": "HIDDEN_STAT"
+	},
+	{
+	  "factId": "55",
+	  "question": "What strongly predicts relationship satisfaction beyond handling conflict?",
+	  "options": ["Frequency of gifts", "Response to each other's good news", "Sharing a bank account", "Living in the same city"],
+	  "correctIndex": 1,
+	  "teaserType": "MYTH_BUSTER"
+	},
+	{
+	  "factId": "56",
+	  "question": "Long-distance couples often report higher levels of intimacy in:",
+	  "options": ["Physical presence", "Conversation", "Daily routine", "Shared finances"],
+	  "correctIndex": 1,
+	  "teaserType": "HIDDEN_STAT"
+	},
+	{
+	  "factId": "57",
+	  "question": "How quickly can first impressions of attraction form?",
+	  "options": ["Within seconds", "Within milliseconds", "After five minutes", "After an hour of talk"],
+	  "correctIndex": 1,
+	  "teaserType": "MYTH_BUSTER"
+	},
+	{
+	  "factId": "58",
+	  "question": "Shared laughter between partners is strongly associated with:",
+	  "options": ["Higher stress", "Feelings of closeness", "Forgetfulness", "Financial success"],
+	  "correctIndex": 1,
+	  "teaserType": "HIDDEN_STAT"
+	},
+	{
+	  "factId": "59",
+	  "question": "The brain reads faces that are averaged composites as more:",
+	  "options": ["Intimidating", "Trustworthy and familiar", "Unattractive", "Surprising"],
+	  "correctIndex": 1,
+	  "teaserType": "MYTH_BUSTER"
+	},
+	{
+	  "factId": "60",
+	  "question": "Patterns of trust in adult relationships are often shaped by:",
+	  "options": ["Current income", "Early childhood attachment styles", "College education", "Number of previous partners"],
+	  "correctIndex": 1,
+	  "teaserType": "HIDDEN_STAT"
+	},
+	{
+	  "factId": "61",
+	  "question": "The 'Big Five' personality traits are generally:",
+	  "options": ["Completely fixed at birth", "Fairly stable but can shift over a lifetime", "Changing every few weeks", "Only present in adults"],
+	  "correctIndex": 1,
+	  "teaserType": "MYTH_BUSTER"
+	},
+	{
+	  "factId": "62",
+	  "question": "Extroverts generally need more of what to feel alert?",
+	  "options": ["Sleep", "External stimulation", "Silence", "Focus"],
+	  "correctIndex": 1,
+	  "teaserType": "HIDDEN_STAT"
+	},
+	{
+	  "factId": "63",
+	  "question": "Which personality trait is linked to a longer life average?",
+	  "options": ["Extraversion", "Conscientiousness", "Neuroticism", "Agreeableness"],
+	  "correctIndex": 1,
+	  "teaserType": "MYTH_BUSTER"
+	},
+	{
+	  "factId": "64",
+	  "question": "Personality appearance can shift depending on:",
+	  "options": ["The weather", "Social context", "Time of day", "Clothing choice"],
+	  "correctIndex": 1,
+	  "teaserType": "HIDDEN_STAT"
+	},
+	{
+	  "factId": "65",
+	  "question": "High 'openness to experience' is associated with:",
+	  "options": ["Strict adherence to rules", "Greater creativity and interest in new ideas", "Fear of the unknown", "Low intelligence"],
+	  "correctIndex": 1,
+	  "teaserType": "MYTH_BUSTER"
+	},
+	{
+	  "factId": "66",
+	  "question": "People with high emotional stability recover faster from:",
+	  "options": ["Physical injury", "Stressful events", "Lack of sleep", "Bad meals"],
+	  "correctIndex": 1,
+	  "teaserType": "HIDDEN_STAT"
+	},
+	{
+	  "factId": "67",
+	  "question": "Which traits become MORE attractive than status or wealth over time?",
+	  "options": ["Height and weight", "Humor and warmth", "Strictness and logic", "Mystery and distance"],
+	  "correctIndex": 1,
+	  "teaserType": "MYTH_BUSTER"
+	},
+	{
+	  "factId": "68",
+	  "question": "Is handwriting analysis (graphology) scientifically validated?",
+	  "options": ["Yes, it is highly accurate", "No, it has not been scientifically validated", "Only for predicting career paths", "Only for children"],
+	  "correctIndex": 1,
+	  "teaserType": "HIDDEN_STAT"
+	},
+	{
+	  "factId": "69",
+	  "question": "By what age do personality traits typically become most stable?",
+	  "options": ["Early teens", "Their 30s", "Their 50s", "After retirement"],
+	  "correctIndex": 1,
+	  "teaserType": "MYTH_BUSTER"
+	},
+	{
+	  "factId": "70",
+	  "question": "People high in agreeableness often prioritize:",
+	  "options": ["Personal gain", "Group harmony", "Winning arguments", "Individual success"],
+	  "correctIndex": 1,
+	  "teaserType": "HIDDEN_STAT"
+	},
+	{
+	  "factId": "71",
+	  "question": "Large-scale studies suggest birth order has what effect on personality?",
+	  "options": ["A massive, defining effect", "A much smaller effect than popular belief suggests", "No effect whatsoever", "An effect only on first-borns"],
+	  "correctIndex": 1,
+	  "teaserType": "MYTH_BUSTER"
+	},
+	{
+	  "factId": "72",
+	  "question": "What is 'self-monitoring'?",
+	  "options": ["Watching oneself in a mirror", "Adjusting behavior to fit the social context", "Counting calories", "Recording one's own voice"],
+	  "correctIndex": 1,
+	  "teaserType": "HIDDEN_STAT"
+	},
+	{
+	  "factId": "73",
+	  "question": "People tend to unconsciously seek environments that:",
+	  "options": ["Challenge their beliefs", "Reinforce their existing personality traits", "Are completely new", "Are quiet and isolated"],
+	  "correctIndex": 1,
+	  "teaserType": "MYTH_BUSTER"
+	},
+	{
+	  "factId": "74",
+	  "question": "Which is a more reliable predictor of career satisfaction than intelligence alone?",
+	  "options": ["Physical strength", "Personality traits", "Years of schooling", "Number of siblings"],
+	  "correctIndex": 1,
+	  "teaserType": "HIDDEN_STAT"
+	},
+	{
+	  "factId": "75",
+	  "question": "Highly sensitive people process information more:",
+	  "options": ["Slowly", "Deeply", "Randomly", "Negatively"],
+	  "correctIndex": 1,
+	  "teaserType": "MYTH_BUSTER"
+	},
+	{
+	  "factId": "76",
+	  "question": "Crossed arms during a conversation always signal defensiveness.",
+	  "options": ["True", "False - could be comfort or cold", "Only if the person is frowning", "Only in business settings"],
+	  "correctIndex": 1,
+	  "teaserType": "HIDDEN_STAT"
+	},
+	{
+	  "factId": "77",
+	  "question": "What distinguishes a genuine 'Duchenne smile'?",
+	  "options": ["It lasts longer", "It engages muscles around the eyes", "It shows more teeth", "It is accompanied by a laugh"],
+	  "correctIndex": 1,
+	  "teaserType": "MYTH_BUSTER"
+	},
+	{
+	  "factId": "78",
+	  "question": "In a conversation, people's feet often point toward:",
+	  "options": ["The exit", "The person they are interested in", "Directly forward", "The floor"],
+	  "correctIndex": 1,
+	  "teaserType": "HIDDEN_STAT"
+	},
+	{
+	  "factId": "79",
+	  "question": "Mirroring another person's posture often signals:",
+	  "options": ["Mockery", "Rapport and comfort", "Boredom", "A desire to leave"],
+	  "correctIndex": 1,
+	  "teaserType": "MYTH_BUSTER"
+	},
+	{
+	  "factId": "80",
+	  "question": "A firm handshake is generally rated as more:",
+	  "options": ["Aggressive", "Trustworthy and competent", "Rude", "Old-fashioned"],
+	  "correctIndex": 1,
+	  "teaserType": "HIDDEN_STAT"
+	},
+	{
+	  "factId": "81",
+	  "question": "Too much eye contact without breaks can come across as:",
+	  "options": ["Friendly", "Intimidating", "Intelligent", "Submissive"],
+	  "correctIndex": 1,
+	  "teaserType": "MYTH_BUSTER"
+	},
+	{
+	  "factId": "82",
+	  "question": "Touching the neck or face during talk is often associated with:",
+	  "options": ["Confidence", "Discomfort or mild anxiety", "Deep thinking", "Itching"],
+	  "correctIndex": 1,
+	  "teaserType": "HIDDEN_STAT"
+	},
+	{
+	  "factId": "83",
+	  "question": "Open, expansive posture can lead to actually:",
+	  "options": ["Feeling more confident", "Feeling more tired", "Appearing aggressive", "Improving digestion"],
+	  "correctIndex": 0,
+	  "teaserType": "MYTH_BUSTER"
+	},
+	{
+	  "factId": "84",
+	  "question": "People subconsciously lean away from things that make them:",
+	  "options": ["Hungry", "Uncomfortable", "Excited", "Sleepy"],
+	  "correctIndex": 1,
+	  "teaserType": "HIDDEN_STAT"
+	},
+	{
+	  "factId": "85",
+	  "question": "A slight head tilt is widely interpreted as a sign of:",
+	  "options": ["Confusion", "Active listening and interest", "Skepticism", "Tiredness"],
+	  "correctIndex": 1,
+	  "teaserType": "MYTH_BUSTER"
+	},
+	{
+	  "factId": "86",
+	  "question": "What are 'micro-expressions'?",
+	  "options": ["Expressions seen only through a microscope", "Fleeting expressions revealing concealed emotions", "Facial tics", "Small smiles"],
+	  "correctIndex": 1,
+	  "teaserType": "HIDDEN_STAT"
+	},
+	{
+	  "factId": "87",
+	  "question": "Pupils tend to dilate when someone is:",
+	  "options": ["Angry", "Interested or attracted", "Thinking of math", "Lying"],
+	  "correctIndex": 1,
+	  "teaserType": "MYTH_BUSTER"
+	},
+	{
+	  "factId": "88",
+	  "question": "Fidgeting doesn't always mean nervousness; it can also reflect:",
+	  "options": ["Anger", "Excitement", "Deep sleep", "Hunger"],
+	  "correctIndex": 1,
+	  "teaserType": "HIDDEN_STAT"
+	},
+	{
+	  "factId": "89",
+	  "question": "Synchronization of walking pace often occurs between people who:",
+	  "options": ["Are strangers", "Feel connected", "Are in a hurry", "Are athletes"],
+	  "correctIndex": 1,
+	  "teaserType": "MYTH_BUSTER"
+	},
+	{
+	  "factId": "90",
+	  "question": "An open palm gesture is perceived as more:",
+	  "options": ["Dominant", "Trustworthy", "Submissive", "Secretive"],
+	  "correctIndex": 1,
+	  "teaserType": "HIDDEN_STAT"
+	},
+	{
+	  "factId": "91",
+	  "question": "Most daily decisions are driven by:",
+	  "options": ["Deliberate conscious thought", "Automatic, subconscious processing", "Advice from others", "Random chance"],
+	  "correctIndex": 1,
+	  "teaserType": "MYTH_BUSTER"
+	},
+	{
+	  "factId": "92",
+	  "question": "The brain can react to visual info before conscious awareness.",
+	  "options": ["True", "False", "Only for colors", "Only for movement"],
+	  "correctIndex": 0,
+	  "teaserType": "HIDDEN_STAT"
+	},
+	{
+	  "factId": "93",
+	  "question": "What is 'priming'?",
+	  "options": ["Preparing a wall for paint", "Subtle exposure influencing unrelated decisions", "A boost in intelligence", "Reading the first page of a book"],
+	  "correctIndex": 1,
+	  "teaserType": "MYTH_BUSTER"
+	},
+	{
+	  "factId": "94",
+	  "question": "Gut instincts often reflect the brain:",
+	  "options": ["Being hungry", "Rapidly processing past patterns", "Making random guesses", "Reacting to stomach acid"],
+	  "correctIndex": 1,
+	  "teaserType": "HIDDEN_STAT"
+	},
+	{
+	  "factId": "95",
+	  "question": "The 'illusory truth effect' makes ideas feel true through:",
+	  "options": ["Logical proof", "Repeated exposure", "Expert endorsement", "Visual evidence"],
+	  "correctIndex": 1,
+	  "teaserType": "MYTH_BUSTER"
+	},
+	{
+	  "factId": "96",
+	  "question": "Why do solutions often appear during unrelated activities?",
+	  "options": ["The brain stops working", "The subconscious processes problems in the background", "Pure luck", "The distraction helps the eyes"],
+	  "correctIndex": 1,
+	  "teaserType": "HIDDEN_STAT"
+	},
+	{
+	  "factId": "97",
+	  "question": "Which sense is one of the most powerful subconscious memory triggers?",
+	  "options": ["Sight", "Scent", "Sound", "Taste"],
+	  "correctIndex": 1,
+	  "teaserType": "MYTH_BUSTER"
+	},
+	{
+	  "factId": "98",
+	  "question": "People often justify emotional decisions after the fact with:",
+	  "options": ["More emotions", "Logical reasons", "Regret", "Silence"],
+	  "correctIndex": 1,
+	  "teaserType": "HIDDEN_STAT"
+	},
+	{
+	  "factId": "99",
+	  "question": "How fast does the brain form first impressions of trustworthiness from a face?",
+	  "options": ["In under a second", "About five seconds", "One minute", "After a handshake"],
+	  "correctIndex": 0,
+	  "teaserType": "MYTH_BUSTER"
+	},
+	{
+	  "factId": "100",
+	  "question": "Background music tempo can subconsciously influence:",
+	  "options": ["How fast we walk or eat", "Our choice of clothing", "Our memory of names", "Our physical height"],
+	  "correctIndex": 0,
+	  "teaserType": "HIDDEN_STAT"
+	},
+	{
+	  "factId": "101",
+	  "question": "Color choices in branding tap into:",
+	  "options": ["Optical physics", "Subconscious emotional associations", "Current fashion trends", "Printer ink availability"],
+	  "correctIndex": 1,
+	  "teaserType": "MYTH_BUSTER"
+	},
+	{
+	  "factId": "102",
+	  "question": "What is 'change blindness'?",
+	  "options": ["Inability to see color", "The brain editing out minor visual inconsistencies", "Failing to see a direct light", "Memory loss after a move"],
+	  "correctIndex": 1,
+	  "teaserType": "HIDDEN_STAT"
+	},
+	{
+	  "factId": "103",
+	  "question": "Subtle cues like a shared birthday can subconsciously increase:",
+	  "options": ["Jealousy", "Trust and connection", "Anxiety", "Boredom"],
+	  "correctIndex": 1,
+	  "teaserType": "MYTH_BUSTER"
+	},
+	{
+	  "factId": "104",
+	  "question": "The brain assigns emotional weight to memories which helps shape:",
+	  "options": ["Future decisions", "Our hair color", "Current hunger", "Night vision"],
+	  "correctIndex": 0,
+	  "teaserType": "HIDDEN_STAT"
+	},
+	{
+	  "factId": "105",
+	  "question": "Dreams are thought to help the brain process:",
+	  "options": ["New vocabulary", "Emotional experiences", "Complex math", "Physical exercise"],
+	  "correctIndex": 1,
+	  "teaserType": "MYTH_BUSTER"
+	},
+	{
+	  "factId": "106",
+	  "question": "What is the 'fundamental attribution error'?",
+	  "options": ["Blaming oneself too much", "Attributing others' failures to character vs. own to circumstances", "Forgetting important dates", "Miscounting objects in a group"],
+	  "correctIndex": 1,
+	  "teaserType": "HIDDEN_STAT"
+	},
+	{
+	  "factId": "107",
+	  "question": "Compared to individuals, groups often make decisions that are:",
+	  "options": ["Safer", "Riskier", "Slower", "More logical"],
+	  "correctIndex": 1,
+	  "teaserType": "MYTH_BUSTER"
+	},
+	{
+	  "factId": "108",
+	  "question": "Most people predict they would disobey a harmful authority figure, but studies show:",
+	  "options": ["They are correct", "They are more likely to obey than they predict", "They obey only if paid", "They always disobey"],
+	  "correctIndex": 1,
+	  "teaserType": "HIDDEN_STAT"
+	},
+	{
+	  "factId": "109",
+	  "question": "Wearing a uniform can measurably increase:",
+	  "options": ["Anxiety", "Group belonging and cooperation", "Individualism", "Tiredness"],
+	  "correctIndex": 1,
+	  "teaserType": "MYTH_BUSTER"
+	},
+	{
+	  "factId": "110",
+	  "question": "First impressions of competence and warmth are:",
+	  "options": ["Easily reversed", "Hard to reverse", "Formed after an hour", "Irrelevant"],
+	  "correctIndex": 1,
+	  "teaserType": "HIDDEN_STAT"
+	},
+	{
+	  "factId": "111",
+	  "question": "In-group bias leads people to favor their own group members even if:",
+	  "options": ["The group is temporary", "Group membership is randomly assigned", "They dislike the members", "There is no reward"],
+	  "correctIndex": 1,
+	  "teaserType": "MYTH_BUSTER"
+	},
+	{
+	  "factId": "112",
+	  "question": "Publicly announcing a goal tends to:",
+	  "options": ["Decrease motivation", "Increase follow-through", "Have no effect", "Lead to immediate failure"],
+	  "correctIndex": 1,
+	  "teaserType": "HIDDEN_STAT"
+	},
+	{
+	  "factId": "113",
+	  "question": "Social exclusion activates brain regions similar to:",
+	  "options": ["Extreme happiness", "Physical pain", "Deep sleep", "Learning a language"],
+	  "correctIndex": 1,
+	  "teaserType": "MYTH_BUSTER"
+	},
+	{
+	  "factId": "114",
+	  "question": "People are more likely to help when they see:",
+	  "options": ["A large group in need", "A specific individual in need", "A statistical chart of need", "A government report"],
+	  "correctIndex": 1,
+	  "teaserType": "HIDDEN_STAT"
+	},
+	{
+	  "factId": "115",
+	  "question": "Cultural background shapes how people express:",
+	  "options": ["Agreement", "Disagreement", "Hunger", "Happiness"],
+	  "correctIndex": 1,
+	  "teaserType": "MYTH_BUSTER"
+	},
+	{
+	  "factId": "116",
+	  "question": "The belief that something is limited (scarcity) reliably:",
+	  "options": ["Decreases interest", "Increases desire", "Causes confusion", "Improves logic"],
+	  "correctIndex": 1,
+	  "teaserType": "HIDDEN_STAT"
+	},
+	{
+	  "factId": "117",
+	  "question": "What is 'social proof'?",
+	  "options": ["A social security card", "Seeing others do something as a predictor for our own action", "A verified social media account", "A letter of recommendation"],
+	  "correctIndex": 1,
+	  "teaserType": "MYTH_BUSTER"
+	},
+	{
+	  "factId": "118",
+	  "question": "The 'Zeigarnik effect' suggests we remember which tasks better?",
+	  "options": ["Completed tasks", "Unfinished tasks", "Easy tasks", "Physical tasks"],
+	  "correctIndex": 1,
+	  "teaserType": "HIDDEN_STAT"
+	},
+	{
+	  "factId": "119",
+	  "question": "Simply anticipating a social interaction with a stranger can trigger:",
+	  "options": ["Measurable anxiety", "Sudden hunger", "Deep relaxation", "Increased height"],
+	  "correctIndex": 0,
+	  "teaserType": "MYTH_BUSTER"
+	},
+	{
+	  "factId": "120",
+	  "question": "Anonymity in groups can lead to:",
+	  "options": ["Higher accountability", "Reduced individual accountability (deindividuation)", "Better decision making", "Slower movements"],
+	  "correctIndex": 1,
+	  "teaserType": "HIDDEN_STAT"
+	},
+	{
+	  "factId": "121",
+	  "question": "Habits form more reliably when tied to:",
+	  "options": ["Sheer willpower", "An existing routine cue", "A new year's resolution", "A high level of stress"],
+	  "correctIndex": 1,
+	  "teaserType": "MYTH_BUSTER"
+	},
+	{
+	  "factId": "122",
+	  "question": "Which type of motivation sustains effort longer?",
+	  "options": ["External rewards", "Intrinsic motivation (inherent satisfaction)", "Fear of punishment", "Peer pressure"],
+	  "correctIndex": 1,
+	  "teaserType": "HIDDEN_STAT"
+	},
+	{
+	  "factId": "123",
+	  "question": "The brain releases dopamine in response to:",
+	  "options": ["Only reaching a goal", "Progress toward a goal", "Giving up on a goal", "Forgetting a goal"],
+	  "correctIndex": 1,
+	  "teaserType": "MYTH_BUSTER"
+	},
+	{
+	  "factId": "124",
+	  "question": "Breaking a large goal into small steps increases follow-through compared to:",
+	  "options": ["Vague intentions", "Expert advice", "Public announcements", "Financial investment"],
+	  "correctIndex": 0,
+	  "teaserType": "HIDDEN_STAT"
+	},
+	{
+	  "factId": "125",
+	  "question": "Which often shapes behavior more reliably than self-discipline?",
+	  "options": ["Meditation", "Environmental design", "Reading books", "Listening to podcasts"],
+	  "correctIndex": 1,
+	  "teaserType": "MYTH_BUSTER"
+	},
+	{
+	  "factId": "126",
+	  "question": "Motivation tends to follow action more often than preceding it.",
+	  "options": ["True", "False", "Only in the morning", "Only for physical tasks"],
+	  "correctIndex": 0,
+	  "teaserType": "HIDDEN_STAT"
+	},
+	{
+	  "factId": "127",
+	  "question": "People are more likely to stick with a habit when it's linked to:",
+	  "options": ["A prize", "Identity (e.g., 'I am a runner')", "A specific date", "A calorie count"],
+	  "correctIndex": 1,
+	  "teaserType": "MYTH_BUSTER"
+	},
+	{
+	  "factId": "128",
+	  "question": "Willpower behaves like a:",
+	  "options": ["Fixed trait that never changes", "Limited daily resource", "Muscle that never tires", "Constant source of energy"],
+	  "correctIndex": 1,
+	  "teaserType": "HIDDEN_STAT"
+	},
+	{
+	  "factId": "129",
+	  "question": "Which is more motivating to the brain?",
+	  "options": ["Distant, larger rewards", "Immediate rewards", "Vague future promises", "Rewards for others"],
+	  "correctIndex": 1,
+	  "teaserType": "MYTH_BUSTER"
+	},
+	{
+	  "factId": "130",
+	  "question": "What significantly increases the odds of sticking with a new habit?",
+	  "options": ["Keeping it secret", "Accountability to another person", "Buying new equipment", "Waking up earlier"],
+	  "correctIndex": 1,
+	  "teaserType": "HIDDEN_STAT"
+	},
+	{
+	  "factId": "131",
+	  "question": "Procrastination is often driven by:",
+	  "options": ["Poor time management", "Emotional avoidance", "Lack of intelligence", "Physical laziness"],
+	  "correctIndex": 1,
+	  "teaserType": "MYTH_BUSTER"
+	},
+	{
+	  "factId": "132",
+	  "question": "Habit formation is sped up by consistency in:",
+	  "options": ["Clothing", "Context (environment)", "Task difficulty", "Time of month"],
+	  "correctIndex": 1,
+	  "teaserType": "HIDDEN_STAT"
+	},
+	{
+	  "factId": "133",
+	  "question": "Which type of visualization is more motivating?",
+	  "options": ["Visualizing the end result", "Visualizing the process of achieving the goal", "Visualizing failure", "Visualizing nothing"],
+	  "correctIndex": 1,
+	  "teaserType": "MYTH_BUSTER"
+	},
+	{
+	  "factId": "134",
+	  "question": "Which builds lasting habits more effectively?",
+	  "options": ["Occasional bursts of intense effort", "Small, consistent effort", "Weekly deep dives", "External pressure"],
+	  "correctIndex": 1,
+	  "teaserType": "HIDDEN_STAT"
+	},
+	{
+	  "factId": "135",
+	  "question": "What is 'loss aversion'?",
+	  "options": ["Avoiding physical loss", "Fear of losing being stronger than prospect of gaining", "Forgetting where things are", "Accepting losses quickly"],
+	  "correctIndex": 1,
+	  "teaserType": "MYTH_BUSTER"
+	},
+	{
+	  "factId": "136",
+	  "question": "Information is remembered better when sessions are:",
+	  "options": ["Crammed into one", "Spaced out over time", "Very long", "Randomly timed"],
+	  "correctIndex": 1,
+	  "teaserType": "HIDDEN_STAT"
+	},
+	{
+	  "factId": "137",
+	  "question": "Which is more effective for strengthening memory?",
+	  "options": ["Re-reading material", "Testing yourself on the material", "Highlighting text", "Listening to a lecture"],
+	  "correctIndex": 1,
+	  "teaserType": "MYTH_BUSTER"
+	},
+	{
+	  "factId": "138",
+	  "question": "We tend to remember items at the beginning and end of a list better than the middle.",
+	  "options": ["True (Primacy/Recency effects)", "False", "Only for short lists", "Only for numbers"],
+	  "correctIndex": 0,
+	  "teaserType": "HIDDEN_STAT"
+	},
+	{
+	  "factId": "139",
+	  "question": "Memories are reconstructed each time they are recalled, which means:",
+	  "options": ["They are like perfect video recordings", "They can shift slightly over time", "They never fade", "They are stored in a physical folder"],
+	  "correctIndex": 1,
+	  "teaserType": "MYTH_BUSTER"
+	},
+	{
+	  "factId": "140",
+	  "question": "Which events are remembered more vividly and longer?",
+	  "options": ["Neutral ones", "Emotionally charged ones", "Boring ones", "Repetitive ones"],
+	  "correctIndex": 1,
+	  "teaserType": "HIDDEN_STAT"
+	},
+	{
+	  "factId": "141",
+	  "question": "Explaining a concept to someone else strengthens understanding more than:",
+	  "options": ["Passive review", "Taking a nap", "Writing it down once", "Buying the book"],
+	  "correctIndex": 0,
+	  "teaserType": "MYTH_BUSTER"
+	},
+	{
+	  "factId": "142",
+	  "question": "Physical movement during learning can:",
+	  "options": ["Distract the brain", "Improve recall", "Cause confusion", "Make the brain tired"],
+	  "correctIndex": 1,
+	  "teaserType": "HIDDEN_STAT"
+	},
+	{
+	  "factId": "143",
+	  "question": "A 'false memory' can feel:",
+	  "options": ["Obviously fake", "Just as real as an accurate one", "Like a dream", "Vague and blurry"],
+	  "correctIndex": 1,
+	  "teaserType": "MYTH_BUSTER"
+	},
+	{
+	  "factId": "144",
+	  "question": "Context-dependent memory suggests recall is improved when:",
+	  "options": ["The room is quiet", "The environment matches where you learned it", "The room is bright", "You are in a new place"],
+	  "correctIndex": 1,
+	  "teaserType": "HIDDEN_STAT"
+	},
+	{
+	  "factId": "145",
+	  "question": "Retention is significantly improved by what activity immediately after learning?",
+	  "options": ["Exercising", "Eating", "Sleep", "Watching TV"],
+	  "correctIndex": 2,
+	  "teaserType": "MYTH_BUSTER"
+	},
+	{
+	  "factId": "146",
+	  "question": "What is 'chunking' in memory?",
+	  "options": ["Breaking objects", "Grouping information into smaller units", "Forgetting small details", "Memorizing whole books"],
+	  "correctIndex": 1,
+	  "teaserType": "HIDDEN_STAT"
+	},
+	{
+	  "factId": "147",
+	  "question": "How does multitasking while studying (like texting) affect retention?",
+	  "options": ["It has no effect", "It significantly reduces it", "It slightly improves it", "It helps focus"],
+	  "correctIndex": 1,
+	  "teaserType": "MYTH_BUSTER"
+	},
+	{
+	  "factId": "148",
+	  "question": "Which generally improves recall more?",
+	  "options": ["Typing notes", "Handwriting notes", "Recording audio", "Taking photos of notes"],
+	  "correctIndex": 1,
+	  "teaserType": "HIDDEN_STAT"
+	},
+	{
+	  "factId": "149",
+	  "question": "The 'forgetting curve' shows that most new information is forgotten within:",
+	  "options": ["The first hour", "The first day", "The first week", "The first month"],
+	  "correctIndex": 1,
+	  "teaserType": "MYTH_BUSTER"
+	},
+	{
+	  "factId": "150",
+	  "question": "What enhances memory formation by making you more receptive to answers?",
+	  "options": ["Boredom", "Curiosity", "Fear", "Strictness"],
+	  "correctIndex": 1,
+	  "teaserType": "HIDDEN_STAT"
+	}
+  ]
+}
