@@ -12,10 +12,13 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import com.example.brainbites.data.BiteCategory
+import com.example.brainbites.ui.util.getIconDrawable
 
 @Composable
 fun CategoryChip(
@@ -42,9 +45,11 @@ fun CategoryChip(
             modifier = Modifier.size(24.dp)
         ) {
             Box(contentAlignment = Alignment.Center) {
-                Text(
-                    text = category.iconRes,
-                    fontSize = 12.sp
+                Icon(
+                    painter = painterResource(id = category.getIconDrawable()),
+                    contentDescription = null,
+                    modifier = Modifier.size(14.dp),
+                    tint = if (isSelected) MaterialTheme.colorScheme.onPrimary else categoryColor
                 )
             }
         }

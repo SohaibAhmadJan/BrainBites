@@ -10,10 +10,12 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowForward
+import androidx.compose.material.icons.filled.AccountCircle
 import androidx.compose.material.icons.filled.Extension
 import androidx.compose.material.icons.filled.Favorite
 import androidx.compose.material.icons.filled.FavoriteBorder
 import androidx.compose.material.icons.filled.Lightbulb
+import androidx.compose.material.icons.filled.Notifications
 import androidx.compose.material.icons.filled.Share
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
@@ -23,6 +25,7 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
@@ -35,6 +38,7 @@ import com.example.brainbites.data.BiteItem
 import com.example.brainbites.ui.components.*
 import com.example.brainbites.ui.theme.*
 import com.example.brainbites.ui.util.ShareUtils
+import com.example.brainbites.ui.util.getIconDrawable
 import android.widget.Toast
 import kotlinx.coroutines.delay
 
@@ -170,7 +174,7 @@ fun HomeScreenContent(
                                     fontWeight = FontWeight.Bold
                                 )
                                 TextButton(onClick = onNavigateToHistory) {
-                                    Text("Show all", color = MaterialTheme.colorScheme.secondary, fontWeight = FontWeight.Bold)
+                                    Text("Show all", color = GreenSecondary, fontWeight = FontWeight.Bold)
                                 }
                             }
                             Spacer(modifier = Modifier.height(8.dp))
@@ -244,8 +248,9 @@ fun FactOfTheDayCard(fact: BiteItem, onToggleBookmark: (String) -> Unit, onClick
                 Surface(
                     color = AccentYellow,
                     shape = RoundedCornerShape(8.dp),
-                    modifier = Modifier.width(150.dp)
+                    modifier = Modifier.width(160.dp)
                 ) {
+                    // Animated text only inside static category card
                     AnimatedContent(
                         targetState = fact.category,
                         transitionSpec = {
@@ -255,16 +260,24 @@ fun FactOfTheDayCard(fact: BiteItem, onToggleBookmark: (String) -> Unit, onClick
                         label = "categoryTextRotation",
                         modifier = Modifier.fillMaxWidth()
                     ) { category ->
-                        Box(modifier = Modifier.fillMaxWidth(), contentAlignment = Alignment.Center) {
+                        Row(
+                            modifier = Modifier.fillMaxWidth().padding(vertical = 4.dp),
+                            verticalAlignment = Alignment.CenterVertically,
+                            horizontalArrangement = Arrangement.Center
+                        ) {
+                            Icon(
+                                painter = painterResource(id = category.getIconDrawable()),
+                                contentDescription = null,
+                                modifier = Modifier.size(14.dp),
+                                tint = DarkGreenPrimary
+                            )
+                            Spacer(modifier = Modifier.width(6.dp))
                             Text(
-                                text = "${category.iconRes} ${category.displayName.uppercase()}",
-                                modifier = Modifier.padding(vertical = 4.dp),
+                                text = category.displayName.uppercase(),
                                 fontSize = 9.sp,
                                 fontWeight = FontWeight.Black,
                                 color = DarkGreenPrimary,
-                                textAlign = TextAlign.Center,
-                                lineHeight = 12.sp,
-                                maxLines = 2
+                                textAlign = TextAlign.Center
                             )
                         }
                     }
@@ -272,7 +285,7 @@ fun FactOfTheDayCard(fact: BiteItem, onToggleBookmark: (String) -> Unit, onClick
 
                 Row {
                     IconButton(
-                        onClick = { 
+                        onClick = {
                             onToggleBookmark(fact.id)
                             val message = if (fact.isBookmarked) "Removed from favorites" else "Added to favorites"
                             Toast.makeText(context, message, Toast.LENGTH_SHORT).show()
@@ -286,7 +299,7 @@ fun FactOfTheDayCard(fact: BiteItem, onToggleBookmark: (String) -> Unit, onClick
                             modifier = Modifier.size(20.dp)
                         )
                     }
-                    
+
                     Spacer(modifier = Modifier.width(8.dp))
 
                     IconButton(

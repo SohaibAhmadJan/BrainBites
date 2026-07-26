@@ -17,12 +17,13 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.brainbites.data.BiteItem
-import com.example.brainbites.ui.theme.GreenSecondary
 import com.example.brainbites.ui.util.ShareUtils
+import com.example.brainbites.ui.util.getIconDrawable
 
 @Composable
 fun BiteCard(
@@ -57,13 +58,24 @@ fun BiteCard(
                     color = Color(android.graphics.Color.parseColor(bite.category.colorHex)).copy(alpha = 0.15f),
                     shape = RoundedCornerShape(12.dp)
                 ) {
-                    Text(
-                        text = "${bite.category.iconRes} ${bite.category.displayName}",
-                        color = MaterialTheme.colorScheme.primary,
-                        fontWeight = FontWeight.Bold,
-                        fontSize = 11.sp,
+                    Row(
+                        verticalAlignment = Alignment.CenterVertically,
                         modifier = Modifier.padding(horizontal = 10.dp, vertical = 4.dp)
-                    )
+                    ) {
+                        Icon(
+                            painter = painterResource(id = bite.category.getIconDrawable()),
+                            contentDescription = null,
+                            modifier = Modifier.size(14.dp),
+                            tint = MaterialTheme.colorScheme.primary
+                        )
+                        Spacer(modifier = Modifier.width(6.dp))
+                        Text(
+                            text = bite.category.displayName,
+                            color = MaterialTheme.colorScheme.primary,
+                            fontWeight = FontWeight.Bold,
+                            fontSize = 11.sp
+                        )
+                    }
                 }
 
                 Row(verticalAlignment = Alignment.CenterVertically) {

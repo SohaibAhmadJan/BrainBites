@@ -1,23 +1,31 @@
-# Implementation Plan - Fact Detail Background Refinement
+# Implementation Plan - Icon Fixes & Fact List Upgrade
 
-Apply a premium, category-aware background to the `FactDetailScreen` that replicates the "Ghost Emoji Gradient" style used on the Explore category cards.
+Correct the visual distortion in specific category icons and ensure that the fact cards within category lists use professional vector icons instead of old emojis.
 
 ## Proposed Changes
 
-### 1. UI Layer: Dynamic Thematic Background
+### 1. Resource Layer: Icon Correction
 
-#### [MODIFY] [FactDetailScreen.kt](file:///F:/BrainBites/app/src/main/java/com/example/brainbites/ui/facts/FactDetailScreen.kt)
-- **Background Component**: Implement a background layer for the `FactPage` that includes:
-    - **Category Gradient**: A vertical gradient brush that starts with the theme's background color at the top and transitions into a soft version of the category's specific color (e.g., `#A8DADC` for Human Behavior) at the bottom.
-    - **Ghost Emojis**: Place a few large, semi-transparent (alpha ~0.08), and rotated category emojis (the `iconRes`) in the background to create a subtle, premium pattern.
-- **Layout Adjustments**:
-    - Wrap the current content in a `Box` to allow for the layered background.
-    - Ensure the content (Image Card, Text, Buttons) remains sharp and legible over the new background.
+#### [MODIFY] [ic_cat_mental_health.xml](file:///F:/BrainBites/app/src/main/res/drawable/ic_cat_mental_health.xml)
+- Replace the current path data with the official Material Design `self_improvement` (Meditation) path to resolve the reported distortion.
+
+#### [MODIFY] [ic_cat_subconscious.xml](file:///F:/BrainBites/app/src/main/res/drawable/ic_cat_subconscious.xml)
+- Replace the current path data with a cleaner Material Design `brightness_3` (Crescent Moon) path to resolve the reported distortion.
+
+### 2. UI Layer: Fact List Component Upgrade
+
+#### [MODIFY] [BiteCard.kt](file:///F:/BrainBites/app/src/main/java/com/example/brainbites/ui/components/BiteCard.kt)
+- **Category Badge**:
+    - Replace the text-based emoji `Text(text = "${bite.category.iconRes} ...")` with an `Icon` component.
+    - Use `painterResource(id = bite.category.getIconDrawable())` to display the sharp vector icon.
+- **Styling**: Maintain the existing color tinting (Primary green) and 12dp rounded corner surface for the badge.
 
 ## Verification Plan
 
-### Manual Verification
-- **Category Transition**: Open facts from different categories (e.g., "Love & Attraction" vs. "Brain Science"). Verify that the background colors and "Ghost Emojis" change correctly to match the category.
-- **Legibility Check**: Confirm that the fact text and action buttons are easy to read against the gradient.
-- **Visual Consistency**: Compare the background with the category cards in the Explore screen to ensure the "BrainBites Design Language" is consistent.
-- **Dark Mode Check**: Verify the gradient and ghost emojis look high-end in the "Deep Forest" dark theme.
+### Visual Check
+- **Icon Quality**: Open the Explore screen and verify that the "Mental Health" and "Subconscious Mind" icons appear clean and undistorted.
+- **Fact List**: Open any category (e.g., "Brain Science") and verify that every fact card in the list shows the sharp vector icon instead of the old emoji.
+- **Consistency**: Ensure the icons in the list match the ones in the main category grid.
+
+### Build Status
+- **Build**: Successfully compile and verify via `gradle build`.

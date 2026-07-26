@@ -18,6 +18,7 @@ import androidx.compose.ui.draw.rotate
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.graphicsLayer
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
@@ -25,8 +26,8 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.brainbites.data.BiteCategory
 import androidx.lifecycle.viewmodel.compose.viewModel
-import com.example.brainbites.ui.components.BrandHeader
 import com.example.brainbites.ui.theme.BrainBitesTheme
+import com.example.brainbites.ui.util.getIconDrawable
 import kotlinx.coroutines.delay
 
 @Composable
@@ -103,6 +104,7 @@ fun CategoryGridItem(info: CategoryInfo, onClick: () -> Unit) {
         elevation = CardDefaults.cardElevation(defaultElevation = 0.dp)
     ) {
         Box(modifier = Modifier.fillMaxSize()) {
+            // Ghost Emoji Background (Kept as requested)
             Text(
                 text = info.category.iconRes,
                 fontSize = 80.sp,
@@ -132,7 +134,13 @@ fun CategoryGridItem(info: CategoryInfo, onClick: () -> Unit) {
                     modifier = Modifier.size(56.dp)
                 ) {
                     Box(contentAlignment = Alignment.Center) {
-                        Text(text = info.category.iconRes, fontSize = 28.sp)
+                        // Main Icon as Vector
+                        Icon(
+                            painter = painterResource(id = info.category.getIconDrawable()),
+                            contentDescription = null,
+                            modifier = Modifier.size(28.dp),
+                            tint = categoryColor
+                        )
                     }
                 }
 

@@ -118,8 +118,8 @@ fun MainScaffold(
                                         saveState = true
                                     }
                                     launchSingleTop = true
-                                    restoreState = screen.route != Screen.HomeHub.route && 
-                                                  screen.route != Screen.ExploreHub.route && 
+                                    restoreState = screen.route != Screen.HomeHub.route &&
+                                                  screen.route != Screen.ExploreHub.route &&
                                                   screen.route != Screen.SavedHub.route
                                 }
                             }

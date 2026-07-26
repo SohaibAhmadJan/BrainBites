@@ -1,10 +1,11 @@
-# Tasks - Fact Detail Background Refinement
+# Tasks - Icon Correction & Fact List Upgrade
 
-- [x] UI Layer: Dynamic Thematic Background
-    - [x] Implement category-based gradient in `FactDetailScreen.kt`
-    - [x] Add semi-transparent "Ghost Emojis" to the background layer
-    - [x] Ensure content legibility and layout stability
-- [x] Verification
-    - [x] Verify background changes per category
-    - [x] Check legibility of text and buttons
-- [x] Update Walkthrough
+- [x] Icon Correction
+    - [x] Update `ic_cat_mental_health.xml` with high-quality meditation path
+    - [x] Update `ic_cat_subconscious.xml` with high-quality moon path
+- [x] UI Component Upgrade
+    - [x] Update `BiteCard.kt` to use vector icons in the category badge
+- [ ] `[ ]` Verification
+    - [ ] Verify "Mental Health" and "Subconscious" icons look correct
+    - [ ] Verify category list cards show vector icons instead of emojis
+- [ ] `[ ]` Update Walkthrough

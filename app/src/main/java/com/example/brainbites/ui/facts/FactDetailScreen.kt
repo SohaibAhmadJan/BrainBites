@@ -22,6 +22,7 @@ import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalClipboardManager
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.AnnotatedString
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
@@ -37,6 +38,7 @@ import com.example.brainbites.data.BiteRepository
 import com.example.brainbites.ui.components.shimmer
 import com.example.brainbites.ui.theme.BrainBitesTheme
 import com.example.brainbites.ui.util.ShareUtils
+import com.example.brainbites.ui.util.getIconDrawable
 
 @Composable
 fun FactDetailScreen(
@@ -81,7 +83,7 @@ fun FactDetailContent(
         } else {
             Box(modifier = Modifier.fillMaxSize()) {
                 FactPage(
-                    fact = fact, 
+                    fact = fact,
                     onToggleBookmark = { onToggleBookmark(fact.id) }
                 )
             }
@@ -110,7 +112,7 @@ fun FactPage(fact: BiteItem, onToggleBookmark: () -> Unit) {
                 )
         )
 
-        // 2. Ghost Emojis Pattern
+        // 2. Ghost Emojis Pattern (Kept as requested)
         Box(modifier = Modifier.fillMaxSize()) {
             Text(
                 text = fact.category.iconRes,
@@ -157,7 +159,7 @@ fun FactPage(fact: BiteItem, onToggleBookmark: () -> Unit) {
                     .height(240.dp)
                     .clip(RoundedCornerShape(24.dp)),
                 elevation = CardDefaults.cardElevation(defaultElevation = 8.dp),
-                border = BorderStroke(1.dp, MaterialTheme.colorScheme.primary.copy(alpha = 0.1f))
+                border = BorderStroke(1.dp, categoryColor.copy(alpha = 0.3f))
             ) {
                 Box(modifier = Modifier.fillMaxSize()) {
                     SubcomposeAsyncImage(
@@ -178,7 +180,13 @@ fun FactPage(fact: BiteItem, onToggleBookmark: () -> Unit) {
                                     .background(MaterialTheme.colorScheme.surfaceVariant),
                                 contentAlignment = Alignment.Center
                             ) {
-                                Text(text = fact.category.iconRes, fontSize = 64.sp)
+                                // Fallback to Vector Icon
+                                Icon(
+                                    painter = painterResource(id = fact.category.getIconDrawable()),
+                                    contentDescription = null,
+                                    modifier = Modifier.size(64.dp),
+                                    tint = categoryColor
+                                )
                             }
                         }
                     )
@@ -197,7 +205,7 @@ fun FactPage(fact: BiteItem, onToggleBookmark: () -> Unit) {
 
                     // Visual Anchoring: Category Label Overlay
                     Surface(
-                        color = MaterialTheme.colorScheme.primary,
+                        color = categoryColor,
                         shape = RoundedCornerShape(8.dp),
                         modifier = Modifier
                             .align(Alignment.BottomStart)

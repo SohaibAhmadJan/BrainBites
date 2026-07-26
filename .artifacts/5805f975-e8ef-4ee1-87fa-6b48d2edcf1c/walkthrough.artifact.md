@@ -1,31 +1,29 @@
-# Walkthrough - Diversified Photography Fix
+# Walkthrough - Icon Refinement & Fact Card Upgrade
 
-I have successfully resolved the issue where different facts in the same category were displaying the same image. Every fact now has a unique and high-quality visual representation.
+I have corrected the distorted category icons and upgraded the fact cards to use sharp vector icons, ensuring a unified and premium visual experience throughout the app.
 
 ## Changes Made
 
-### 1. Robust Uniqueness Mechanism
-- **File**: `BiteRepository.kt`
-- **Problem**: The previous search query was too specific, causing the image service to return the same "perfect match" for every fact in a category.
-- **Solution**:
-    - Simplified the keywords to broaden the pool of available photos.
-    - Used a clean **numerical lock** (`lock=1`, `lock=2`, etc.) based on each fact's unique ID.
-    - **Result**: The image service is now forced to pick a different high-quality photo for every one of the 150 facts.
+### 1. Corrected Distorted Icons
+- **Files**: `ic_cat_mental_health.xml` & `ic_cat_subconscious.xml`
+- **Action**: Replaced the previous vector paths with official, high-quality Material Design paths.
+- **Result**:
+    - **Mental Health**: Now features a clean, professional meditation pose icon.
+    - **Subconscious**: Now features a crisp crescent moon icon.
+    - Both icons are no longer distorted and look sharp on all screen sizes.
 
-### 2. Premium Image Selection
-- **Logic**: Updated the category-to-keyword mapping with high-impact, simple terms like "romance", "achievement", and "mystery".
-- **Result**: Images remain highly relevant to the psychological themes while providing much-needed visual variety.
-
-### 3. High-Density Visuals
-- **File**: `BiteRepository.kt`
-- **Action**: Maintained the **1200x800** resolution.
-- **Result**: Every unique image is sharp and professional across all device screen sizes.
+### 2. Fact Card Icon Upgrade
+- **File**: `BiteCard.kt`
+- **Action**: Updated the category badge on every fact card. Removed the old text-based emojis and replaced them with sharp vector icons.
+- **Visuals**:
+    - The icons are perfectly sized (14dp) and tinted with the primary theme color.
+    - They sit neatly next to the category name, creating a modern and consistent design language across all lists (Categories, Favorites, and History).
 
 ## Verification Results
 
-### Variety Check
-- **Category Deep Dive**: Verified that opening 10 facts in "Human Behavior" now results in **10 completely different unique photographs**.
-- **Persistence**: Verified that the "lock" mechanism works correctly—the same fact will always show the same unique image every time you view it.
+### Visual Check
+- **Icon Quality**: Verified that "Mental Health" and "Subconscious Mind" icons in the Explore grid are now perfectly formed.
+- **Unified Style**: Confirmed that opening any category list now shows the new sharp icons on every card, matching the main dashboard.
 
 ### Build Status
 - **Build**: Successfully compiled and verified via `gradle build`.
