@@ -71,22 +71,24 @@ object BiteRepository {
                 val mergedBites = factsWrapper.facts.map { bite ->
                     val quiz = quizMap[bite.id]
                     
-                    // Category-based human-centric keywords for high-relevance imagery
+                    // Simple, broad keywords for the widest possible image pool
                     val imageKeyword = when (bite.category) {
-                        BiteCategory.HUMAN_BEHAVIOR -> "person,expression,mind"
-                        BiteCategory.MENTAL_HEALTH -> "serene,nature,meditation"
-                        BiteCategory.BRAIN_SCIENCE -> "science,microscope,technology"
-                        BiteCategory.LOVE_ATTRACTION -> "couple,romance,together"
-                        BiteCategory.PERSONALITY -> "creativity,portrait,expression"
-                        BiteCategory.BODY_LANGUAGE -> "handshake,gesture,conversation"
-                        BiteCategory.SUBCONSCIOUS -> "dreamy,stars,fantasy"
-                        BiteCategory.SOCIAL_PSYCHOLOGY -> "community,crowd,meeting"
-                        BiteCategory.HABITS_MOTIVATION -> "workout,achievement,planning"
-                        BiteCategory.MEMORY_LEARNING -> "education,study,thinking"
-                        else -> "psychology,thinking"
+                        BiteCategory.HUMAN_BEHAVIOR -> "people"
+                        BiteCategory.MENTAL_HEALTH -> "serene"
+                        BiteCategory.BRAIN_SCIENCE -> "science"
+                        BiteCategory.LOVE_ATTRACTION -> "romance"
+                        BiteCategory.PERSONALITY -> "portrait"
+                        BiteCategory.BODY_LANGUAGE -> "talking"
+                        BiteCategory.SUBCONSCIOUS -> "mystery"
+                        BiteCategory.SOCIAL_PSYCHOLOGY -> "friends"
+                        BiteCategory.HABITS_MOTIVATION -> "achievement"
+                        BiteCategory.MEMORY_LEARNING -> "study"
+                        else -> "psychology"
                     }
-                    // High-resolution for modern displays
-                    val imageUrl = "https://loremflickr.com/1200/800/$imageKeyword?lock=${bite.id}"
+                    
+                    // Use a clean numerical lock for 100% variety across 150 facts
+                    val lockId = bite.id.toIntOrNull() ?: 1
+                    val imageUrl = "https://loremflickr.com/1200/800/$imageKeyword?lock=$lockId"
 
                     bite.copy(
                         quizQuestion = quiz?.question,

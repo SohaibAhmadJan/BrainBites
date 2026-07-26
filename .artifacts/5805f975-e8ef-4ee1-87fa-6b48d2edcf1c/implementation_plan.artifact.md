@@ -1,45 +1,23 @@
-# Implementation Plan - Refined Recently Viewed & Global Header
+# Implementation Plan - Fact Detail Background Refinement
 
-Refine the Recently Viewed screen and the entire application's navigation feel by implementing a fixed global header and a modern floating back navigation overlay.
+Apply a premium, category-aware background to the `FactDetailScreen` that replicates the "Ghost Emoji Gradient" style used on the Explore category cards.
 
 ## Proposed Changes
 
-### 1. Global Navigation & Brand Continuity
+### 1. UI Layer: Dynamic Thematic Background
 
-#### [MODIFY] [MainScaffold.kt](file:///F:/BrainBites/app/src/main/java/com/example/brainbites/ui/main/MainScaffold.kt)
-- **Anchored Top Bar**: Restore the `TopAppBar` at the root level. This ensures the header (title and tagline) remains perfectly static during all swiping and navigation.
-- **Dynamic Contextual Title**: Automatically switch the title text (e.g., "Explore", "Recently Viewed") based on the current navigation route.
-- **Modern Overlay Back Button**:
-    - Place a circular, elevated floating button in the top-left of the content area.
-    - It will sit **below** the header area.
-    - Only visible when the user can navigate back.
-
-#### [MODIFY] [BrandHeader.kt](file:///F:/BrainBites/app/src/main/java/com/example/brainbites/ui/components/BrandHeader.kt)
-- Focus purely on branding (Title + Tagline).
-- Ensure it continues to observe the global `TaglineManager` for perfect 40s/8s synchronization.
-
-### 2. Screen Optimization (Removing Local Headers)
-
-#### [MODIFY] All Screens
-- Remove local `Scaffold` and `TopAppBar` from:
-    - `HomeScreen.kt`
-    - `CategoryListScreen.kt`
-    - `FavoritesScreen.kt`
-    - `HistoryScreen.kt`
-    - `FactListScreen.kt`
-    - `FactDetailScreen.kt`
-- This eliminates "Double Headers" and ensures the content always starts exactly where it should.
-
-### 3. Visual Polish for "Recently Viewed"
-
-#### [MODIFY] [HistoryScreen.kt](file:///F:/BrainBites/app/src/main/java/com/example/brainbites/ui/history/HistoryScreen.kt)
-- Refine the list layout to utilize the new global structure.
-- Ensure the "Recently Viewed" title is elegantly displayed in the fixed top bar.
+#### [MODIFY] [FactDetailScreen.kt](file:///F:/BrainBites/app/src/main/java/com/example/brainbites/ui/facts/FactDetailScreen.kt)
+- **Background Component**: Implement a background layer for the `FactPage` that includes:
+    - **Category Gradient**: A vertical gradient brush that starts with the theme's background color at the top and transitions into a soft version of the category's specific color (e.g., `#A8DADC` for Human Behavior) at the bottom.
+    - **Ghost Emojis**: Place a few large, semi-transparent (alpha ~0.08), and rotated category emojis (the `iconRes`) in the background to create a subtle, premium pattern.
+- **Layout Adjustments**:
+    - Wrap the current content in a `Box` to allow for the layered background.
+    - Ensure the content (Image Card, Text, Buttons) remains sharp and legible over the new background.
 
 ## Verification Plan
 
 ### Manual Verification
-- **Header Stability**: Swipe between tabs and verify the tagline/branding does not move or flicker.
-- **Back Navigation**: Verify the floating circular arrow appears only when needed and stays below the main brand header.
-- **Alignment**: Confirmed "Recently Viewed" title is correctly positioned in the global bar.
-- **Sync**: Verify tagline follows 40s/8s rule globally.
+- **Category Transition**: Open facts from different categories (e.g., "Love & Attraction" vs. "Brain Science"). Verify that the background colors and "Ghost Emojis" change correctly to match the category.
+- **Legibility Check**: Confirm that the fact text and action buttons are easy to read against the gradient.
+- **Visual Consistency**: Compare the background with the category cards in the Explore screen to ensure the "BrainBites Design Language" is consistent.
+- **Dark Mode Check**: Verify the gradient and ghost emojis look high-end in the "Deep Forest" dark theme.

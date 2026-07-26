@@ -6,17 +6,23 @@ import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.ContentCopy
 import androidx.compose.material.icons.filled.Favorite
 import androidx.compose.material.icons.filled.FavoriteBorder
+import androidx.compose.material.icons.filled.Share
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.platform.LocalClipboardManager
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.text.AnnotatedString
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
@@ -30,6 +36,7 @@ import com.example.brainbites.data.BiteItem
 import com.example.brainbites.data.BiteRepository
 import com.example.brainbites.ui.components.shimmer
 import com.example.brainbites.ui.theme.BrainBitesTheme
+import com.example.brainbites.ui.util.ShareUtils
 
 @Composable
 fun FactDetailScreen(
@@ -67,7 +74,6 @@ fun FactDetailContent(
     onToggleBookmark: (String) -> Unit
 ) {
     Column(modifier = Modifier.fillMaxSize()) {
-        // Content Area (Back button handled by MainScaffold)
         if (fact == null) {
             Box(Modifier.padding(top = 40.dp).fillMaxSize(), contentAlignment = Alignment.Center) {
                 CircularProgressIndicator()
@@ -86,112 +92,214 @@ fun FactDetailContent(
 @Composable
 fun FactPage(fact: BiteItem, onToggleBookmark: () -> Unit) {
     val context = LocalContext.current
+    val categoryColor = Color(android.graphics.Color.parseColor(fact.category.colorHex))
     
-    Column(
-        modifier = Modifier.fillMaxSize().padding(32.dp),
-        horizontalAlignment = Alignment.CenterHorizontally,
-        verticalArrangement = Arrangement.Center
-    ) {
-        // High-Quality Image Card with Contextual Overlay
-        Card(
-            shape = RoundedCornerShape(24.dp),
+    Box(modifier = Modifier.fillMaxSize()) {
+        // --- BACKGROUND LAYER ---
+        // 1. Dynamic Category Gradient
+        Box(
             modifier = Modifier
-                .fillMaxWidth()
-                .height(240.dp)
-                .clip(RoundedCornerShape(24.dp)),
-            elevation = CardDefaults.cardElevation(defaultElevation = 8.dp),
-            border = BorderStroke(1.dp, MaterialTheme.colorScheme.primary.copy(alpha = 0.1f))
-        ) {
-            Box(modifier = Modifier.fillMaxSize()) {
-                SubcomposeAsyncImage(
-                    model = ImageRequest.Builder(LocalContext.current)
-                        .data(fact.imageUrl)
-                        .crossfade(600)
-                        .build(),
-                    contentDescription = null,
-                    contentScale = ContentScale.Crop,
-                    modifier = Modifier.fillMaxSize(),
-                    loading = {
-                        Box(modifier = Modifier.fillMaxSize().shimmer())
-                    },
-                    error = {
-                        // High-End Fallback
-                        Box(
-                            modifier = Modifier
-                                .fillMaxSize()
-                                .background(MaterialTheme.colorScheme.surfaceVariant),
-                            contentAlignment = Alignment.Center
-                        ) {
-                            Text(text = fact.category.iconRes, fontSize = 64.sp)
-                        }
-                    }
-                )
-
-                // Sublayer: Subtle Gradient for label legibility
-                Box(
-                    modifier = Modifier
-                        .fillMaxSize()
-                        .background(
-                            Brush.verticalGradient(
-                                colors = listOf(Color.Transparent, Color.Black.copy(alpha = 0.4f)),
-                                startY = 400f
-                            )
+                .fillMaxSize()
+                .background(
+                    Brush.verticalGradient(
+                        colors = listOf(
+                            MaterialTheme.colorScheme.background,
+                            categoryColor.copy(alpha = 0.15f)
                         )
-                )
-
-                // Visual Anchoring: Category Label Overlay (Premium Context)
-                Surface(
-                    color = MaterialTheme.colorScheme.primary,
-                    shape = RoundedCornerShape(8.dp),
-                    modifier = Modifier
-                        .align(Alignment.BottomStart)
-                        .padding(16.dp)
-                ) {
-                    Text(
-                        text = fact.category.displayName.uppercase(),
-                        color = Color.White,
-                        fontSize = 10.sp,
-                        fontWeight = FontWeight.Black,
-                        modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp)
                     )
-                }
-            }
+                )
+        )
+
+        // 2. Ghost Emojis Pattern
+        Box(modifier = Modifier.fillMaxSize()) {
+            Text(
+                text = fact.category.iconRes,
+                fontSize = 120.sp,
+                modifier = Modifier
+                    .align(Alignment.TopStart)
+                    .offset(x = (-20).dp, y = 40.dp)
+                    .alpha(0.08f)
+                    .graphicsLayer(rotationZ = -15f)
+            )
+            Text(
+                text = fact.category.iconRes,
+                fontSize = 180.sp,
+                modifier = Modifier
+                    .align(Alignment.CenterEnd)
+                    .offset(x = 40.dp, y = 100.dp)
+                    .alpha(0.06f)
+                    .graphicsLayer(rotationZ = 20f)
+            )
+            Text(
+                text = fact.category.iconRes,
+                fontSize = 140.sp,
+                modifier = Modifier
+                    .align(Alignment.BottomStart)
+                    .offset(x = (-10).dp, y = 20.dp)
+                    .alpha(0.07f)
+                    .graphicsLayer(rotationZ = -10f)
+            )
         }
 
-        Spacer(modifier = Modifier.height(32.dp))
-        
-        Text(
-            text = fact.fact,
-            style = MaterialTheme.typography.headlineMedium,
-            color = MaterialTheme.colorScheme.primary,
-            textAlign = TextAlign.Center,
-            lineHeight = 34.sp,
-            fontWeight = FontWeight.Medium
-        )
-        
-        Spacer(modifier = Modifier.height(48.dp))
-        
-        Row(horizontalArrangement = Arrangement.spacedBy(16.dp)) {
-            Button(
-                onClick = {
-                    onToggleBookmark()
-                    val message = if (fact.isBookmarked) "Removed from favorites" else "Added to favorites"
-                    Toast.makeText(context, message, Toast.LENGTH_SHORT).show()
-                },
-                colors = ButtonDefaults.buttonColors(
-                    containerColor = MaterialTheme.colorScheme.surface, 
-                    contentColor = MaterialTheme.colorScheme.primary
-                ),
-                elevation = ButtonDefaults.buttonElevation(defaultElevation = 2.dp)
+        // --- CONTENT LAYER ---
+        Column(
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(32.dp),
+            horizontalAlignment = Alignment.CenterHorizontally,
+            verticalArrangement = Arrangement.Center
+        ) {
+            // High-Quality Image Card with Contextual Overlay
+            Card(
+                shape = RoundedCornerShape(24.dp),
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(240.dp)
+                    .clip(RoundedCornerShape(24.dp)),
+                elevation = CardDefaults.cardElevation(defaultElevation = 8.dp),
+                border = BorderStroke(1.dp, MaterialTheme.colorScheme.primary.copy(alpha = 0.1f))
             ) {
-                Icon(
-                    imageVector = if (fact.isBookmarked) Icons.Default.Favorite else Icons.Default.FavoriteBorder,
-                    contentDescription = null,
-                    tint = if (fact.isBookmarked) Color.Red else MaterialTheme.colorScheme.primary,
-                    modifier = Modifier.size(18.dp)
-                )
-                Spacer(modifier = Modifier.width(8.dp))
-                Text(if (fact.isBookmarked) "Saved" else "Save")
+                Box(modifier = Modifier.fillMaxSize()) {
+                    SubcomposeAsyncImage(
+                        model = ImageRequest.Builder(LocalContext.current)
+                            .data(fact.imageUrl)
+                            .crossfade(600)
+                            .build(),
+                        contentDescription = null,
+                        contentScale = ContentScale.Crop,
+                        modifier = Modifier.fillMaxSize(),
+                        loading = {
+                            Box(modifier = Modifier.fillMaxSize().shimmer())
+                        },
+                        error = {
+                            Box(
+                                modifier = Modifier
+                                    .fillMaxSize()
+                                    .background(MaterialTheme.colorScheme.surfaceVariant),
+                                contentAlignment = Alignment.Center
+                            ) {
+                                Text(text = fact.category.iconRes, fontSize = 64.sp)
+                            }
+                        }
+                    )
+
+                    // Sublayer: Gradient for label legibility
+                    Box(
+                        modifier = Modifier
+                            .fillMaxSize()
+                            .background(
+                                Brush.verticalGradient(
+                                    colors = listOf(Color.Transparent, Color.Black.copy(alpha = 0.4f)),
+                                    startY = 400f
+                                )
+                            )
+                    )
+
+                    // Visual Anchoring: Category Label Overlay
+                    Surface(
+                        color = MaterialTheme.colorScheme.primary,
+                        shape = RoundedCornerShape(8.dp),
+                        modifier = Modifier
+                            .align(Alignment.BottomStart)
+                            .padding(16.dp)
+                    ) {
+                        Text(
+                            text = fact.category.displayName.uppercase(),
+                            color = Color.White,
+                            fontSize = 10.sp,
+                            fontWeight = FontWeight.Black,
+                            modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp)
+                        )
+                    }
+                }
+            }
+
+            Spacer(modifier = Modifier.height(32.dp))
+            
+            Text(
+                text = fact.fact,
+                style = MaterialTheme.typography.headlineMedium,
+                color = MaterialTheme.colorScheme.primary,
+                textAlign = TextAlign.Center,
+                lineHeight = 34.sp,
+                fontWeight = FontWeight.Medium
+            )
+            
+            Spacer(modifier = Modifier.height(48.dp))
+            
+            Row(
+                horizontalArrangement = Arrangement.spacedBy(12.dp),
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                val clipboardManager = LocalClipboardManager.current
+                
+                // Save Button
+                Button(
+                    onClick = {
+                        onToggleBookmark()
+                        val message = if (fact.isBookmarked) "Removed from favorites" else "Added to favorites"
+                        Toast.makeText(context, message, Toast.LENGTH_SHORT).show()
+                    },
+                    colors = ButtonDefaults.buttonColors(
+                        containerColor = MaterialTheme.colorScheme.surface, 
+                        contentColor = MaterialTheme.colorScheme.primary
+                    ),
+                    elevation = ButtonDefaults.buttonElevation(defaultElevation = 2.dp),
+                    modifier = Modifier.weight(1f),
+                    contentPadding = PaddingValues(horizontal = 8.dp)
+                ) {
+                    Icon(
+                        imageVector = if (fact.isBookmarked) Icons.Default.Favorite else Icons.Default.FavoriteBorder,
+                        contentDescription = null,
+                        tint = if (fact.isBookmarked) Color.Red else MaterialTheme.colorScheme.primary,
+                        modifier = Modifier.size(18.dp)
+                    )
+                    Spacer(modifier = Modifier.width(4.dp))
+                    Text(if (fact.isBookmarked) "Saved" else "Save", fontSize = 12.sp)
+                }
+
+                // Share Button
+                Button(
+                    onClick = { ShareUtils.shareFact(context, fact.fact) },
+                    colors = ButtonDefaults.buttonColors(
+                        containerColor = MaterialTheme.colorScheme.surface, 
+                        contentColor = MaterialTheme.colorScheme.primary
+                    ),
+                    elevation = ButtonDefaults.buttonElevation(defaultElevation = 2.dp),
+                    modifier = Modifier.weight(1f),
+                    contentPadding = PaddingValues(horizontal = 8.dp)
+                ) {
+                    Icon(
+                        imageVector = Icons.Default.Share,
+                        contentDescription = null,
+                        modifier = Modifier.size(18.dp)
+                    )
+                    Spacer(modifier = Modifier.width(4.dp))
+                    Text("Share", fontSize = 12.sp)
+                }
+
+                // Copy Button
+                Button(
+                    onClick = { 
+                        clipboardManager.setText(AnnotatedString(fact.fact))
+                        Toast.makeText(context, "Fact copied to clipboard", Toast.LENGTH_SHORT).show()
+                    },
+                    colors = ButtonDefaults.buttonColors(
+                        containerColor = MaterialTheme.colorScheme.surface, 
+                        contentColor = MaterialTheme.colorScheme.primary
+                    ),
+                    elevation = ButtonDefaults.buttonElevation(defaultElevation = 2.dp),
+                    modifier = Modifier.weight(1f),
+                    contentPadding = PaddingValues(horizontal = 8.dp)
+                ) {
+                    Icon(
+                        imageVector = Icons.Default.ContentCopy,
+                        contentDescription = null,
+                        modifier = Modifier.size(18.dp)
+                    )
+                    Spacer(modifier = Modifier.width(4.dp))
+                    Text("Copy", fontSize = 12.sp)
+                }
             }
         }
     }

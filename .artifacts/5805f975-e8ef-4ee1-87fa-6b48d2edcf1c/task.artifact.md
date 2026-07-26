@@ -1,10 +1,10 @@
-# Tasks - Modern Overlay Back Button
+# Tasks - Fact Detail Background Refinement
 
-- [x] Implementation
-    - [x] Update `BrandHeader.kt`: Remove `onBack` logic and parameters
-    - [x] Update `MainScaffold.kt`: Add floating circular back button logic
+- [x] UI Layer: Dynamic Thematic Background
+    - [x] Implement category-based gradient in `FactDetailScreen.kt`
+    - [x] Add semi-transparent "Ghost Emojis" to the background layer
+    - [x] Ensure content legibility and layout stability
 - [x] Verification
-    - [x] Verify back arrow is removed from top branding header
-    - [x] Verify circular floating button appears only when deep in navigation
-    - [x] Test click functionality and visual depth
+    - [x] Verify background changes per category
+    - [x] Check legibility of text and buttons
 - [x] Update Walkthrough

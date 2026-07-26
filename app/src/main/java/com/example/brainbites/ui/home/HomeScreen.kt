@@ -86,7 +86,7 @@ fun HomeScreenContent(
         }
     }
 
-    Column(modifier = Modifier.fillMaxSize()) {
+    Box(modifier = Modifier.fillMaxSize()) {
         Crossfade(targetState = isContentReady, animationSpec = tween(600), label = "homeContent") { ready ->
             if (ready) {
                 LazyColumn(
@@ -216,7 +216,7 @@ fun HomeScreenContent(
 }
 
 @Composable
-fun FactOfTheDayCard(fact: BiteItem, onToggleBookmark: () -> Unit, onClick: () -> Unit) {
+fun FactOfTheDayCard(fact: BiteItem, onToggleBookmark: (String) -> Unit, onClick: () -> Unit) {
     val context = LocalContext.current
 
     Card(
@@ -273,7 +273,7 @@ fun FactOfTheDayCard(fact: BiteItem, onToggleBookmark: () -> Unit, onClick: () -
                 Row {
                     IconButton(
                         onClick = { 
-                            onToggleBookmark()
+                            onToggleBookmark(fact.id)
                             val message = if (fact.isBookmarked) "Removed from favorites" else "Added to favorites"
                             Toast.makeText(context, message, Toast.LENGTH_SHORT).show()
                         },
