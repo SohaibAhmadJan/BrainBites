@@ -107,7 +107,8 @@ fun MainContent() {
                     ) { backStackEntry ->
                         val factId = backStackEntry.arguments?.getString("factId") ?: ""
                         FactDetailScreen(
-                            initialFactId = factId
+                            initialFactId = factId,
+                            onBack = { nestedNavController.popBackStack() }
                         )
                     }
                 }
@@ -142,7 +143,8 @@ fun MainContent() {
                     ) { backStackEntry ->
                         val factId = backStackEntry.arguments?.getString("factId") ?: ""
                         FactDetailScreen(
-                            initialFactId = factId
+                            initialFactId = factId,
+                            onBack = { nestedNavController.popBackStack() }
                         )
                     }
                 }
@@ -165,7 +167,8 @@ fun MainContent() {
                     ) { backStackEntry ->
                         val factId = backStackEntry.arguments?.getString("factId") ?: ""
                         FactDetailScreen(
-                            initialFactId = factId
+                            initialFactId = factId,
+                            onBack = { nestedNavController.popBackStack() }
                         )
                     }
                 }

@@ -1,25 +1,34 @@
-# Walkthrough - Unified Quiz and Teaser Headers
+# Walkthrough - High-Quality & Contextual Visuals
 
-I have refactored the Quiz and Daily Teaser screens to align with the application's premium global header system, resolving the "double back arrow" issue and standardizing the typography.
+I have successfully re-implemented and refined the image integration feature for the `FactDetailScreen`, ensuring that every psychology fact is accompanied by a meaningful, high-resolution visual.
 
 ## Changes Made
 
-### 1. Global Header Integration
-- **File**: [MainScaffold.kt](file:///F:/BrainBites/app/src/main/java/com/example/brainbites/ui/main/MainScaffold.kt)
-- **Action**: Added title mapping for the Quiz and Daily Teaser routes.
-- **Result**: The "Psychology Quiz" and "Daily Teaser" titles now appear in the fixed global header, ensuring they don't move when you swipe or scroll. They use the same **22sp Bold** style as the "Recent Facts" and "BrainBites" headers.
+### 1. High-Resolution Human-Centric Imagery
+- **Quality Upgrade**: Increased the image resolution to **1200x800**. Photography is now crisp and professional across all devices.
+- **Relatability**: Overhauled the keyword system to focus on "Human-Centric" photography.
+    - *Examples*: "serene meditation" for Mental Health, "togetherness" for Love & Attraction. This ensures the visuals are understandable and engaging for both children (10+) and adults.
 
-### 2. Header Cleanup & Consistency
-- **Files**: [QuizScreen.kt](file:///F:/BrainBites/app/src/main/java/com/example/brainbites/ui/quiz/QuizScreen.kt), [DailyTeaserScreen.kt](file:///F:/BrainBites/app/src/main/java/com/example/brainbites/ui/teaser/DailyTeaserScreen.kt)
-- **Action**: Removed the internal `Scaffold` and local `TopAppBar` from both screens.
-- **Result**:
-    - The duplicate back arrow in the header is gone.
-    - Navigation is now handled exclusively by the **Modern Floating Back Button**, creating a more consistent and premium "overlay" feel.
-    - The content now correctly utilizes the parent padding, fixing any "downward push" issues.
+### 2. Smart Contextual Overlays
+- **File**: `FactDetailScreen.kt`
+- **Feature**: Added a high-contrast **Category Label Overlay** (e.g., "HUMAN BEHAVIOR") on the bottom corner of each image.
+- **Why**: This provides instant context, helping users immediately connect the photography with the psychological principle being discussed.
+
+### 3. Premium UI & Stability
+- **Transitions**: Implemented a **600ms smooth crossfade** for a high-end feel as the image loads.
+- **Placeholder**: Maintained the **Shimmering Placeholder** system to ensure the UI feels alive even during slow downloads.
+- **Layout Consistency**: Locked the image card to a **240dp height**, providing a strong visual anchor without causing the text below to jump or move.
+
+### 4. Technical Reliability
+- **Permissions**: Verified the `INTERNET` permission in the manifest to ensure images load consistently.
+- **Navigation**: Synchronized the navigation backstack to ensure the floating back button remains functional and centered.
 
 ## Verification Results
 
-### Interaction Check
-- **Quiz Section**: Verified that entering the Quiz Mode shows exactly one back arrow (the floating green square) and a correctly sized title.
-- **Daily Teaser**: Confirmed identical visual consistency and navigation behavior.
-- **Build Status**: Successfully compiled and verified via `gradle build`.
+### Visual Check
+- **Sharpness**: Verified images are no longer pixelated.
+- **Relevance**: Confirmed photography accurately reflects the category themes.
+- **Understanding**: Verified that the Category Label provides the necessary bridge between the fact and the image.
+
+### Build Status
+- **Build**: Successfully compiled and verified via `gradle build`.

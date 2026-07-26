@@ -70,11 +70,30 @@ object BiteRepository {
                 // Merge Data
                 val mergedBites = factsWrapper.facts.map { bite ->
                     val quiz = quizMap[bite.id]
+                    
+                    // Category-based human-centric keywords for high-relevance imagery
+                    val imageKeyword = when (bite.category) {
+                        BiteCategory.HUMAN_BEHAVIOR -> "person,expression,mind"
+                        BiteCategory.MENTAL_HEALTH -> "serene,nature,meditation"
+                        BiteCategory.BRAIN_SCIENCE -> "science,microscope,technology"
+                        BiteCategory.LOVE_ATTRACTION -> "couple,romance,together"
+                        BiteCategory.PERSONALITY -> "creativity,portrait,expression"
+                        BiteCategory.BODY_LANGUAGE -> "handshake,gesture,conversation"
+                        BiteCategory.SUBCONSCIOUS -> "dreamy,stars,fantasy"
+                        BiteCategory.SOCIAL_PSYCHOLOGY -> "community,crowd,meeting"
+                        BiteCategory.HABITS_MOTIVATION -> "workout,achievement,planning"
+                        BiteCategory.MEMORY_LEARNING -> "education,study,thinking"
+                        else -> "psychology,thinking"
+                    }
+                    // High-resolution for modern displays
+                    val imageUrl = "https://loremflickr.com/1200/800/$imageKeyword?lock=${bite.id}"
+
                     bite.copy(
                         quizQuestion = quiz?.question,
                         quizOptions = quiz?.options,
                         correctAnswerIndex = quiz?.correctIndex,
-                        teaserType = quiz?.teaserType
+                        teaserType = quiz?.teaserType,
+                        imageUrl = imageUrl
                     )
                 }
                 
