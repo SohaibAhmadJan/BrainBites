@@ -10,6 +10,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.brainbites.ui.util.TaglineManager
@@ -22,17 +23,36 @@ fun BrandHeader(
     val currentTagline by TaglineManager.currentTagline.collectAsState()
     val jumpTrigger by TaglineManager.jumpTrigger.collectAsState()
 
-    Row(
-        verticalAlignment = Alignment.CenterVertically
-    ) {
-        Column {
-            AnimatedTagline(text = currentTagline, key = jumpTrigger)
+    Column {
+        AnimatedTagline(text = currentTagline, key = jumpTrigger)
+        Row(
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.spacedBy(8.dp)
+        ) {
+            if (title == "BrainBites") {
+                BrainBitesLogo(
+                    modifier = Modifier.size(28.dp),
+                    color = MaterialTheme.colorScheme.primary
+                )
+            }
             Text(
                 text = title,
                 fontWeight = FontWeight.Bold,
                 color = MaterialTheme.colorScheme.primary,
                 fontSize = 22.sp
             )
+        }
+    }
+}
+
+@Preview(showBackground = true)
+@Composable
+fun BrandHeaderPreview() {
+    com.example.brainbites.ui.theme.BrainBitesTheme {
+        Column(modifier = Modifier.padding(16.dp)) {
+            BrandHeader(title = "BrainBites")
+            Spacer(modifier = Modifier.height(16.dp))
+            BrandHeader(title = "Explore")
         }
     }
 }

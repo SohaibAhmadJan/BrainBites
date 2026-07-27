@@ -21,10 +21,10 @@ import com.example.brainbites.ui.theme.BrainBitesTheme
  */
 @Composable
 fun BrainBitesLogo(
-    modifier: Modifier = Modifier,
+    modifier: Modifier = Modifier.size(120.dp),
     color: Color = DarkGreenPrimary
 ) {
-    Canvas(modifier = modifier.size(120.dp)) {
+    Canvas(modifier = modifier) {
         val center = Offset(size.width / 2, size.height / 2)
         val radius = size.minDimension / 2.2f
 

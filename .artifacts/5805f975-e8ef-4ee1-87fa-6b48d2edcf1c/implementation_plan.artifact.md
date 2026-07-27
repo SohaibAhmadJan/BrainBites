@@ -1,31 +1,30 @@
-# Implementation Plan - Icon Fixes & Fact List Upgrade
+# Implementation Plan - Add Logo to Home Heading
 
-Correct the visual distortion in specific category icons and ensure that the fact cards within category lists use professional vector icons instead of old emojis.
+The user wants to add the Brain Bites logo to the "BrainBites" heading on the home screen, so it appears as **(Logo)BrainBites**. I will integrate the existing `BrainBitesLogo` component into the `BrandHeader` component, which is responsible for rendering the top bar titles.
+
+## User Review Required
+
+> [!IMPORTANT]
+> I will be modifying the `BrainBitesLogo` component to allow external size control. This will affect its usage in the `SplashScreen`, ensuring it respects the requested 140.dp size instead of being forced to 120.dp.
 
 ## Proposed Changes
 
-### 1. Resource Layer: Icon Correction
+### UI Components
 
-#### [MODIFY] [ic_cat_mental_health.xml](file:///F:/BrainBites/app/src/main/res/drawable/ic_cat_mental_health.xml)
-- Replace the current path data with the official Material Design `self_improvement` (Meditation) path to resolve the reported distortion.
+#### [MODIFY] [BrainBitesLogo.kt](file:///F:/BrainBites/app/src/main/java/com/example/brainbites/ui/components/BrainBitesLogo.kt)
+- Remove the hardcoded `.size(120.dp)` from the `Canvas` modifier to allow callers to define the size.
+- Add a default `Modifier.size(120.dp)` to the parameter to maintain existing behavior for simple calls.
 
-#### [MODIFY] [ic_cat_subconscious.xml](file:///F:/BrainBites/app/src/main/res/drawable/ic_cat_subconscious.xml)
-- Replace the current path data with a cleaner Material Design `brightness_3` (Crescent Moon) path to resolve the reported distortion.
-
-### 2. UI Layer: Fact List Component Upgrade
-
-#### [MODIFY] [BiteCard.kt](file:///F:/BrainBites/app/src/main/java/com/example/brainbites/ui/components/BiteCard.kt)
-- **Category Badge**:
-    - Replace the text-based emoji `Text(text = "${bite.category.iconRes} ...")` with an `Icon` component.
-    - Use `painterResource(id = bite.category.getIconDrawable())` to display the sharp vector icon.
-- **Styling**: Maintain the existing color tinting (Primary green) and 12dp rounded corner surface for the badge.
+#### [MODIFY] [BrandHeader.kt](file:///F:/BrainBites/app/src/main/java/com/example/brainbites/ui/components/BrandHeader.kt)
+- Add `BrainBitesLogo` inside the `BrandHeader` layout.
+- Conditionally show the logo only when the `title` is "BrainBites".
+- Align the logo horizontally with the title text.
 
 ## Verification Plan
 
-### Visual Check
-- **Icon Quality**: Open the Explore screen and verify that the "Mental Health" and "Subconscious Mind" icons appear clean and undistorted.
-- **Fact List**: Open any category (e.g., "Brain Science") and verify that every fact card in the list shows the sharp vector icon instead of the old emoji.
-- **Consistency**: Ensure the icons in the list match the ones in the main category grid.
+### Automated Tests
+- I will run `app:assembleDebug` to ensure the project still compiles.
 
-### Build Status
-- **Build**: Successfully compile and verify via `gradle build`.
+### Manual Verification
+- I will use `render_compose_preview` on `BrandHeader` (after adding a preview) to verify the layout.
+- I will also check `SplashScreen` to ensure the logo still looks correct.

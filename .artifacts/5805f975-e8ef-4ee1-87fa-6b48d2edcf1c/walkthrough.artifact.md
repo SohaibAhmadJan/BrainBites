@@ -1,29 +1,24 @@
-# Walkthrough - Icon Refinement & Fact Card Upgrade
+# Walkthrough - Logo added to Home Heading
 
-I have corrected the distorted category icons and upgraded the fact cards to use sharp vector icons, ensuring a unified and premium visual experience throughout the app.
+I have successfully added the Brain Bites logo to the main heading on the home screen.
 
 ## Changes Made
 
-### 1. Corrected Distorted Icons
-- **Files**: `ic_cat_mental_health.xml` & `ic_cat_subconscious.xml`
-- **Action**: Replaced the previous vector paths with official, high-quality Material Design paths.
-- **Result**:
-    - **Mental Health**: Now features a clean, professional meditation pose icon.
-    - **Subconscious**: Now features a crisp crescent moon icon.
-    - Both icons are no longer distorted and look sharp on all screen sizes.
+### UI Components
 
-### 2. Fact Card Icon Upgrade
-- **File**: `BiteCard.kt`
-- **Action**: Updated the category badge on every fact card. Removed the old text-based emojis and replaced them with sharp vector icons.
-- **Visuals**:
-    - The icons are perfectly sized (14dp) and tinted with the primary theme color.
-    - They sit neatly next to the category name, creating a modern and consistent design language across all lists (Categories, Favorites, and History).
+#### [BrainBitesLogo.kt](file:///F:/BrainBites/app/src/main/java/com/example/brainbites/ui/components/BrainBitesLogo.kt)
+- Refactored the component to allow callers to specify the size via the `modifier` parameter. This was necessary to scale the logo down for the top bar while keeping it large for the splash screen.
+
+#### [BrandHeader.kt](file:///F:/BrainBites/app/src/main/java/com/example/brainbites/ui/components/BrandHeader.kt)
+- Integrated the `BrainBitesLogo` component into the header.
+- The logo now appears specifically when the title is "BrainBites", aligned horizontally with the text.
+- Added a `Preview` to verify the layout across different titles.
 
 ## Verification Results
 
-### Visual Check
-- **Icon Quality**: Verified that "Mental Health" and "Subconscious Mind" icons in the Explore grid are now perfectly formed.
-- **Unified Style**: Confirmed that opening any category list now shows the new sharp icons on every card, matching the main dashboard.
+### Automated Tests
+- Ran `gradle_build app:assembleDebug` - **Passed**
 
-### Build Status
-- **Build**: Successfully compiled and verified via `gradle build`.
+### Manual Verification
+- Rendered Compose Previews for `BrandHeader` to ensure correct alignment and conditional visibility.
+- Verified that the logo on the `SplashScreen` remains unaffected and displays at its intended larger size.

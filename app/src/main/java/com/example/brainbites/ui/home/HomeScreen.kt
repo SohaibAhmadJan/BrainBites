@@ -1,7 +1,9 @@
 package com.example.brainbites.ui.home
 
+import android.widget.Toast
 import androidx.compose.animation.*
 import androidx.compose.animation.core.*
+import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
@@ -33,13 +35,13 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
+import com.example.brainbites.data.Achievement
 import com.example.brainbites.data.BiteCategory
 import com.example.brainbites.data.BiteItem
 import com.example.brainbites.ui.components.*
 import com.example.brainbites.ui.theme.*
 import com.example.brainbites.ui.util.ShareUtils
 import com.example.brainbites.ui.util.getIconDrawable
-import android.widget.Toast
 import kotlinx.coroutines.delay
 
 @Composable
@@ -54,11 +56,16 @@ fun HomeScreen(
     val allFacts by viewModel.allFacts.collectAsState()
     val rotatingFact by viewModel.rotatingFact.collectAsState()
     val recentlyViewed by viewModel.recentlyViewed.collectAsState()
+    val achievements by viewModel.achievements.collectAsState()
+    val selectedMood by viewModel.selectedMood.collectAsState()
 
     HomeScreenContent(
         allFacts = allFacts,
         factOfTheDay = rotatingFact,
         recentlyViewed = recentlyViewed,
+        achievements = achievements,
+        selectedMood = selectedMood,
+        onMoodSelected = { viewModel.selectMood(it) },
         onNavigateToCategory = onNavigateToCategory,
         onNavigateToDetail = onNavigateToDetail,
         onNavigateToQuiz = onNavigateToQuiz,
@@ -74,6 +81,9 @@ fun HomeScreenContent(
     allFacts: List<BiteItem>,
     factOfTheDay: BiteItem?,
     recentlyViewed: List<BiteItem>,
+    achievements: List<Achievement>,
+    selectedMood: String?,
+    onMoodSelected: (String) -> Unit,
     onNavigateToCategory: (String) -> Unit,
     onNavigateToDetail: (String) -> Unit,
     onNavigateToQuiz: () -> Unit,
@@ -159,7 +169,12 @@ fun HomeScreenContent(
                         }
                     }
 
-                    // 4. Recently Viewed Section
+                    // 4. Daily Mood Section (STRICTLY ADDITIVE)
+                    item {
+                        DailyMoodSection(selectedMood = selectedMood, onMoodSelected = onMoodSelected)
+                    }
+
+                    // 5. Recently Viewed Section
                     if (recentlyViewed.isNotEmpty()) {
                         item {
                             Row(
@@ -191,7 +206,7 @@ fun HomeScreenContent(
                         }
                     }
 
-                    // 5. Next Fact Quick Action (Discover Something New)
+                    // 6. Next Fact Quick Action (Discover Something New)
                     item {
                         Button(
                             onClick = {
@@ -210,10 +225,104 @@ fun HomeScreenContent(
                         }
                     }
 
+                    // 7. Achievements Section (STRICTLY ADDITIVE & AT BOTTOM)
+                    item {
+                        AchievementsSection(achievements = achievements)
+                    }
+
+                    // 8. Trending Quotes Section (STRICTLY ADDITIVE & AT BOTTOM)
+                    item {
+                        TrendingQuotesSection(allFacts = allFacts, onNavigateToDetail = onNavigateToDetail)
+                    }
+
                     item { Spacer(modifier = Modifier.height(20.dp)) }
                 }
             } else {
                 HomeScreenShimmer(PaddingValues(0.dp))
+            }
+        }
+    }
+}
+
+@Composable
+fun DailyMoodSection(selectedMood: String?, onMoodSelected: (String) -> Unit) {
+    Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
+        Text(
+            text = "How are you feeling today?",
+            style = MaterialTheme.typography.titleMedium,
+            color = MaterialTheme.colorScheme.primary,
+            fontWeight = FontWeight.Bold
+        )
+        LazyRow(
+            horizontalArrangement = Arrangement.spacedBy(12.dp)
+        ) {
+            val moods = listOf("😊 Happy", "😌 Calm", "😔 Sad", "😤 Stressed", "💡 Motivated")
+            items(moods) { mood ->
+                val isSelected = selectedMood == mood
+                Surface(
+                    modifier = Modifier.clickable { onMoodSelected(mood) },
+                    shape = RoundedCornerShape(16.dp),
+                    color = if (isSelected) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.surface,
+                    border = if (isSelected) null else BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant)
+                ) {
+                    Text(
+                        text = mood,
+                        modifier = Modifier.padding(horizontal = 16.dp, vertical = 12.dp),
+                        style = MaterialTheme.typography.bodyMedium,
+                        color = if (isSelected) Color.White else MaterialTheme.colorScheme.onSurface
+                    )
+                }
+            }
+        }
+    }
+}
+
+@Composable
+fun AchievementsSection(achievements: List<Achievement>) {
+    Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
+        Text(
+            text = "Achievements",
+            style = MaterialTheme.typography.titleMedium,
+            color = MaterialTheme.colorScheme.primary,
+            fontWeight = FontWeight.Bold
+        )
+        Text(
+            text = "Track your learning journey and unlock milestones.",
+            style = MaterialTheme.typography.labelSmall,
+            color = Color.Gray
+        )
+        LazyRow(
+            horizontalArrangement = Arrangement.spacedBy(16.dp)
+        ) {
+            items(achievements) { achievement ->
+                AchievementCard(achievement = achievement)
+            }
+        }
+    }
+}
+
+@Composable
+fun TrendingQuotesSection(allFacts: List<BiteItem>, onNavigateToDetail: (String) -> Unit) {
+    Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
+        Text(
+            text = "Trending Quotes",
+            style = MaterialTheme.typography.titleMedium,
+            color = MaterialTheme.colorScheme.primary,
+            fontWeight = FontWeight.Bold
+        )
+        val trendingFacts = allFacts.take(6)
+        trendingFacts.chunked(2).forEach { rowFacts ->
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.spacedBy(16.dp)
+            ) {
+                rowFacts.forEach { fact ->
+                    TrendingQuoteCard(
+                        fact = fact,
+                        modifier = Modifier.weight(1f),
+                        onClick = { onNavigateToDetail(fact.id) }
+                    )
+                }
             }
         }
     }
@@ -417,6 +526,9 @@ fun HomeScreenPreview() {
             allFacts = listOf(sampleFact),
             factOfTheDay = sampleFact,
             recentlyViewed = listOf(sampleFact),
+            achievements = emptyList(),
+            selectedMood = null,
+            onMoodSelected = {},
             onNavigateToCategory = {},
             onNavigateToDetail = {},
             onNavigateToQuiz = {},
