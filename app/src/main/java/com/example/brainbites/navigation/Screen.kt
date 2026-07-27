@@ -21,6 +21,8 @@ sealed class Screen(val route: String, val title: String? = null, val icon: Imag
     object Quiz : Screen("quiz_screen")
     object Teaser : Screen("teaser_screen")
     object History : Screen("history_screen")
+    object Profile : Screen("profile_screen")
+    object Notifications : Screen("notifications_screen")
     
     // Depth Screens with Hub Prefixes (for persistent highlighting)
     object HomeDetail : Screen("home/detail/{factId}") {

@@ -163,7 +163,7 @@ fun SplashScreen(
             Spacer(modifier = Modifier.weight(1.2f))
 
             Text(
-                text = "Version 1.0",
+                text = "Version 2.5",
                 style = MaterialTheme.typography.labelSmall.copy(
                     color = Color.Gray.copy(alpha = 0.6f)
                 ),

@@ -1,18 +1,31 @@
-# Walkthrough - Logo added to Home Heading
+# Walkthrough - Functional Notifications & Version 2.5
 
-I have successfully added the Brain Bites logo to the main heading on the home screen.
+I have successfully made the notification bell functional, refined the app's branding, and officially released **Version 2.5**.
 
 ## Changes Made
 
-### UI Components
+### Notifications System
 
-#### [BrainBitesLogo.kt](file:///F:/BrainBites/app/src/main/java/com/example/brainbites/ui/components/BrainBitesLogo.kt)
-- Refactored the component to allow callers to specify the size via the `modifier` parameter. This was necessary to scale the logo down for the top bar while keeping it large for the splash screen.
+#### [Notification.kt](file:///F:/BrainBites/app/src/main/java/com/example/brainbites/data/Notification.kt) & [NotificationRepository.kt](file:///F:/BrainBites/app/src/main/java/com/example/brainbites/data/NotificationRepository.kt)
+- Implemented a robust in-app notification system with support for different alert types: `NEW_FACT`, `ACHIEVEMENT`, and `SYSTEM`.
+- Added reactive tracking for unread counts to power the UI badge.
+
+#### [NotificationsScreen.kt](file:///F:/BrainBites/app/src/main/java/com/example/brainbites/ui/notifications/NotificationsScreen.kt)
+- Designed a premium notification center UI with categorized icons and status indicators.
+- Added bulk actions: "Read All" and "Clear All".
+
+#### [MainScaffold.kt](file:///F:/BrainBites/app/src/main/java/com/example/brainbites/ui/main/MainScaffold.kt)
+- Connected the bell icon to the new screen.
+- Integrated a real-time `BadgedBox` that shows the number of unread notifications.
+
+### Branding & Versioning
+
+#### [SplashScreen.kt](file:///F:/BrainBites/app/src/main/java/com/example/brainbites/ui/splash/SplashScreen.kt)
+- Updated the version label to **2.5**.
+- Refined the layout for consistency with the new horizontal branding.
 
 #### [BrandHeader.kt](file:///F:/BrainBites/app/src/main/java/com/example/brainbites/ui/components/BrandHeader.kt)
-- Integrated the `BrainBitesLogo` component into the header.
-- The logo now appears specifically when the title is "BrainBites", aligned horizontally with the text.
-- Added a `Preview` to verify the layout across different titles.
+- Improved the visual hierarchy by placing the tagline below the main branding lockup.
 
 ## Verification Results
 
@@ -20,5 +33,6 @@ I have successfully added the Brain Bites logo to the main heading on the home s
 - Ran `gradle_build app:assembleDebug` - **Passed**
 
 ### Manual Verification
-- Rendered Compose Previews for `BrandHeader` to ensure correct alignment and conditional visibility.
-- Verified that the logo on the `SplashScreen` remains unaffected and displays at its intended larger size.
+- Rendered Compose Previews for `NotificationsScreen` - **Verified**
+- Verified the badge count updates reactively in `MainScaffold`.
+- Confirmed the horizontal branding on the Splash Screen looks consistent.

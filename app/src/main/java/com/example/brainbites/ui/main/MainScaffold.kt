@@ -11,6 +11,7 @@ import androidx.compose.material.icons.filled.Share
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.collectAsState
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -23,6 +24,7 @@ import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
 import com.example.brainbites.navigation.Screen
 import com.example.brainbites.navigation.bottomNavItems
+import com.example.brainbites.data.NotificationRepository
 import com.example.brainbites.ui.components.BrandHeader
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -51,6 +53,8 @@ fun MainScaffold(
         currentRoute == Screen.History.route -> "Recently Viewed"
         currentRoute == Screen.Quiz.route -> "Psychology Quiz"
         currentRoute == Screen.Teaser.route -> "Daily Teaser"
+        currentRoute == Screen.Profile.route -> "My Profile"
+        currentRoute == Screen.Notifications.route -> "Notifications"
         currentRoute?.startsWith("explore/list") == true -> "Facts"
         currentRoute?.contains("/detail/") == true -> "Facts"
         else -> "BrainBites"
@@ -63,19 +67,35 @@ fun MainScaffold(
             TopAppBar(
                 title = { BrandHeader(title = currentTitle) },
                 actions = {
-                    IconButton(onClick = { /* Profile Placeholder */ }) {
-                        Icon(
-                            imageVector = Icons.Default.AccountCircle,
-                            contentDescription = "Profile",
-                            tint = MaterialTheme.colorScheme.primary
-                        )
+                    val unreadCount by NotificationRepository.getUnreadCount().collectAsState(initial = 0)
+
+                    if (currentRoute != Screen.Profile.route) {
+                        IconButton(onClick = { navController.navigate(Screen.Profile.route) }) {
+                            Icon(
+                                imageVector = Icons.Default.AccountCircle,
+                                contentDescription = "Profile",
+                                tint = MaterialTheme.colorScheme.primary
+                            )
+                        }
                     }
-                    IconButton(onClick = { /* Notification Placeholder */ }) {
-                        Icon(
-                            imageVector = Icons.Default.Notifications,
-                            contentDescription = "Notifications",
-                            tint = MaterialTheme.colorScheme.primary
-                        )
+                    if (currentRoute != Screen.Notifications.route) {
+                        IconButton(onClick = { navController.navigate(Screen.Notifications.route) }) {
+                            BadgedBox(
+                                badge = {
+                                    if (unreadCount > 0) {
+                                        Badge {
+                                            Text(unreadCount.toString())
+                                        }
+                                    }
+                                }
+                            ) {
+                                Icon(
+                                    imageVector = Icons.Default.Notifications,
+                                    contentDescription = "Notifications",
+                                    tint = MaterialTheme.colorScheme.primary
+                                )
+                            }
+                        }
                     }
                 },
                 colors = TopAppBarDefaults.topAppBarColors(

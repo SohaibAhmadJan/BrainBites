@@ -1,4 +1,7 @@
-- [x] Refactor `BrainBitesLogo.kt` to support custom modifiers (size control)
-- [x] Update `BrandHeader.kt` to show logo next to "BrainBites" title
-- [x] Add Preview to `BrandHeader.kt`
+- [x] Add `Notifications` screen to `Screen.kt`
+- [x] Create `Notification` data model and repository
+- [x] Create `NotificationsViewModel.kt`
+- [x] Implement `NotificationsScreen.kt` UI
+- [x] Register `NotificationsScreen` in `BrainBitesNavGraph.kt`
+- [x] Connect notification bell click in `MainScaffold.kt`
 - [x] Verify build and render previews

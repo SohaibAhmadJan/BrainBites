@@ -21,6 +21,8 @@ import com.example.brainbites.ui.settings.SettingsScreen
 import com.example.brainbites.ui.quiz.QuizScreen
 import com.example.brainbites.ui.teaser.DailyTeaserScreen
 import com.example.brainbites.ui.history.HistoryScreen
+import com.example.brainbites.ui.profile.ProfileScreen
+import com.example.brainbites.ui.notifications.NotificationsScreen
 import com.example.brainbites.ui.main.MainScaffold
 import com.example.brainbites.ui.theme.SoftBackground
 import androidx.compose.material3.Surface
@@ -181,6 +183,14 @@ fun MainContent() {
                     composable(route = Screen.Settings.route) {
                         SettingsScreen()
                     }
+                }
+
+                composable(route = Screen.Profile.route) {
+                    ProfileScreen()
+                }
+
+                composable(route = Screen.Notifications.route) {
+                    NotificationsScreen()
                 }
             }
         }
