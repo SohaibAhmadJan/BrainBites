@@ -1,7 +1,5 @@
-- [x] Add `Notifications` screen to `Screen.kt`
-- [x] Create `Notification` data model and repository
-- [x] Create `NotificationsViewModel.kt`
-- [x] Implement `NotificationsScreen.kt` UI
-- [x] Register `NotificationsScreen` in `BrainBitesNavGraph.kt`
-- [x] Connect notification bell click in `MainScaffold.kt`
-- [x] Verify build and render previews
+- [x] Add `shareApp` and `rateApp` functions to `ShareUtils.kt`
+- [x] Implement `TimePickerDialog` for Notification Time in `SettingsScreen.kt`
+- [x] Implement `AboutDialog` in `SettingsScreen.kt`
+- [x] Connect Share and Rate actions in `SettingsScreen.kt`
+- [x] Verify build and functionality

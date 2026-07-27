@@ -15,25 +15,64 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.tooling.preview.Preview
+import androidx.compose.foundation.lazy.LazyColumn
+import android.app.TimePickerDialog
 import com.example.brainbites.data.theme.ThemeManager
+import com.example.brainbites.ui.util.ShareUtils
 import com.example.brainbites.ui.theme.BrainBitesTheme
 import com.example.brainbites.ui.theme.ThemeMode
 
 @Composable
-fun SettingsScreen(isVisible: Boolean = true) {
+fun SettingsScreen() {
     val context = LocalContext.current
     val currentTheme by ThemeManager.themeMode.collectAsState()
     var notificationsEnabled by remember { mutableStateOf(true) }
+    var selectedTime by remember { mutableStateOf("09:00 AM") }
+    var showAboutDialog by remember { mutableStateOf(false) }
 
-    Box(modifier = Modifier.fillMaxSize()) {
-        Column(
-            modifier = Modifier
-                .fillMaxSize()
-                .padding(16.dp),
-            verticalArrangement = Arrangement.spacedBy(8.dp)
-        ) {
+    val timePickerDialog = TimePickerDialog(
+        context,
+        { _, hour, minute ->
+            val amPm = if (hour < 12) "AM" else "PM"
+            val displayHour = if (hour == 0 || hour == 12) 12 else hour % 12
+            selectedTime = String.format(java.util.Locale.getDefault(), "%02d:%02d %s", displayHour, minute, amPm)
+        },
+        9, 0, false
+    )
+
+    if (showAboutDialog) {
+        AlertDialog(
+            onDismissRequest = { showAboutDialog = false },
+            title = { Text("About BrainBites", fontWeight = FontWeight.Bold) },
+            text = {
+                Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                    Text("Version 2.5", style = MaterialTheme.typography.bodyMedium)
+                    Text(
+                        "BrainBites is your daily companion for psychology facts, mental puzzles, and habit-building insights. Our mission is to make learning about the human mind accessible and engaging for everyone.",
+                        style = MaterialTheme.typography.bodySmall
+                    )
+                    Text("© 2026 BrainBites Team", style = MaterialTheme.typography.labelSmall, color = Color.Gray)
+                }
+            },
+            confirmButton = {
+                TextButton(onClick = { showAboutDialog = false }) {
+                    Text("Close")
+                }
+            },
+            shape = RoundedCornerShape(24.dp)
+        )
+    }
+
+    LazyColumn(
+        modifier = Modifier.fillMaxSize(),
+        contentPadding = PaddingValues(16.dp),
+        verticalArrangement = Arrangement.spacedBy(8.dp)
+    ) {
+        item {
             Text("General", style = MaterialTheme.typography.labelMedium, color = MaterialTheme.colorScheme.primary)
-            
+        }
+        
+        item {
             SettingsToggleItem(
                 title = "Daily Notifications",
                 subtitle = "Receive a new psychology fact every day",
@@ -41,29 +80,41 @@ fun SettingsScreen(isVisible: Boolean = true) {
                 checked = notificationsEnabled,
                 onCheckedChange = { notificationsEnabled = it }
             )
-            
+        }
+        
+        item {
             SettingsActionItem(
                 title = "Notification Time",
-                subtitle = "9:00 AM",
+                subtitle = selectedTime,
                 icon = Icons.Default.Schedule,
-                onClick = { /* Show Time Picker */ }
+                onClick = { timePickerDialog.show() }
             )
+        }
 
-            Spacer(modifier = Modifier.height(16.dp))
+        item { Spacer(modifier = Modifier.height(16.dp)) }
+        
+        item {
             Text("Appearance", style = MaterialTheme.typography.labelMedium, color = MaterialTheme.colorScheme.primary)
-            
+        }
+        
+        item {
             ThemeSelector(
                 selectedMode = currentTheme,
                 onModeSelected = { ThemeManager.setTheme(context, it) }
             )
-
-            Spacer(modifier = Modifier.height(16.dp))
-            Text("App", style = MaterialTheme.typography.labelMedium, color = MaterialTheme.colorScheme.primary)
-
-            SettingsActionItem(title = "Rate App", icon = Icons.Default.Star, onClick = { })
-            SettingsActionItem(title = "Share App", icon = Icons.Default.Share, onClick = { })
-            SettingsActionItem(title = "About BrainBites", icon = Icons.Default.Info, onClick = { })
         }
+
+        item { Spacer(modifier = Modifier.height(16.dp)) }
+        
+        item {
+            Text("App", style = MaterialTheme.typography.labelMedium, color = MaterialTheme.colorScheme.primary)
+        }
+
+        item { SettingsActionItem(title = "Rate App", icon = Icons.Default.Star, onClick = { ShareUtils.rateApp(context) }) }
+        item { SettingsActionItem(title = "Share App", icon = Icons.Default.Share, onClick = { ShareUtils.shareApp(context) }) }
+        item { SettingsActionItem(title = "About BrainBites", icon = Icons.Default.Info, onClick = { showAboutDialog = true }) }
+        
+        item { Spacer(modifier = Modifier.height(24.dp)) }
     }
 }
 
@@ -152,6 +203,6 @@ fun SettingsActionItem(title: String, subtitle: String? = null, icon: ImageVecto
 @Composable
 fun SettingsScreenPreview() {
     BrainBitesTheme {
-        SettingsScreen(isVisible = true)
+        SettingsScreen()
     }
 }

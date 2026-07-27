@@ -1,58 +1,39 @@
-# Implementation Plan - Functional Notifications
+# Implementation Plan - Functional Settings Actions
 
-The user wants to make the notification bell icon functional. I will implement a **Notifications Screen** that displays a list of app-related updates and integrate it into the existing navigation.
+The user wants to make the remaining settings actions functional: Notification Time, Rate App, Share App, and About BrainBites. I will implement these using standard Android intents and Compose dialogs.
 
 ## User Review Required
 
 > [!NOTE]
-> I am adding a new `NotificationsScreen` accessible from the top bar across all root-level screens. This screen will show updates such as "New Fact of the Day," "Achievement Milestones," and "Daily Reminders."
-
-## Proposed Questions
-- Do you want actual Android System Notifications (push notifications) or just an in-app notifications center?
-- For this iteration, I'll focus on an **In-app Notification Center**.
+> - **Notification Time**: Will use the system `TimePickerDialog` to allow users to select a daily reminder time.
+> - **Rate App**: Will attempt to open the Play Store. Since this is a development app, it will fallback to a Toast if the store isn't available.
+> - **Share App**: Will open the system share sheet with a link to the app (placeholder).
+> - **About**: Will show a Material 3 `AlertDialog` with app version and mission information.
 
 ## Proposed Changes
 
-### Navigation & Architecture
+### Utils & Helpers
 
-#### [MODIFY] [Screen.kt](file:///F:/BrainBites/app/src/main/java/com/example/brainbites/navigation/Screen.kt)
-- Add `object Notifications : Screen("notifications_screen")` to the `Screen` sealed class.
-
-#### [MODIFY] [BrainBitesNavGraph.kt](file:///F:/BrainBites/app/src/main/java/com/example/brainbites/navigation/BrainBitesNavGraph.kt)
-- Register `Screen.Notifications.route` in the nested `NavHost`.
-- Provide a `NotificationsScreen` composable linked to a new `NotificationsViewModel`.
-
-### Data Layer
-
-#### [NEW] [Notification.kt](file:///F:/BrainBites/app/src/main/java/com/example/brainbites/data/Notification.kt)
-- Define a `Notification` data class with fields: `id`, `title`, `message`, `timestamp`, and `isRead`.
-
-#### [NEW] [NotificationRepository.kt](file:///F:/BrainBites/app/src/main/java/com/example/brainbites/data/NotificationRepository.kt)
-- Manage a list of in-app notifications.
-- Provide functions to mark notifications as read and clear them.
+#### [MODIFY] [ShareUtils.kt](file:///F:/BrainBites/app/src/main/java/com/example/brainbites/ui/util/ShareUtils.kt)
+- Add `shareApp(context: Context)` to open the system share sheet.
+- Add `rateApp(context: Context)` to open the Play Store.
 
 ### UI Components
 
-#### [NEW] [NotificationsViewModel.kt](file:///F:/BrainBites/app/src/main/java/com/example/brainbites/ui/notifications/NotificationsViewModel.kt)
-- Manage the state of the notifications list and handle "mark as read" logic.
-
-#### [NEW] [NotificationsScreen.kt](file:///F:/BrainBites/app/src/main/java/com/example/brainbites/ui/notifications/NotificationsScreen.kt)
-- Design a clean, list-based UI for notifications.
-- Include "Mark all as read" and "Clear all" actions.
-
-#### [MODIFY] [MainScaffold.kt](file:///F:/BrainBites/app/src/main/java/com/example/brainbites/ui/main/MainScaffold.kt)
-- Update the notification `IconButton` click listener to navigate to `Screen.Notifications.route`.
-- Update `currentTitle` to display "Notifications" when on that screen.
-- Hide the notification icon from the top bar when the user is already on the Notifications screen.
+#### [MODIFY] [SettingsScreen.kt](file:///F:/BrainBites/app/src/main/java/com/example/brainbites/ui/settings/SettingsScreen.kt)
+- Implement `showTimePicker` state and logic using `TimePickerDialog`.
+- Implement `showAboutDialog` state and logic using `AlertDialog`.
+- Connect "Share App" and "Rate App" to `ShareUtils`.
+- Update "Notification Time" subtitle dynamically based on user selection.
 
 ## Verification Plan
 
 ### Automated Tests
-- Run `gradle_build app:assembleDebug` to ensure all new components and navigation links are valid.
+- Run `gradle_build app:assembleDebug` to ensure all new logic and dependencies are correct.
 
 ### Manual Verification
-- Deploy the app and verify:
-    - Clicking the bell icon from Home, Explore, or Saved leads to the Notifications screen.
-    - The "Notifications" title appears correctly.
-    - The bell icon disappears when on the Notifications screen.
-    - Back navigation works correctly from the Notifications screen.
+- Verify that clicking each button triggers the expected action:
+    - **Notification Time**: Opens a time picker; selecting a time updates the UI.
+    - **Rate App**: Opens the Play Store or shows a Toast.
+    - **Share App**: Opens the system share sheet.
+    - **About**: Shows a clear, informative dialog.
