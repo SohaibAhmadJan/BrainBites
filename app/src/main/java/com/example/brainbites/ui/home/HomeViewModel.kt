@@ -8,9 +8,14 @@ import androidx.compose.material.icons.filled.Psychology
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.brainbites.data.Achievement
+import com.example.brainbites.data.AchievementManager
 import com.example.brainbites.data.AchievementStatus
 import com.example.brainbites.data.BiteItem
 import com.example.brainbites.data.BiteRepository
+import com.example.brainbites.data.Notification
+import com.example.brainbites.data.NotificationRepository
+import com.example.brainbites.data.NotificationType
+import com.example.brainbites.data.PreferenceManager
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.launch
@@ -35,10 +40,14 @@ class HomeViewModel(application: Application) : AndroidViewModel(application) {
     private val _selectedMood = MutableStateFlow<String?>(null)
     val selectedMood = _selectedMood.asStateFlow()
 
+    private val _dailyTip = MutableStateFlow<PsychologyTip?>(null)
+    val dailyTip = _dailyTip.asStateFlow()
+
     init {
         loadFacts()
         loadHistory()
         loadAchievements()
+        loadDailyTip()
     }
 
     private fun loadFacts() {
@@ -72,35 +81,45 @@ class HomeViewModel(application: Application) : AndroidViewModel(application) {
     }
 
     private fun loadAchievements() {
-        _achievements.value = listOf(
-            Achievement(
-                id = "1",
-                title = "First Quote Read",
-                description = "Knowledge begins with a single step.",
-                icon = Icons.AutoMirrored.Filled.MenuBook,
-                currentProgress = 1,
-                maxProgress = 1,
-                status = AchievementStatus.COMPLETED
-            ),
-            Achievement(
-                id = "2",
-                title = "Scholar",
-                description = "Read 10 quotes to unlock.",
-                icon = Icons.Default.EmojiEvents,
-                currentProgress = 4,
-                maxProgress = 10,
-                status = AchievementStatus.IN_PROGRESS
-            ),
-            Achievement(
-                id = "3",
-                title = "Mindful",
-                description = "Check in for 7 days straight",
-                icon = Icons.Default.Psychology,
-                currentProgress = 2,
-                maxProgress = 7,
-                status = AchievementStatus.LOCKED
-            )
-        )
+        viewModelScope.launch {
+            combine(
+                BiteRepository.getHistoryItems(),
+                BiteRepository.getFavoriteFacts(getApplication()),
+                BiteRepository.getSharesCount(),
+                BiteRepository.getAllFacts(getApplication())
+            ) { history, favorites, shares, allFacts ->
+                AchievementManager.calculateAchievements(
+                    historyItems = history,
+                    favoritesCount = favorites.size,
+                    sharesCount = shares,
+                    allFacts = allFacts
+                )
+            }.collect { currentAchievements ->
+                _achievements.value = currentAchievements
+                
+                // Monitor for newly completed achievements
+                val alreadyNotified = PreferenceManager.notifiedAchievements.value
+                currentAchievements.forEach { achievement ->
+                    if (achievement.status == AchievementStatus.COMPLETED && 
+                        !alreadyNotified.contains(achievement.id)) {
+                        
+                        // 1. Add to Notifications
+                        NotificationRepository.addNotification(
+                            Notification(
+                                id = "ach_${achievement.id}_${System.currentTimeMillis()}",
+                                title = "Milestone Reached!",
+                                message = "Congratulations! You've unlocked '${achievement.title}'.",
+                                timestamp = System.currentTimeMillis(),
+                                type = NotificationType.ACHIEVEMENT
+                            )
+                        )
+                        
+                        // 2. Mark as notified persistently
+                        PreferenceManager.markAchievementAsNotified(getApplication(), achievement.id)
+                    }
+                }
+            }
+        }
     }
 
     fun selectMood(mood: String) {
@@ -112,4 +131,30 @@ class HomeViewModel(application: Application) : AndroidViewModel(application) {
             BiteRepository.toggleBookmark(getApplication(), id)
         }
     }
+
+    private fun loadDailyTip() {
+        val tips = listOf(
+            PsychologyTip(
+                "The 2-Minute Rule",
+                "If a task takes less than 2 minutes, do it now. This prevents small things from piling up and causing mental stress."
+            ),
+            PsychologyTip(
+                "Salami Slicing",
+                "Break large, overwhelming goals into tiny, 'edible' slices. Focus only on the next slice to beat procrastination."
+            ),
+            PsychologyTip(
+                "Power Posing",
+                "Standing in a confident stance for just 2 minutes can lower stress hormones and make you feel more in control."
+            ),
+            PsychologyTip(
+                "Active Listening",
+                "Try to repeat back what someone said in your own words. It builds trust and ensures you actually understood them."
+            )
+        )
+        val calendar = java.util.Calendar.getInstance()
+        val index = calendar.get(java.util.Calendar.DAY_OF_YEAR) % tips.size
+        _dailyTip.value = tips[index]
+    }
 }
+
+data class PsychologyTip(val title: String, val message: String)

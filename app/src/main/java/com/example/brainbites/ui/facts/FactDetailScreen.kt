@@ -20,6 +20,7 @@ import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.layout.layout
 import androidx.compose.ui.platform.LocalClipboardManager
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
@@ -28,17 +29,20 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import coil.compose.SubcomposeAsyncImage
 import coil.request.ImageRequest
 import com.example.brainbites.data.BiteCategory
 import com.example.brainbites.data.BiteItem
 import com.example.brainbites.data.BiteRepository
+import com.example.brainbites.ui.components.QuoteCard
 import com.example.brainbites.ui.components.shimmer
 import com.example.brainbites.ui.theme.BrainBitesTheme
 import com.example.brainbites.ui.util.ShareUtils
+import com.example.brainbites.ui.util.captureComposable
 import com.example.brainbites.ui.util.getIconDrawable
+import com.example.brainbites.ui.util.rememberComposableCaptureController
+import kotlinx.coroutines.launch
 
 @Composable
 fun FactDetailScreen(
@@ -48,6 +52,8 @@ fun FactDetailScreen(
 ) {
     val context = LocalContext.current
     val facts by viewModel.facts.collectAsState()
+    val coroutineScope = rememberCoroutineScope()
+    val captureController = rememberComposableCaptureController()
     
     LaunchedEffect(Unit) {
         viewModel.loadFacts("ALL")
@@ -61,11 +67,36 @@ fun FactDetailScreen(
         facts.find { it.id == initialFactId }
     }
 
-    FactDetailContent(
-        fact = selectedFact,
-        onBack = onBack,
-        onToggleBookmark = { id -> viewModel.toggleBookmark(id) }
-    )
+    Box(modifier = Modifier.fillMaxSize()) {
+        // Off-screen QuoteCard for capturing
+        if (selectedFact != null) {
+            Box(
+                modifier = Modifier
+                    .size(1080.dp)
+                    .layout { measurable, constraints ->
+                        val placeable = measurable.measure(constraints)
+                        layout(placeable.width, placeable.height) {
+                            placeable.place(-2000, -2000) // Positioned far off-screen
+                        }
+                    }
+                    .captureComposable(captureController)
+            ) {
+                QuoteCard(fact = selectedFact)
+            }
+        }
+
+        FactDetailContent(
+            fact = selectedFact,
+            onBack = onBack,
+            onToggleBookmark = { id -> viewModel.toggleBookmark(id) },
+            onShare = { fact ->
+                coroutineScope.launch {
+                    val bitmap = captureController.captureToBitmap()
+                    ShareUtils.shareFactAsImage(context, bitmap, fact.fact)
+                }
+            }
+        )
+    }
 }
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -73,7 +104,8 @@ fun FactDetailScreen(
 fun FactDetailContent(
     fact: BiteItem?,
     onBack: () -> Unit,
-    onToggleBookmark: (String) -> Unit
+    onToggleBookmark: (String) -> Unit,
+    onShare: (BiteItem) -> Unit
 ) {
     Column(modifier = Modifier.fillMaxSize()) {
         if (fact == null) {
@@ -84,7 +116,8 @@ fun FactDetailContent(
             Box(modifier = Modifier.fillMaxSize()) {
                 FactPage(
                     fact = fact,
-                    onToggleBookmark = { onToggleBookmark(fact.id) }
+                    onToggleBookmark = { onToggleBookmark(fact.id) },
+                    onShare = { onShare(fact) }
                 )
             }
         }
@@ -92,7 +125,7 @@ fun FactDetailContent(
 }
 
 @Composable
-fun FactPage(fact: BiteItem, onToggleBookmark: () -> Unit) {
+fun FactPage(fact: BiteItem, onToggleBookmark: () -> Unit, onShare: () -> Unit) {
     val context = LocalContext.current
     val categoryColor = Color(android.graphics.Color.parseColor(fact.category.colorHex))
     
@@ -116,30 +149,42 @@ fun FactPage(fact: BiteItem, onToggleBookmark: () -> Unit) {
         Box(modifier = Modifier.fillMaxSize()) {
             Text(
                 text = fact.category.iconRes,
-                fontSize = 120.sp,
+                style = MaterialTheme.typography.displayLarge,
                 modifier = Modifier
                     .align(Alignment.TopStart)
                     .offset(x = (-20).dp, y = 40.dp)
                     .alpha(0.08f)
-                    .graphicsLayer(rotationZ = -15f)
+                    .graphicsLayer {
+                        rotationZ = -15f
+                        scaleX = 1.5f
+                        scaleY = 1.5f
+                    }
             )
             Text(
                 text = fact.category.iconRes,
-                fontSize = 180.sp,
+                style = MaterialTheme.typography.displayLarge,
                 modifier = Modifier
                     .align(Alignment.CenterEnd)
                     .offset(x = 40.dp, y = 100.dp)
                     .alpha(0.06f)
-                    .graphicsLayer(rotationZ = 20f)
+                    .graphicsLayer {
+                        rotationZ = 20f
+                        scaleX = 2.25f
+                        scaleY = 2.25f
+                    }
             )
             Text(
                 text = fact.category.iconRes,
-                fontSize = 140.sp,
+                style = MaterialTheme.typography.displayLarge,
                 modifier = Modifier
                     .align(Alignment.BottomStart)
                     .offset(x = (-10).dp, y = 20.dp)
                     .alpha(0.07f)
-                    .graphicsLayer(rotationZ = -10f)
+                    .graphicsLayer {
+                        rotationZ = -10f
+                        scaleX = 1.75f
+                        scaleY = 1.75f
+                    }
             )
         }
 
@@ -214,7 +259,7 @@ fun FactPage(fact: BiteItem, onToggleBookmark: () -> Unit) {
                         Text(
                             text = fact.category.displayName.uppercase(),
                             color = Color.White,
-                            fontSize = 10.sp,
+                            style = MaterialTheme.typography.labelSmall,
                             fontWeight = FontWeight.Black,
                             modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp)
                         )
@@ -229,7 +274,6 @@ fun FactPage(fact: BiteItem, onToggleBookmark: () -> Unit) {
                 style = MaterialTheme.typography.headlineMedium,
                 color = MaterialTheme.colorScheme.primary,
                 textAlign = TextAlign.Center,
-                lineHeight = 34.sp,
                 fontWeight = FontWeight.Medium
             )
             
@@ -263,12 +307,12 @@ fun FactPage(fact: BiteItem, onToggleBookmark: () -> Unit) {
                         modifier = Modifier.size(18.dp)
                     )
                     Spacer(modifier = Modifier.width(4.dp))
-                    Text(if (fact.isBookmarked) "Saved" else "Save", fontSize = 12.sp)
+                    Text(if (fact.isBookmarked) "Saved" else "Save", style = MaterialTheme.typography.labelMedium)
                 }
 
                 // Share Button
                 Button(
-                    onClick = { ShareUtils.shareFact(context, fact.fact) },
+                    onClick = onShare,
                     colors = ButtonDefaults.buttonColors(
                         containerColor = MaterialTheme.colorScheme.surface, 
                         contentColor = MaterialTheme.colorScheme.primary
@@ -283,7 +327,7 @@ fun FactPage(fact: BiteItem, onToggleBookmark: () -> Unit) {
                         modifier = Modifier.size(18.dp)
                     )
                     Spacer(modifier = Modifier.width(4.dp))
-                    Text("Share", fontSize = 12.sp)
+                    Text("Share", style = MaterialTheme.typography.labelMedium)
                 }
 
                 // Copy Button
@@ -306,7 +350,7 @@ fun FactPage(fact: BiteItem, onToggleBookmark: () -> Unit) {
                         modifier = Modifier.size(18.dp)
                     )
                     Spacer(modifier = Modifier.width(4.dp))
-                    Text("Copy", fontSize = 12.sp)
+                    Text("Copy", style = MaterialTheme.typography.labelMedium)
                 }
             }
         }
@@ -325,7 +369,8 @@ fun FactDetailScreenPreview() {
         FactDetailContent(
             fact = sampleFact,
             onBack = {},
-            onToggleBookmark = { _ -> }
+            onToggleBookmark = { _ -> },
+            onShare = { _ -> }
         )
     }
 }

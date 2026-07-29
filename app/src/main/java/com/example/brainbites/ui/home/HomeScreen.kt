@@ -24,8 +24,10 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.graphicsLayer
+import androidx.compose.ui.layout.layout
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
@@ -33,16 +35,20 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.brainbites.data.Achievement
 import com.example.brainbites.data.BiteCategory
 import com.example.brainbites.data.BiteItem
+import com.example.brainbites.ui.home.components.DailyTipCard
+import com.example.brainbites.ui.components.AnimatedEntrance
 import com.example.brainbites.ui.components.*
 import com.example.brainbites.ui.theme.*
 import com.example.brainbites.ui.util.ShareUtils
+import com.example.brainbites.ui.util.captureComposable
 import com.example.brainbites.ui.util.getIconDrawable
+import com.example.brainbites.ui.util.rememberComposableCaptureController
 import kotlinx.coroutines.delay
+import kotlinx.coroutines.launch
 
 @Composable
 fun HomeScreen(
@@ -58,21 +64,53 @@ fun HomeScreen(
     val recentlyViewed by viewModel.recentlyViewed.collectAsState()
     val achievements by viewModel.achievements.collectAsState()
     val selectedMood by viewModel.selectedMood.collectAsState()
+    val dailyTip by viewModel.dailyTip.collectAsState()
+    val coroutineScope = rememberCoroutineScope()
+    val captureController = rememberComposableCaptureController()
+    val context = LocalContext.current
 
-    HomeScreenContent(
-        allFacts = allFacts,
-        factOfTheDay = rotatingFact,
-        recentlyViewed = recentlyViewed,
-        achievements = achievements,
-        selectedMood = selectedMood,
-        onMoodSelected = { viewModel.selectMood(it) },
-        onNavigateToCategory = onNavigateToCategory,
-        onNavigateToDetail = onNavigateToDetail,
-        onNavigateToQuiz = onNavigateToQuiz,
-        onNavigateToTeaser = onNavigateToTeaser,
-        onNavigateToHistory = onNavigateToHistory,
-        onToggleBookmark = { id -> viewModel.toggleBookmark(id) }
-    )
+    val currentRotatingFact = rotatingFact
+
+    Box(modifier = Modifier.fillMaxSize()) {
+        // Off-screen QuoteCard for capturing
+        if (currentRotatingFact != null) {
+            Box(
+                modifier = Modifier
+                    .size(1080.dp)
+                    .layout { measurable, constraints ->
+                        val placeable = measurable.measure(constraints)
+                        layout(placeable.width, placeable.height) {
+                            placeable.place(-2000, -2000) // Positioned far off-screen
+                        }
+                    }
+                    .captureComposable(captureController)
+            ) {
+                QuoteCard(fact = currentRotatingFact)
+            }
+        }
+
+        HomeScreenContent(
+            allFacts = allFacts,
+            factOfTheDay = currentRotatingFact,
+            recentlyViewed = recentlyViewed,
+            achievements = achievements,
+            selectedMood = selectedMood,
+            dailyTip = dailyTip,
+            onMoodSelected = { viewModel.selectMood(it) },
+            onNavigateToCategory = onNavigateToCategory,
+            onNavigateToDetail = onNavigateToDetail,
+            onNavigateToQuiz = onNavigateToQuiz,
+            onNavigateToTeaser = onNavigateToTeaser,
+            onNavigateToHistory = onNavigateToHistory,
+            onToggleBookmark = { id -> viewModel.toggleBookmark(id) },
+            onShareFact = { fact ->
+                coroutineScope.launch {
+                    val bitmap = captureController.captureToBitmap()
+                    ShareUtils.shareFactAsImage(context, bitmap, fact.fact)
+                }
+            }
+        )
+    }
 }
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -83,13 +121,15 @@ fun HomeScreenContent(
     recentlyViewed: List<BiteItem>,
     achievements: List<Achievement>,
     selectedMood: String?,
+    dailyTip: PsychologyTip?,
     onMoodSelected: (String) -> Unit,
     onNavigateToCategory: (String) -> Unit,
     onNavigateToDetail: (String) -> Unit,
     onNavigateToQuiz: () -> Unit,
     onNavigateToTeaser: () -> Unit,
     onNavigateToHistory: () -> Unit,
-    onToggleBookmark: (String) -> Unit
+    onToggleBookmark: (String) -> Unit,
+    onShareFact: (BiteItem) -> Unit
 ) {
     var isContentReady by remember { mutableStateOf(false) }
 
@@ -110,33 +150,38 @@ fun HomeScreenContent(
                 ) {
                     // 1. HERO CARD: Fact of the Day
                     item {
-                        factOfTheDay?.let { fact ->
-                            FactOfTheDayCard(
-                                fact = fact,
-                                onToggleBookmark = { onToggleBookmark(fact.id) },
-                                onClick = { onNavigateToDetail(fact.id) }
-                            )
+                        AnimatedEntrance(index = 0) {
+                            factOfTheDay?.let { fact ->
+                                FactOfTheDayCard(
+                                    fact = fact,
+                                    onToggleBookmark = { onToggleBookmark(fact.id) },
+                                    onShare = { onShareFact(fact) },
+                                    onClick = { onNavigateToDetail(fact.id) }
+                                )
+                            }
                         }
                     }
 
                     // 2. Categories Header & Row
                     item {
-                        Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
-                            Text(
-                                text = "Explore Categories",
-                                style = MaterialTheme.typography.titleMedium,
-                                color = MaterialTheme.colorScheme.primary,
-                                fontWeight = FontWeight.Bold
-                            )
-                            LazyRow(
-                                horizontalArrangement = Arrangement.spacedBy(10.dp)
-                            ) {
-                                items(BiteCategory.entries.filter { it != BiteCategory.ALL }) { category ->
-                                    CategoryChip(
-                                        category = category,
-                                        isSelected = false,
-                                        onSelect = { onNavigateToCategory(it.name) }
-                                    )
+                        AnimatedEntrance(index = 1) {
+                            Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
+                                Text(
+                                    text = "Explore Categories",
+                                    style = MaterialTheme.typography.titleMedium,
+                                    color = MaterialTheme.colorScheme.primary,
+                                    fontWeight = FontWeight.Bold
+                                )
+                                LazyRow(
+                                    horizontalArrangement = Arrangement.spacedBy(10.dp)
+                                ) {
+                                    items(BiteCategory.entries.filter { it != BiteCategory.ALL }) { category ->
+                                        CategoryChip(
+                                            category = category,
+                                            isSelected = false,
+                                            onSelect = { onNavigateToCategory(it.name) }
+                                        )
+                                    }
                                 }
                             }
                         }
@@ -144,63 +189,71 @@ fun HomeScreenContent(
 
                     // 3. New Quick Actions (Quiz & Teaser)
                     item {
-                        Row(
-                            modifier = Modifier.fillMaxWidth(),
-                            horizontalArrangement = Arrangement.spacedBy(16.dp)
-                        ) {
-                            QuickActionCard(
-                                title = "Quiz Mode",
-                                description = "Test your knowledge",
-                                icon = Icons.Default.Extension,
-                                containerColor = Color(0xFFA8DADC),
-                                contentColor = Color(0xFF1B4332),
-                                onClick = onNavigateToQuiz,
-                                modifier = Modifier.weight(1f)
-                            )
-                            QuickActionCard(
-                                title = "Daily Teaser",
-                                description = "Quick mental puzzle",
-                                icon = Icons.Default.Lightbulb,
-                                containerColor = Color(0xFFFFE8D6),
-                                contentColor = Color(0xFFE76F51),
-                                onClick = onNavigateToTeaser,
-                                modifier = Modifier.weight(1f)
-                            )
+                        AnimatedEntrance(index = 2) {
+                            Row(
+                                modifier = Modifier.fillMaxWidth(),
+                                horizontalArrangement = Arrangement.spacedBy(16.dp)
+                            ) {
+                                QuickActionCard(
+                                    title = "Quiz Mode",
+                                    description = "Test your knowledge",
+                                    icon = Icons.Default.Extension,
+                                    containerColor = Color(0xFFA8DADC),
+                                    contentColor = Color(0xFF1B4332),
+                                    onClick = onNavigateToQuiz,
+                                    modifier = Modifier.weight(1f)
+                                )
+                                QuickActionCard(
+                                    title = "Daily Teaser",
+                                    description = "Quick mental puzzle",
+                                    icon = Icons.Default.Lightbulb,
+                                    containerColor = Color(0xFFFFE8D6),
+                                    contentColor = Color(0xFFE76F51),
+                                    onClick = onNavigateToTeaser,
+                                    modifier = Modifier.weight(1f)
+                                )
+                            }
                         }
                     }
 
                     // 4. Daily Mood Section (STRICTLY ADDITIVE)
                     item {
-                        DailyMoodSection(selectedMood = selectedMood, onMoodSelected = onMoodSelected)
+                        AnimatedEntrance(index = 3) {
+                            DailyMoodSection(selectedMood = selectedMood, onMoodSelected = onMoodSelected)
+                        }
                     }
 
                     // 5. Recently Viewed Section
                     if (recentlyViewed.isNotEmpty()) {
                         item {
-                            Row(
-                                modifier = Modifier.fillMaxWidth(),
-                                horizontalArrangement = Arrangement.SpaceBetween,
-                                verticalAlignment = Alignment.CenterVertically
-                            ) {
-                                Text(
-                                    text = "Recently Viewed",
-                                    style = MaterialTheme.typography.titleMedium,
-                                    color = MaterialTheme.colorScheme.primary,
-                                    fontWeight = FontWeight.Bold
-                                )
-                                TextButton(onClick = onNavigateToHistory) {
-                                    Text("Show all", color = GreenSecondary, fontWeight = FontWeight.Bold)
-                                }
-                            }
-                            Spacer(modifier = Modifier.height(8.dp))
-                            Column(verticalArrangement = Arrangement.spacedBy(16.dp)) {
-                                recentlyViewed.forEach { fact ->
-                                    BiteCard(
-                                        bite = fact,
-                                        onToggleBookmark = { id -> onToggleBookmark(id) },
-                                        onFactClick = onNavigateToDetail,
-                                        modifier = Modifier.fillMaxWidth()
-                                    )
+                            AnimatedEntrance(index = 4) {
+                                Column {
+                                    Row(
+                                        modifier = Modifier.fillMaxWidth(),
+                                        horizontalArrangement = Arrangement.SpaceBetween,
+                                        verticalAlignment = Alignment.CenterVertically
+                                    ) {
+                                        Text(
+                                            text = "Recently Viewed",
+                                            style = MaterialTheme.typography.titleMedium,
+                                            color = MaterialTheme.colorScheme.primary,
+                                            fontWeight = FontWeight.Bold
+                                        )
+                                        TextButton(onClick = onNavigateToHistory) {
+                                            Text("Show all", color = GreenSecondary, fontWeight = FontWeight.Bold)
+                                        }
+                                    }
+                                    Spacer(modifier = Modifier.height(8.dp))
+                                    Column(verticalArrangement = Arrangement.spacedBy(16.dp)) {
+                                        recentlyViewed.forEach { fact ->
+                                            BiteCard(
+                                                bite = fact,
+                                                onToggleBookmark = { id -> onToggleBookmark(id) },
+                                                onFactClick = onNavigateToDetail,
+                                                modifier = Modifier.fillMaxWidth()
+                                            )
+                                        }
+                                    }
                                 }
                             }
                         }
@@ -208,31 +261,46 @@ fun HomeScreenContent(
 
                     // 6. Next Fact Quick Action (Discover Something New)
                     item {
-                        Button(
-                            onClick = {
-                                val randomId = allFacts.randomOrNull()?.id ?: ""
-                                if (randomId.isNotEmpty()) onNavigateToDetail(randomId)
-                            },
-                            modifier = Modifier.fillMaxWidth().height(56.dp),
-                            shape = RoundedCornerShape(16.dp),
-                            colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.secondary)
-                        ) {
-                            Row(verticalAlignment = Alignment.CenterVertically) {
-                                Text("Discover Something New", fontWeight = FontWeight.Bold)
-                                Spacer(modifier = Modifier.width(8.dp))
-                                Icon(Icons.AutoMirrored.Filled.ArrowForward, contentDescription = null)
+                        AnimatedEntrance(index = 5) {
+                            Button(
+                                onClick = {
+                                    val randomId = allFacts.randomOrNull()?.id ?: ""
+                                    if (randomId.isNotEmpty()) onNavigateToDetail(randomId)
+                                },
+                                modifier = Modifier.fillMaxWidth().height(56.dp),
+                                shape = RoundedCornerShape(16.dp),
+                                colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.secondary)
+                            ) {
+                                Row(verticalAlignment = Alignment.CenterVertically) {
+                                    Text("Discover Something New", fontWeight = FontWeight.Bold)
+                                    Spacer(modifier = Modifier.width(8.dp))
+                                    Icon(Icons.AutoMirrored.Filled.ArrowForward, contentDescription = null)
+                                }
                             }
                         }
                     }
 
                     // 7. Achievements Section (STRICTLY ADDITIVE & AT BOTTOM)
                     item {
-                        AchievementsSection(achievements = achievements)
+                        AnimatedEntrance(index = 6) {
+                            AchievementsSection(achievements = achievements)
+                        }
                     }
 
-                    // 8. Trending Quotes Section (STRICTLY ADDITIVE & AT BOTTOM)
+                    // 8. Daily Psychology Tip (NEW)
                     item {
-                        TrendingQuotesSection(allFacts = allFacts, onNavigateToDetail = onNavigateToDetail)
+                        dailyTip?.let { tip ->
+                            AnimatedEntrance(index = 7) {
+                                DailyTipCard(tip = tip)
+                            }
+                        }
+                    }
+
+                    // 9. Trending Quotes Section (STRICTLY ADDITIVE & AT BOTTOM)
+                    item {
+                        AnimatedEntrance(index = 8) {
+                            TrendingQuotesSection(allFacts = allFacts, onNavigateToDetail = onNavigateToDetail)
+                        }
                     }
 
                     item { Spacer(modifier = Modifier.height(20.dp)) }
@@ -329,7 +397,7 @@ fun TrendingQuotesSection(allFacts: List<BiteItem>, onNavigateToDetail: (String)
 }
 
 @Composable
-fun FactOfTheDayCard(fact: BiteItem, onToggleBookmark: (String) -> Unit, onClick: () -> Unit) {
+fun FactOfTheDayCard(fact: BiteItem, onToggleBookmark: (String) -> Unit, onShare: () -> Unit, onClick: () -> Unit) {
     val context = LocalContext.current
 
     Card(
@@ -383,7 +451,7 @@ fun FactOfTheDayCard(fact: BiteItem, onToggleBookmark: (String) -> Unit, onClick
                             Spacer(modifier = Modifier.width(6.dp))
                             Text(
                                 text = category.displayName.uppercase(),
-                                fontSize = 9.sp,
+                                style = MaterialTheme.typography.labelSmall,
                                 fontWeight = FontWeight.Black,
                                 color = DarkGreenPrimary,
                                 textAlign = TextAlign.Center
@@ -412,7 +480,7 @@ fun FactOfTheDayCard(fact: BiteItem, onToggleBookmark: (String) -> Unit, onClick
                     Spacer(modifier = Modifier.width(8.dp))
 
                     IconButton(
-                        onClick = { ShareUtils.shareFact(context, fact.fact) },
+                        onClick = onShare,
                         modifier = Modifier.size(28.dp)
                     ) {
                         Icon(
@@ -443,9 +511,8 @@ fun FactOfTheDayCard(fact: BiteItem, onToggleBookmark: (String) -> Unit, onClick
                         Text(
                             text = factText,
                             color = MaterialTheme.colorScheme.onSecondary,
-                            fontSize = 18.sp,
+                            style = MaterialTheme.typography.headlineSmall,
                             fontWeight = FontWeight.Medium,
-                            lineHeight = 26.sp,
                             overflow = TextOverflow.Ellipsis,
                             modifier = Modifier.fillMaxWidth()
                         )
@@ -466,7 +533,7 @@ fun FactOfTheDayCard(fact: BiteItem, onToggleBookmark: (String) -> Unit, onClick
                         text = "Read More",
                         color = AccentYellow,
                         fontWeight = FontWeight.Bold,
-                        fontSize = 14.sp
+                        style = MaterialTheme.typography.labelLarge
                     )
                     Spacer(modifier = Modifier.width(4.dp))
                     Icon(
@@ -486,7 +553,7 @@ fun FactOfTheDayCard(fact: BiteItem, onToggleBookmark: (String) -> Unit, onClick
                         Text(
                             text = "BITE OF THE DAY",
                             modifier = Modifier.padding(vertical = 4.dp),
-                            fontSize = 9.sp,
+                            style = MaterialTheme.typography.labelSmall,
                             fontWeight = FontWeight.Black,
                             color = DarkGreenPrimary
                         )
@@ -528,13 +595,15 @@ fun HomeScreenPreview() {
             recentlyViewed = listOf(sampleFact),
             achievements = emptyList(),
             selectedMood = null,
+            dailyTip = PsychologyTip("Sample Tip", "This is a preview message."),
             onMoodSelected = {},
             onNavigateToCategory = {},
             onNavigateToDetail = {},
             onNavigateToQuiz = {},
             onNavigateToTeaser = {},
             onNavigateToHistory = {},
-            onToggleBookmark = { _ -> }
+            onToggleBookmark = { _ -> },
+            onShareFact = { _ -> }
         )
     }
 }

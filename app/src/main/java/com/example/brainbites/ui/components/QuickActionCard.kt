@@ -10,7 +10,6 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -48,14 +47,12 @@ fun QuickActionCard(
                 text = title,
                 style = MaterialTheme.typography.titleSmall,
                 fontWeight = FontWeight.Bold,
-                color = contentColor,
-                fontSize = 14.sp
+                color = contentColor
             )
             Text(
                 text = description,
                 style = MaterialTheme.typography.bodySmall,
                 color = contentColor.copy(alpha = 0.7f),
-                fontSize = 11.sp,
                 maxLines = 1
             )
         }

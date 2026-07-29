@@ -17,6 +17,7 @@ data class BiteItem(
     val correctAnswerIndex: Int? = null,
     val teaserType: String? = null,
     val imageUrl: String? = null,
+    val keywords: String? = null,
     val readTimeMinutes: Int = 1,
     var isBookmarked: Boolean = false,
     var isCompleted: Boolean = false

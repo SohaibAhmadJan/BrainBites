@@ -137,6 +137,8 @@ fun SplashScreen(
                 modifier = Modifier.graphicsLayer(alpha = nameAlpha.value)
             )
 
+            Spacer(modifier = Modifier.height(16.dp))
+
             // Stable Tagline
             Text(
                 text = "Feed Your Mind Daily",
@@ -163,7 +165,7 @@ fun SplashScreen(
             Spacer(modifier = Modifier.weight(1.2f))
 
             Text(
-                text = "Version 2.5",
+                text = "Version 3.1",
                 style = MaterialTheme.typography.labelSmall.copy(
                     color = Color.Gray.copy(alpha = 0.6f)
                 ),

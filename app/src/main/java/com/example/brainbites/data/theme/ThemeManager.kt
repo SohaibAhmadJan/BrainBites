@@ -9,16 +9,16 @@ object ThemeManager {
     private const val PREFS_NAME = "brain_bites_theme_prefs"
     private const val KEY_THEME = "current_theme"
 
-    private val _themeMode = MutableStateFlow(ThemeMode.SYSTEM)
+    private val _themeMode = MutableStateFlow(ThemeMode.LIGHT)
     val themeMode = _themeMode.asStateFlow()
 
     fun initialize(context: Context) {
         val prefs = context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
-        val savedTheme = prefs.getString(KEY_THEME, ThemeMode.SYSTEM.name)
+        val savedTheme = prefs.getString(KEY_THEME, ThemeMode.LIGHT.name)
         _themeMode.value = try {
-            ThemeMode.valueOf(savedTheme ?: ThemeMode.SYSTEM.name)
+            ThemeMode.valueOf(savedTheme ?: ThemeMode.LIGHT.name)
         } catch (e: Exception) {
-            ThemeMode.SYSTEM
+            ThemeMode.LIGHT
         }
     }
 

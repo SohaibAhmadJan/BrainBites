@@ -2,16 +2,22 @@ package com.example.brainbites.navigation
 
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.*
+import androidx.compose.material.icons.outlined.*
 import androidx.compose.ui.graphics.vector.ImageVector
 
-sealed class Screen(val route: String, val title: String? = null, val icon: ImageVector? = null) {
+sealed class Screen(
+    val route: String, 
+    val title: String? = null, 
+    val icon: ImageVector? = null,
+    val outlinedIcon: ImageVector? = null
+) {
     object Splash : Screen("splash_screen")
     
     // Hubs (Parents)
-    object HomeHub : Screen("home_hub", "Home", Icons.Default.Home)
-    object ExploreHub : Screen("explore_hub", "Explore", Icons.Default.GridView)
-    object SavedHub : Screen("saved_hub", "Saved", Icons.Default.Favorite)
-    object SettingsHub : Screen("settings_hub", "Settings", Icons.Default.Settings)
+    object HomeHub : Screen("home_hub", "Home", Icons.Default.Home, Icons.Outlined.Home)
+    object ExploreHub : Screen("explore_hub", "Explore", Icons.Default.GridView, Icons.Outlined.GridView)
+    object SavedHub : Screen("saved_hub", "Saved", Icons.Default.Favorite, Icons.Outlined.FavoriteBorder)
+    object SettingsHub : Screen("settings_hub", "Settings", Icons.Default.Settings, Icons.Outlined.Settings)
 
     // Screens (Children)
     object Home : Screen("home_screen")
@@ -38,6 +44,10 @@ sealed class Screen(val route: String, val title: String? = null, val icon: Imag
 
     object SavedDetail : Screen("saved/detail/{factId}") {
         fun createRoute(factId: String) = "saved/detail/$factId"
+    }
+
+    object CollectionDetail : Screen("collection/detail/{collectionId}") {
+        fun createRoute(collectionId: String) = "collection/detail/$collectionId"
     }
 }
 

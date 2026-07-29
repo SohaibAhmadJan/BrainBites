@@ -14,7 +14,6 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
 import com.example.brainbites.data.BiteItem
 
 @Composable
@@ -40,8 +39,7 @@ fun TrendingQuoteCard(
                 Text(
                     text = fact.category.displayName,
                     modifier = Modifier.padding(horizontal = 6.dp, vertical = 2.dp),
-                    style = MaterialTheme.typography.labelSmall,
-                    fontSize = 9.sp
+                    style = MaterialTheme.typography.labelSmall
                 )
             }
             Spacer(modifier = Modifier.height(8.dp))

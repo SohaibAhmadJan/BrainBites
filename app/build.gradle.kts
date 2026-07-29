@@ -7,14 +7,14 @@ plugins {
 
 android {
     namespace = "com.example.brainbites"
-    compileSdk = 35
+    compileSdk = 35 // Force re-sync v2
 
     defaultConfig {
         applicationId = "com.example.brainbites"
         minSdk = 24
         targetSdk = 35
-        versionCode = 1
-        versionName = "1.0"
+        versionCode = 12
+        versionName = "3.2"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
     }

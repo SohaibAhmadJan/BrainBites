@@ -6,6 +6,7 @@ import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.CheckCircle
 import androidx.compose.material.icons.filled.Favorite
 import androidx.compose.material.icons.filled.FavoriteBorder
 import androidx.compose.material.icons.filled.KeyboardArrowDown
@@ -16,12 +17,14 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.hapticfeedback.HapticFeedbackType
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalHapticFeedback
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
 import com.example.brainbites.data.BiteItem
+import com.example.brainbites.data.PreferenceManager
 import com.example.brainbites.ui.util.ShareUtils
 import com.example.brainbites.ui.util.getIconDrawable
 
@@ -33,6 +36,9 @@ fun BiteCard(
     modifier: Modifier = Modifier
 ) {
     val context = LocalContext.current
+    val haptic = LocalHapticFeedback.current
+    val hapticsEnabled by PreferenceManager.hapticsEnabled.collectAsState()
+
     var expanded by remember { mutableStateOf(false) }
     val hasDetail = bite.fullFact != null || bite.whyItMatters != null
 
@@ -72,9 +78,18 @@ fun BiteCard(
                         Text(
                             text = bite.category.displayName,
                             color = MaterialTheme.colorScheme.primary,
-                            fontWeight = FontWeight.Bold,
-                            fontSize = 11.sp
+                            style = MaterialTheme.typography.labelMedium,
+                            fontWeight = FontWeight.Bold
                         )
+                        if (bite.isCompleted) {
+                            Spacer(modifier = Modifier.width(6.dp))
+                            Icon(
+                                imageVector = Icons.Default.CheckCircle,
+                                contentDescription = "Completed",
+                                tint = Color(0xFF40916C),
+                                modifier = Modifier.size(16.dp)
+                            )
+                        }
                     }
                 }
 
@@ -95,6 +110,9 @@ fun BiteCard(
 
                     IconButton(
                         onClick = { 
+                            if (hapticsEnabled) {
+                                haptic.performHapticFeedback(HapticFeedbackType.LongPress)
+                            }
                             onToggleBookmark(bite.id)
                             val message = if (bite.isBookmarked) "Removed from favorites" else "Added to favorites"
                             Toast.makeText(context, message, Toast.LENGTH_SHORT).show()
@@ -119,8 +137,7 @@ fun BiteCard(
                     text = bite.title,
                     style = MaterialTheme.typography.titleMedium,
                     fontWeight = FontWeight.Bold,
-                    color = MaterialTheme.colorScheme.primary,
-                    fontSize = 18.sp
+                    color = MaterialTheme.colorScheme.primary
                 )
                 Spacer(modifier = Modifier.height(6.dp))
             }
@@ -129,9 +146,7 @@ fun BiteCard(
                 text = if (bite.title != null) bite.snippet ?: "" else bite.fact,
                 style = MaterialTheme.typography.bodyMedium,
                 color = if (bite.title != null) MaterialTheme.colorScheme.onSurface.copy(alpha = 0.8f) else MaterialTheme.colorScheme.onSurface,
-                fontSize = if (bite.title != null) 14.sp else 16.sp,
-                fontWeight = if (bite.title != null) FontWeight.Normal else FontWeight.Medium,
-                lineHeight = if (bite.title != null) 20.sp else 22.sp
+                fontWeight = if (bite.title != null) FontWeight.Normal else FontWeight.Medium
             )
 
             if (hasDetail) {
@@ -144,8 +159,7 @@ fun BiteCard(
                             Text(
                                 text = it,
                                 style = MaterialTheme.typography.bodyMedium,
-                                color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.9f),
-                                lineHeight = 20.sp
+                                color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.9f)
                             )
                             Spacer(modifier = Modifier.height(10.dp))
                         }
@@ -159,14 +173,14 @@ fun BiteCard(
                                 Column(modifier = Modifier.padding(10.dp)) {
                                     Text(
                                         text = "💡 Why it matters",
+                                        style = MaterialTheme.typography.labelMedium,
                                         fontWeight = FontWeight.Bold,
-                                        color = MaterialTheme.colorScheme.primary,
-                                        fontSize = 12.sp
+                                        color = MaterialTheme.colorScheme.primary
                                     )
                                     Spacer(modifier = Modifier.height(4.dp))
                                     Text(
                                         text = it,
-                                        fontSize = 13.sp,
+                                        style = MaterialTheme.typography.bodySmall,
                                         color = MaterialTheme.colorScheme.onSurface
                                     )
                                 }
@@ -188,8 +202,8 @@ fun BiteCard(
                     Text(
                         text = if (expanded) "Show Less" else "Read Full Bite",
                         color = MaterialTheme.colorScheme.secondary,
-                        fontWeight = FontWeight.Bold,
-                        fontSize = 13.sp
+                        style = MaterialTheme.typography.labelLarge,
+                        fontWeight = FontWeight.Bold
                     )
                     Icon(
                         imageVector = if (expanded) Icons.Default.KeyboardArrowUp else Icons.Default.KeyboardArrowDown,

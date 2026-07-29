@@ -1,0 +1,36 @@
+{
+  "collections": [
+    {
+      "id": "persuasion_kit",
+      "title": "The Persuasion Kit",
+      "description": "Master the art of influence with these psychological hacks.",
+      "icon": "🎯",
+      "color": "#E63946",
+      "factIds": ["1", "9", "15", "108"]
+    },
+    {
+      "id": "social_mastery",
+      "title": "Social Mastery",
+      "description": "Understand group dynamics and connect better with others.",
+      "icon": "🤝",
+      "color": "#457B9D",
+      "factIds": ["2", "4", "8", "13", "114"]
+    },
+    {
+      "id": "mindfulness_basics",
+      "title": "Mindfulness Basics",
+      "description": "Calm your mind and improve focus with brain science.",
+      "icon": "🧘",
+      "color": "#2A9D8F",
+      "factIds": ["18", "29", "34", "36"]
+    },
+    {
+      "id": "habit_loop",
+      "title": "The Habit Loop",
+      "description": "Decode the science of how routines are formed and broken.",
+      "icon": "🔄",
+      "color": "#F4A261",
+      "factIds": ["37", "121", "126", "132"]
+    }
+  ]
+}

@@ -1,26 +1,16 @@
-# Walkthrough - Functional Settings Actions
+# Walkthrough - Perfectly Centered Discovery Cards
 
-I have successfully made all settings actions fully functional, including notification time scheduling, app rating, sharing, and the about information.
+I have successfully refactored the discovery cards on the Explore Hub to achieve both 100% color fill and perfect mathematical centering of all internal content.
 
 ## Changes Made
 
-### Utilities
+### Robust Centering & Full-Fill Implementation
 
-#### [ShareUtils.kt](file:///F:/BrainBites/app/src/main/java/com/example/brainbites/ui/util/ShareUtils.kt)
-- Added `shareApp(context: Context)`: Opens the system share sheet with a promotional message and link to the app.
-- Added `rateApp(context: Context)`: Attempts to open the Google Play Store directly. It includes a fallback to the web-based Play Store for devices without the Store app (like emulators).
-
-### UI & Interactions
-
-#### [SettingsScreen.kt](file:///F:/BrainBites/app/src/main/java/com/example/brainbites/ui/settings/SettingsScreen.kt)
-- **Notification Time**:
-    - Integrated the system `TimePickerDialog`.
-    - Selection now dynamically updates the "Notification Time" subtitle in real-time.
-- **About BrainBites**:
-    - Implemented a Material 3 `AlertDialog` triggered by the "About BrainBites" button.
-    - Displays versioning, mission statement, and copyright info in a clean, professional layout.
-- **Support Actions**:
-    - Connected "Rate App" and "Share App" buttons to the new `ShareUtils` functions.
+#### [CategoryListScreen.kt](file:///F:/BrainBites/app/src/main/java/com/example/brainbites/ui/categories/CategoryListScreen.kt)
+- **Root-Level Centering**: Replaced the previous arrangement-based centering with a `Box` container using `contentAlignment = Alignment.Center`. This ensures that the icon, title, and count in the Category Grid items are pinned to the absolute middle of the card, regardless of its dynamic height.
+- **Unified Surface Fill**: Applied the background gradients directly to the root `Surface` containers. This eliminates the internal layout gaps that were previously leaving "colourless" or blank areas at the bottom and corners of the cards.
+- **Balanced Featured Cards**: Refactored the `FeaturedFactCard` to use the same centering engine. The category badges and fact text are now perfectly balanced vertically and horizontally.
+- **Zero-Gap Visuals**: By syncing the root solid color with the gradient, I've ensured a high-fidelity "single-piece" look that is 100% gap-free on all edges.
 
 ## Verification Results
 
@@ -28,6 +18,6 @@ I have successfully made all settings actions fully functional, including notifi
 - Ran `gradle_build app:assembleDebug` - **Passed**
 
 ### Manual Verification
-- Verified that all buttons now trigger their respective logic.
-- Confirmed the `TimePickerDialog` correctly formats and displays the selected time.
-- Verified the `AboutDialog` appears correctly with the intended text.
+- **Centering Audit**: Confirmed that the icons and text in the "Browse by Category" section are now perfectly centered within the card boundaries.
+- **Edge-to-Edge Fill Check**: Verified that the color extends to the absolute bottom and corners of every card, with zero white or blank areas visible.
+- **Scaling Stability**: Verified that the centering remains perfect even when text is enlarged and cards grow vertically.

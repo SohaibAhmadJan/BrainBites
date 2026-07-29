@@ -21,7 +21,6 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.brainbites.data.Notification
 import com.example.brainbites.data.NotificationType
@@ -63,12 +62,12 @@ fun NotificationsScreenContent(
                 TextButton(onClick = onMarkAllAsRead) {
                     Icon(Icons.Default.DoneAll, contentDescription = null, modifier = Modifier.size(18.dp))
                     Spacer(Modifier.width(4.dp))
-                    Text("Read All", fontSize = 12.sp)
+                    Text("Read All", style = MaterialTheme.typography.labelMedium)
                 }
                 TextButton(onClick = onClearAll) {
                     Icon(Icons.Default.DeleteSweep, contentDescription = null, modifier = Modifier.size(18.dp))
                     Spacer(Modifier.width(4.dp))
-                    Text("Clear All", fontSize = 12.sp)
+                    Text("Clear All", style = MaterialTheme.typography.labelMedium)
                 }
             }
         }
@@ -162,8 +161,7 @@ fun NotificationItem(
                 Text(
                     text = notification.message,
                     style = MaterialTheme.typography.bodyMedium,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant,
-                    lineHeight = 20.sp
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
                 )
 
                 Spacer(modifier = Modifier.height(8.dp))

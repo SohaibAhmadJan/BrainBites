@@ -4,6 +4,7 @@ import android.app.Application
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -18,6 +19,7 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.brainbites.data.BiteCategory
 import com.example.brainbites.data.BiteItem
 import com.example.brainbites.data.BiteRepository
+import com.example.brainbites.ui.components.AnimatedEntrance
 import com.example.brainbites.ui.components.BiteCard
 import com.example.brainbites.ui.theme.BrainBitesTheme
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -67,7 +69,7 @@ fun FavoritesContent(
         if (favorites.isEmpty()) {
             Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
                 Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                    Text("❤️", fontSize = 48.sp)
+                    Text("❤️", style = MaterialTheme.typography.displayMedium)
                     Spacer(modifier = Modifier.height(16.dp))
                     Text("No favorites yet", color = MaterialTheme.colorScheme.secondary)
                 }
@@ -78,13 +80,15 @@ fun FavoritesContent(
                 contentPadding = PaddingValues(16.dp, 16.dp, 16.dp, 80.dp),
                 verticalArrangement = Arrangement.spacedBy(16.dp)
             ) {
-                items(favorites, key = { it.id }) { fact ->
-                    BiteCard(
-                        bite = fact,
-                        onToggleBookmark = { id -> onToggleBookmark(id) },
-                        onFactClick = onFactClick,
-                        modifier = Modifier.fillMaxWidth()
-                    )
+                itemsIndexed(favorites, key = { _, it -> it.id }) { index, fact ->
+                    AnimatedEntrance(index = index) {
+                        BiteCard(
+                            bite = fact,
+                            onToggleBookmark = { id -> onToggleBookmark(id) },
+                            onFactClick = onFactClick,
+                            modifier = Modifier.fillMaxWidth()
+                        )
+                    }
                 }
             }
         }

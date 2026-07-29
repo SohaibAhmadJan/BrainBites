@@ -14,7 +14,6 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import com.example.brainbites.data.BiteCategory
@@ -57,8 +56,8 @@ fun CategoryChip(
         Text(
             text = category.displayName,
             color = textColor,
-            fontWeight = if (isSelected) FontWeight.Bold else FontWeight.Medium,
-            fontSize = 13.sp
+            style = MaterialTheme.typography.labelLarge,
+            fontWeight = if (isSelected) FontWeight.Bold else FontWeight.Medium
         )
     }
 }

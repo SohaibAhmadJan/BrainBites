@@ -14,7 +14,6 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
 import com.example.brainbites.data.BiteItem
 import com.example.brainbites.ui.theme.AccentYellow
 import com.example.brainbites.ui.theme.DarkGreenPrimary
@@ -52,8 +51,8 @@ fun QuizCard(
                     Text(
                         text = "QUIZ CHALLENGE",
                         color = Color.White,
+                        style = MaterialTheme.typography.labelSmall,
                         fontWeight = FontWeight.Bold,
-                        fontSize = 11.sp,
                         modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp)
                     )
                 }
@@ -63,8 +62,8 @@ fun QuizCard(
 
             Text(
                 text = quizQuestion,
+                style = MaterialTheme.typography.titleMedium,
                 fontWeight = FontWeight.SemiBold,
-                fontSize = 15.sp,
                 color = Color.DarkGray
             )
 
@@ -108,7 +107,7 @@ fun QuizCard(
                 ) {
                     Text(
                         text = option,
-                        fontSize = 14.sp,
+                        style = MaterialTheme.typography.bodyMedium,
                         fontWeight = if (isSelected) FontWeight.Bold else FontWeight.Normal,
                         color = DarkGreenPrimary
                     )
@@ -142,8 +141,8 @@ fun QuizCard(
                 Text(
                     text = if (isSuccess) "🎉 Correct!" else "❌ Incorrect. Correct answer: ${quizOptions[correctAnswerIndex]}",
                     color = if (isSuccess) Color(0xFF198754) else Color(0xFFDC3545),
+                    style = MaterialTheme.typography.bodySmall,
                     fontWeight = FontWeight.Bold,
-                    fontSize = 13.sp,
                     modifier = Modifier.align(Alignment.CenterHorizontally)
                 )
             }

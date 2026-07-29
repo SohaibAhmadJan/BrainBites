@@ -8,15 +8,26 @@ import androidx.compose.material.icons.filled.Psychology
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.brainbites.data.Achievement
+import com.example.brainbites.data.AchievementManager
 import com.example.brainbites.data.AchievementStatus
+import com.example.brainbites.data.BiteItem
 import com.example.brainbites.data.BiteRepository
+import com.example.brainbites.data.CollectionSet
+import com.example.brainbites.data.HistoryItem
+import com.example.brainbites.data.PreferenceManager
 import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.launch
+
+data class CollectionProgress(val collection: CollectionSet, val progress: Float)
 
 data class UserStats(
     val factsRead: Int = 0,
     val favoritesCount: Int = 0,
-    val achievementsUnlocked: Int = 0
+    val achievementsUnlocked: Int = 0,
+    val level: Int = 1,
+    val rankTitle: String = "Beginner",
+    val streak: Int = 0,
+    val collectionProgress: List<CollectionProgress> = emptyList()
 )
 
 class ProfileViewModel(application: Application) : AndroidViewModel(application) {
@@ -26,6 +37,10 @@ class ProfileViewModel(application: Application) : AndroidViewModel(application)
     private val _achievements = MutableStateFlow<List<Achievement>>(emptyList())
     val achievements = _achievements.asStateFlow()
 
+    val userName = PreferenceManager.userName
+    val isPublicProfile = PreferenceManager.isPublicProfile
+    val isAnalyticsEnabled = PreferenceManager.isAnalyticsEnabled
+
     init {
         loadStats()
         loadAchievements()
@@ -34,13 +49,45 @@ class ProfileViewModel(application: Application) : AndroidViewModel(application)
     private fun loadStats() {
         viewModelScope.launch {
             combine(
-                BiteRepository.getHistoryFacts(getApplication()),
-                BiteRepository.getFavoriteFacts(getApplication())
-            ) { history, favorites ->
-                UserStats(
-                    factsRead = history.size,
+                BiteRepository.getHistoryItems(),
+                BiteRepository.getFavoriteFacts(getApplication()),
+                BiteRepository.getSharesCount(),
+                BiteRepository.getAllFacts(getApplication()),
+                BiteRepository.getAllCollections(),
+                PreferenceManager.streakCount
+            ) { args: Array<Any> ->
+                val history = args[0] as List<com.example.brainbites.data.HistoryItem>
+                val favorites = args[1] as List<BiteItem>
+                val shares = args[2] as Int
+                val allFacts = args[3] as List<BiteItem>
+                val collections = args[4] as List<CollectionSet>
+                val streak = args[5] as Int
+
+                val currentAchievements = AchievementManager.calculateAchievements(
+                    historyItems = history,
                     favoritesCount = favorites.size,
-                    achievementsUnlocked = 1 // Placeholder for now
+                    sharesCount = shares,
+                    allFacts = allFacts
+                )
+                
+                val factsRead = history.size
+                val (level, title) = calculateLevelAndRank(factsRead)
+
+                val readIds = history.map { it.factId }.toSet()
+                val activeCollections = collections.map { col ->
+                    val colIds = col.factIds.toSet()
+                    val progress = if (colIds.isEmpty()) 0f else colIds.intersect(readIds).size.toFloat() / colIds.size.toFloat()
+                    CollectionProgress(col, progress)
+                }.filter { it.progress > 0 }
+
+                UserStats(
+                    factsRead = factsRead,
+                    favoritesCount = favorites.size,
+                    achievementsUnlocked = currentAchievements.count { it.status == AchievementStatus.COMPLETED },
+                    level = level,
+                    rankTitle = title,
+                    streak = streak,
+                    collectionProgress = activeCollections
                 )
             }.collect {
                 _stats.value = it
@@ -48,36 +95,50 @@ class ProfileViewModel(application: Application) : AndroidViewModel(application)
         }
     }
 
+    private fun calculateLevelAndRank(factsRead: Int): Pair<Int, String> {
+        return when {
+            factsRead >= 100 -> 10 to "Insight Master"
+            factsRead >= 80 -> 9 to "Sage"
+            factsRead >= 60 -> 8 to "Philosopher"
+            factsRead >= 50 -> 7 to "Thinker"
+            factsRead >= 40 -> 6 to "Researcher"
+            factsRead >= 30 -> 5 to "Scholar"
+            factsRead >= 20 -> 4 to "Explorer"
+            factsRead >= 10 -> 3 to "Learner"
+            factsRead >= 5 -> 2 to "Curious"
+            else -> 1 to "Novice"
+        }
+    }
+
     private fun loadAchievements() {
-        // Shared logic with HomeViewModel for consistency
-        _achievements.value = listOf(
-            Achievement(
-                id = "1",
-                title = "First Quote Read",
-                description = "Knowledge begins with a single step.",
-                icon = Icons.AutoMirrored.Filled.MenuBook,
-                currentProgress = 1,
-                maxProgress = 1,
-                status = AchievementStatus.COMPLETED
-            ),
-            Achievement(
-                id = "2",
-                title = "Scholar",
-                description = "Read 10 quotes to unlock.",
-                icon = Icons.Default.EmojiEvents,
-                currentProgress = 4,
-                maxProgress = 10,
-                status = AchievementStatus.IN_PROGRESS
-            ),
-            Achievement(
-                id = "3",
-                title = "Mindful",
-                description = "Check in for 7 days straight",
-                icon = Icons.Default.Psychology,
-                currentProgress = 2,
-                maxProgress = 7,
-                status = AchievementStatus.LOCKED
-            )
-        )
+        viewModelScope.launch {
+            combine(
+                BiteRepository.getHistoryItems(),
+                BiteRepository.getFavoriteFacts(getApplication()),
+                BiteRepository.getSharesCount(),
+                BiteRepository.getAllFacts(getApplication())
+            ) { history, favorites, shares, allFacts ->
+                AchievementManager.calculateAchievements(
+                    historyItems = history,
+                    favoritesCount = favorites.size,
+                    sharesCount = shares,
+                    allFacts = allFacts
+                ).filter { it.status == AchievementStatus.COMPLETED }
+            }.collect {
+                _achievements.value = it
+            }
+        }
+    }
+
+    fun updateUserName(name: String) {
+        PreferenceManager.setUserName(getApplication(), name)
+    }
+
+    fun updatePublicProfile(enabled: Boolean) {
+        PreferenceManager.setPublicProfile(getApplication(), enabled)
+    }
+
+    fun updateAnalyticsEnabled(enabled: Boolean) {
+        PreferenceManager.setAnalyticsEnabled(getApplication(), enabled)
     }
 }

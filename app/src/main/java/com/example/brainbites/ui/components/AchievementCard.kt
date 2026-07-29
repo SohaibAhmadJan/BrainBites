@@ -7,8 +7,9 @@ import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Lock
+import androidx.compose.material.icons.filled.Info
 import androidx.compose.material3.*
-import androidx.compose.runtime.Composable
+import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
@@ -18,20 +19,63 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import com.example.brainbites.data.Achievement
+import com.example.brainbites.data.AchievementManager
 import com.example.brainbites.data.AchievementStatus
 import com.example.brainbites.ui.theme.AccentYellow
 import com.example.brainbites.ui.theme.DarkGreenPrimary
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun AchievementCard(
     achievement: Achievement,
     modifier: Modifier = Modifier
 ) {
-    val isLocked = achievement.status == AchievementStatus.LOCKED
+    var showDetail by remember { mutableStateOf(false) }
     val isCompleted = achievement.status == AchievementStatus.COMPLETED
 
+    if (showDetail) {
+        AlertDialog(
+            onDismissRequest = { showDetail = false },
+            title = {
+                Row(verticalAlignment = Alignment.CenterVertically) {
+                    Icon(
+                        imageVector = achievement.icon,
+                        contentDescription = null,
+                        tint = if (isCompleted) AccentYellow else MaterialTheme.colorScheme.primary
+                    )
+                    Spacer(modifier = Modifier.width(12.dp))
+                    Text(text = achievement.title, fontWeight = FontWeight.Bold)
+                }
+            },
+            text = {
+                Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
+                    Text(text = achievement.description, style = MaterialTheme.typography.bodyLarge)
+                    
+                    Surface(
+                        color = MaterialTheme.colorScheme.secondaryContainer.copy(alpha = 0.5f),
+                        shape = RoundedCornerShape(12.dp),
+                        modifier = Modifier.fillMaxWidth()
+                    ) {
+                        Text(
+                            text = "Insight: \"${AchievementManager.getAchievementInsight(achievement.id)}\"",
+                            style = MaterialTheme.typography.bodyMedium,
+                            color = MaterialTheme.colorScheme.primary,
+                            modifier = Modifier.padding(12.dp)
+                        )
+                    }
+                }
+            },
+            confirmButton = {
+                TextButton(onClick = { showDetail = false }) {
+                    Text("Got it")
+                }
+            },
+            shape = RoundedCornerShape(28.dp)
+        )
+    }
+
     // State dependent styling
-    val cardAlpha = if (isLocked) 0.65f else 1.0f
+    val cardAlpha = 1.0f
 
     val cardBorder = when {
         isCompleted -> BorderStroke(1.5.dp, AccentYellow)
@@ -40,31 +84,26 @@ fun AchievementCard(
 
     val containerColor = when {
         isCompleted -> MaterialTheme.colorScheme.surface
-        isLocked -> MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f)
         else -> MaterialTheme.colorScheme.surface
     }
 
     val iconBackgroundColor = when {
         isCompleted -> AccentYellow.copy(alpha = 0.25f)
-        isLocked -> MaterialTheme.colorScheme.onSurface.copy(alpha = 0.08f)
         else -> MaterialTheme.colorScheme.primaryContainer
     }
 
     val iconTint = when {
         isCompleted -> DarkGreenPrimary
-        isLocked -> MaterialTheme.colorScheme.onSurface.copy(alpha = 0.4f)
         else -> MaterialTheme.colorScheme.primary
     }
 
     val progressTrackColor = when {
         isCompleted -> AccentYellow.copy(alpha = 0.3f)
-        isLocked -> MaterialTheme.colorScheme.onSurface.copy(alpha = 0.12f)
         else -> MaterialTheme.colorScheme.secondaryContainer
     }
 
     val progressIndicatorColor = when {
         isCompleted -> AccentYellow
-        isLocked -> MaterialTheme.colorScheme.onSurface.copy(alpha = 0.35f)
         else -> MaterialTheme.colorScheme.primary
     }
 
@@ -73,11 +112,10 @@ fun AchievementCard(
             .width(280.dp)
             .alpha(cardAlpha)
             .animateContentSize(),
+        onClick = { showDetail = true },
         shape = RoundedCornerShape(20.dp),
         colors = CardDefaults.cardColors(containerColor = containerColor),
-        elevation = CardDefaults.cardElevation(
-            defaultElevation = if (isCompleted) 5.dp else if (isLocked) 1.dp else 3.dp
-        ),
+        elevation = CardDefaults.cardElevation(defaultElevation = 0.dp),
         border = cardBorder
     ) {
         Column(
@@ -98,7 +136,7 @@ fun AchievementCard(
                     contentAlignment = Alignment.Center
                 ) {
                     Icon(
-                        imageVector = if (isLocked) Icons.Default.Lock else achievement.icon,
+                        imageVector = achievement.icon,
                         contentDescription = achievement.title,
                         tint = iconTint,
                         modifier = Modifier.size(24.dp)

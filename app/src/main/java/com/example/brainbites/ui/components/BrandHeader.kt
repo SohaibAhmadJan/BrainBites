@@ -29,17 +29,15 @@ fun BrandHeader(
             verticalAlignment = Alignment.CenterVertically,
             horizontalArrangement = Arrangement.spacedBy(8.dp)
         ) {
-            if (title == "BrainBites") {
-                BrainBitesLogo(
-                    modifier = Modifier.size(28.dp),
-                    color = MaterialTheme.colorScheme.primary
-                )
-            }
+            BrainBitesLogo(
+                modifier = Modifier.size(28.dp),
+                color = MaterialTheme.colorScheme.primary
+            )
             Text(
                 text = title,
+                style = MaterialTheme.typography.titleLarge,
                 fontWeight = FontWeight.Bold,
-                color = MaterialTheme.colorScheme.primary,
-                fontSize = 22.sp
+                color = MaterialTheme.colorScheme.primary
             )
         }
     }
@@ -74,8 +72,7 @@ fun AnimatedTagline(text: String, key: Any) {
             if (char == ' ') {
                 Text(
                     text = " ",
-                    style = MaterialTheme.typography.labelMedium,
-                    fontSize = 11.sp,
+                    style = MaterialTheme.typography.labelSmall,
                     color = MaterialTheme.colorScheme.secondary
                 )
             } else {
@@ -97,9 +94,8 @@ fun AnimatedTagline(text: String, key: Any) {
                 
                 Text(
                     text = char.toString(),
-                    style = MaterialTheme.typography.labelMedium,
+                    style = MaterialTheme.typography.labelSmall,
                     color = MaterialTheme.colorScheme.secondary,
-                    fontSize = 11.sp,
                     fontWeight = FontWeight.Medium,
                     modifier = Modifier.graphicsLayer {
                         translationY = animatedOffset.value

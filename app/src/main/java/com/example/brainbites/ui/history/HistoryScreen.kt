@@ -31,7 +31,7 @@ fun HistoryScreen(
         if (history.isEmpty()) {
             Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
                 Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                    Text("📜", fontSize = 48.sp)
+                    Text("📜", style = MaterialTheme.typography.displayMedium)
                     Spacer(modifier = Modifier.height(16.dp))
                     Text("Your history is empty", color = MaterialTheme.colorScheme.secondary)
                 }

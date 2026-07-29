@@ -2,10 +2,7 @@ package com.example.brainbites.data
 
 import android.content.Context
 import androidx.core.content.edit
-import kotlinx.coroutines.flow.Flow
-import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.combine
-import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.flow.*
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
@@ -26,6 +23,22 @@ private data class QuizItem(
 @Serializable
 private data class QuizWrapper(val quizzes: List<QuizItem>)
 
+@Serializable
+data class CollectionSet(
+    val id: String,
+    val title: String,
+    val description: String,
+    val icon: String,
+    val color: String,
+    val factIds: List<String>
+)
+
+@Serializable
+private data class CollectionWrapper(val collections: List<CollectionSet>)
+
+@Serializable
+data class HistoryItem(val factId: String, val timestamp: Long)
+
 object BiteRepository {
 
     private val json = Json {
@@ -34,12 +47,15 @@ object BiteRepository {
     }
 
     private val _bites = MutableStateFlow<List<BiteItem>>(emptyList())
+    private val _collections = MutableStateFlow<List<CollectionSet>>(emptyList())
     private val favoriteIds = MutableStateFlow<Set<String>>(emptySet())
-    private val historyIds = MutableStateFlow<List<String>>(emptyList())
+    private val historyItems = MutableStateFlow<List<HistoryItem>>(emptyList())
+    private val _sharesCount = MutableStateFlow(0)
     
     private const val PREFS_NAME = "brain_bites_prefs"
     private const val FAVORITES_KEY = "favorite_ids"
-    private const val HISTORY_KEY = "history_ids_json"
+    private const val HISTORY_KEY_V2 = "history_items_json_v2"
+    private const val SHARES_KEY = "shares_count"
 
     private fun getSearchQuery(id: String): String {
         return when (id) {
@@ -201,13 +217,16 @@ object BiteRepository {
         val savedIds = prefs.getStringSet(FAVORITES_KEY, emptySet()) ?: emptySet()
         favoriteIds.value = savedIds.toSet()
 
-        // Load History
-        val historyJson = prefs.getString(HISTORY_KEY, "[]") ?: "[]"
+        // Load History V2 (with timestamps)
+        val historyJson = prefs.getString(HISTORY_KEY_V2, "[]") ?: "[]"
         try {
-            historyIds.value = json.decodeFromString<List<String>>(historyJson)
+            historyItems.value = json.decodeFromString<List<HistoryItem>>(historyJson)
         } catch (e: Exception) {
-            historyIds.value = emptyList()
+            historyItems.value = emptyList()
         }
+
+        // Load Shares
+        _sharesCount.value = prefs.getInt(SHARES_KEY, 0)
 
         if (_bites.value.isEmpty()) {
             try {
@@ -234,21 +253,60 @@ object BiteRepository {
                         quizOptions = quiz?.options,
                         correctAnswerIndex = quiz?.correctIndex,
                         teaserType = quiz?.teaserType,
-                        imageUrl = imageUrl
+                        imageUrl = imageUrl,
+                        keywords = query
                     )
                 }
                 
                 _bites.value = mergedBites
+
+                // Load Collections
+                val collectionsString = context.assets.open("collections.json").bufferedReader().use { it.readText() }
+                val collectionWrapper = json.decodeFromString<CollectionWrapper>(collectionsString)
+                _collections.value = collectionWrapper.collections
             } catch (e: Exception) {
                 e.printStackTrace()
             }
         }
     }
 
+    fun getAllCollections(): Flow<List<CollectionSet>> = _collections.asStateFlow()
+
+    fun getCollection(id: String): CollectionSet? = _collections.value.find { it.id == id }
+
+    fun getFactsForCollection(collectionId: String): Flow<List<BiteItem>> {
+        return combine(_collections, _bites, favoriteIds, historyItems) { collections, bites, favIds, history ->
+            val collection = collections.find { it.id == collectionId } ?: return@combine emptyList()
+            val ids = collection.factIds.toSet()
+            val historyIds = history.map { it.factId }.toSet()
+            
+            bites.filter { it.id in ids }.map { item ->
+                item.copy(
+                    isBookmarked = favIds.contains(item.id),
+                    isCompleted = historyIds.contains(item.id)
+                )
+            }
+        }
+    }
+
+    fun getCollectionProgress(collectionId: String): Flow<Float> {
+        return combine(_collections, historyItems) { collections, history ->
+            val collection = collections.find { it.id == collectionId } ?: return@combine 0f
+            val readIds = history.map { it.factId }.toSet()
+            val collectionIds = collection.factIds.toSet()
+            val intersection = collectionIds.intersect(readIds)
+            if (collectionIds.isEmpty()) 0f else intersection.size.toFloat() / collectionIds.size.toFloat()
+        }
+    }
+
     fun getAllFacts(context: Context): Flow<List<BiteItem>> {
-        return combine(_bites, favoriteIds) { list, ids ->
+        return combine(_bites, favoriteIds, historyItems) { list, ids, history ->
+            val historyIds = history.map { it.factId }.toSet()
             list.map { item ->
-                item.copy(isBookmarked = ids.contains(item.id))
+                item.copy(
+                    isBookmarked = ids.contains(item.id),
+                    isCompleted = historyIds.contains(item.id)
+                )
             }
         }
     }
@@ -260,22 +318,36 @@ object BiteRepository {
     }
 
     fun getHistoryFacts(context: Context): Flow<List<BiteItem>> {
-        return combine(_bites, historyIds, favoriteIds) { bites, ids, favs ->
-            ids.mapNotNull { id ->
-                bites.find { it.id == id }?.copy(isBookmarked = favs.contains(id))
+        return combine(_bites, historyItems, favoriteIds) { bites, items, favs ->
+            items.mapNotNull { item ->
+                bites.find { it.id == item.factId }?.copy(isBookmarked = favs.contains(item.factId))
             }
         }
     }
 
+    fun getHistoryItems(): Flow<List<HistoryItem>> = historyItems.asStateFlow()
+
+    fun getSharesCount(): Flow<Int> = _sharesCount.asStateFlow()
+
+    suspend fun incrementShares(context: Context) {
+        val newVal = _sharesCount.value + 1
+        _sharesCount.value = newVal
+        val prefs = context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
+        prefs.edit { putInt(SHARES_KEY, newVal) }
+    }
+
     suspend fun addToHistory(context: Context, id: String) {
-        val current = historyIds.value.toMutableList()
-        current.remove(id)
-        current.add(0, id)
-        val limited = current.take(20)
-        historyIds.value = limited
+        val current = historyItems.value.toMutableList()
+        current.removeAll { it.factId == id }
+        current.add(0, HistoryItem(id, System.currentTimeMillis()))
+        val limited = current.take(50)
+        historyItems.value = limited
+
+        // Trigger streak update
+        PreferenceManager.updateStreak(context)
 
         val prefs = context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
-        prefs.edit { putString(HISTORY_KEY, json.encodeToString(limited)) }
+        prefs.edit { putString(HISTORY_KEY_V2, json.encodeToString(limited)) }
     }
 
     suspend fun toggleBookmark(context: Context, id: String) {

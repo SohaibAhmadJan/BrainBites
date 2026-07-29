@@ -206,7 +206,7 @@ fun QuizResultView(score: Int, total: Int, onRestart: () -> Unit, onDone: () -> 
         horizontalAlignment = Alignment.CenterHorizontally,
         verticalArrangement = Arrangement.Center
     ) {
-        Text("✨", fontSize = 64.sp)
+        Text("✨", style = MaterialTheme.typography.displayMedium)
         Spacer(modifier = Modifier.height(16.dp))
         Text(
             text = "Quiz Completed!",
