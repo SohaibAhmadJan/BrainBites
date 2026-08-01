@@ -1,6 +1,10 @@
-- [x] Modify `TaglineManager.kt` to support manual refresh and jumping
-- [x] Remove background tagline loop in `MainActivity.kt`
-- [x] Remove tagline from `BrandHeader.kt` (Top Bar)
-- [x] Implement `AnimatedTagline` in `SplashScreen.kt` with single jump logic
-- [x] Verify tagline rotation and single jump on app launch
-- [x] Verify clean headers in the main app
+- [x] Add bottom padding to `HomeScreen.kt`
+- [x] Add bottom padding to `CategoryListScreen.kt`
+- [x] Add bottom padding to `FavoritesScreen.kt`
+- [x] Add bottom padding to `SettingsScreen.kt`
+- [x] Add bottom padding to `HistoryScreen.kt`
+- [x] Add bottom padding to `FactListScreen.kt`
+- [x] Add bottom padding to `ProfileScreen.kt`
+- [x] Add bottom padding to `NotificationsScreen.kt`
+- [x] Add bottom padding to `CollectionDetailScreen.kt`
+- [x] Verify build and layout

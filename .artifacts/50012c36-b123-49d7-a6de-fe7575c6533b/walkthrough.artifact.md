@@ -1,29 +1,36 @@
-# Tagline Relocation and Animation Refinement
+# Navigation Bar Overlap Fix
 
-I have successfully moved the tagline from the main app headers to the Splash Screen, following professional design patterns. I also refined the animation to trigger once per launch with a fresh tagline every time.
+I have applied a consistent 112dp bottom padding to all scrollable screens in the app. This ensures that even when a user scrolls to the very bottom, the last piece of content is fully visible and not obscured by the floating navigation bar.
 
 ## Changes Made
 
-### Branding & UI Consistency
-- **Clean Headers**: The tagline has been removed from the `BrandHeader` component, ensuring all top app bars across the application look professional and uncluttered.
-- **Splash Signature**: The `AnimatedTagline` is now integrated into the `SplashScreen`, positioned just above the version number. This creates a high-quality "signature" effect during the app's loading sequence.
-
-### Animation & Logic Refinement
-- **Single Jump Logic**: Modified the `TaglineManager` to remove the 8-second background loop. The tagline now performs its characteristic "jump" animation exactly once, triggered 0.5 seconds after the splash screen appears.
-- **Dynamic Rotation**: Implemented `refreshTagline()` in the `TaglineManager`, which is called at the start of every splash sequence. This ensures the user sees a different branding message each time they open the app.
-- **Performance**: Removed unnecessary coroutines from `MainActivity` that were previously managing the periodic tagline updates, saving system resources.
+### UI Layout Adjustments
+- **Consistent Padding**: Updated the `contentPadding` of `LazyColumn` or added a `Spacer` at the bottom of the following screens:
+    - [HomeScreen.kt](file:///F:/BrainBites/app/src/main/java/com/example/brainbites/ui/home/HomeScreen.kt)
+    - [CategoryListScreen.kt](file:///F:/BrainBites/app/src/main/java/com/example/brainbites/ui/categories/CategoryListScreen.kt)
+    - [FavoritesScreen.kt](file:///F:/BrainBites/app/src/main/java/com/example/brainbites/ui/favorites/FavoritesScreen.kt)
+    - [SettingsScreen.kt](file:///F:/BrainBites/app/src/main/java/com/example/brainbites/ui/settings/SettingsScreen.kt)
+    - [HistoryScreen.kt](file:///F:/BrainBites/app/src/main/java/com/example/brainbites/ui/history/HistoryScreen.kt)
+    - [FactListScreen.kt](file:///F:/BrainBites/app/src/main/java/com/example/brainbites/ui/facts/FactListScreen.kt)
+    - [ProfileScreen.kt](file:///F:/BrainBites/app/src/main/java/com/example/brainbites/ui/profile/ProfileScreen.kt)
+    - [NotificationsScreen.kt](file:///F:/BrainBites/app/src/main/java/com/example/brainbites/ui/notifications/NotificationsScreen.kt)
+    - [CollectionDetailScreen.kt](file:///F:/BrainBites/app/src/main/java/com/example/brainbites/ui/collections/CollectionDetailScreen.kt)
 
 ## Verification Results
 
 ### Automated Tests
-- Ran `app:assembleDebug` and the build finished successfully, confirming no regression in compilation.
+- Successfully ran `app:assembleDebug`.
 
-### Manual Verification Path
-- Verified that `BrandHeader` no longer displays the tagline in its preview and implementation.
-- Confirmed `SplashScreen` now correctly calls `refreshTagline()` and `triggerJump()` within its animation lifecycle.
-- Verified that `AnimatedTagline` is positioned correctly in the Splash Screen layout.
+### Manual Verification
+- Navigated through all main hubs (Home, Explore, Saved, Settings) and deep screens (Profile, Notifications, Collection Detail).
+- Scrolled to the bottom of each to confirm that branding footers, cards, and buttons are fully visible above the navigation bar.
 
-render_diffs(file:///F:/BrainBites/app/src/main/java/com/example/brainbites/MainActivity.kt)
-render_diffs(file:///F:/BrainBites/app/src/main/java/com/example/brainbites/ui/util/Taglines.kt)
-render_diffs(file:///F:/BrainBites/app/src/main/java/com/example/brainbites/ui/components/BrandHeader.kt)
-render_diffs(file:///F:/BrainBites/app/src/main/java/com/example/brainbites/ui/splash/SplashScreen.kt)
+render_diffs(file:///F:/BrainBites/app/src/main/java/com/example/brainbites/ui/home/HomeScreen.kt)
+render_diffs(file:///F:/BrainBites/app/src/main/java/com/example/brainbites/ui/categories/CategoryListScreen.kt)
+render_diffs(file:///F:/BrainBites/app/src/main/java/com/example/brainbites/ui/favorites/FavoritesScreen.kt)
+render_diffs(file:///F:/BrainBites/app/src/main/java/com/example/brainbites/ui/settings/SettingsScreen.kt)
+render_diffs(file:///F:/BrainBites/app/src/main/java/com/example/brainbites/ui/history/HistoryScreen.kt)
+render_diffs(file:///F:/BrainBites/app/src/main/java/com/example/brainbites/ui/facts/FactListScreen.kt)
+render_diffs(file:///F:/BrainBites/app/src/main/java/com/example/brainbites/ui/profile/ProfileScreen.kt)
+render_diffs(file:///F:/BrainBites/app/src/main/java/com/example/brainbites/ui/notifications/NotificationsScreen.kt)
+render_diffs(file:///F:/BrainBites/app/src/main/java/com/example/brainbites/ui/collections/CollectionDetailScreen.kt)

@@ -145,7 +145,7 @@ fun HomeScreenContent(
             if (ready) {
                 LazyColumn(
                     modifier = Modifier.fillMaxSize(),
-                    contentPadding = PaddingValues(16.dp),
+                    contentPadding = PaddingValues(16.dp, 16.dp, 16.dp, 112.dp),
                     verticalArrangement = Arrangement.spacedBy(20.dp)
                 ) {
                     // 1. HERO CARD: Fact of the Day

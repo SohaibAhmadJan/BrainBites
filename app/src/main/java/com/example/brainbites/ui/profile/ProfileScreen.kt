@@ -138,7 +138,7 @@ fun ProfileScreenContent(
             }
         }
         
-        item { Spacer(modifier = Modifier.height(20.dp)) }
+        item { Spacer(modifier = Modifier.height(112.dp)) }
     }
 }
 
