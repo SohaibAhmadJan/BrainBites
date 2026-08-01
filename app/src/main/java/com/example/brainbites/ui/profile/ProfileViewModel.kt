@@ -38,6 +38,9 @@ class ProfileViewModel(application: Application) : AndroidViewModel(application)
     val achievements = _achievements.asStateFlow()
 
     val userName = PreferenceManager.userName
+    val userImage = PreferenceManager.userImage
+    val userBio = PreferenceManager.userBio
+    val userId = PreferenceManager.userId
     val isPublicProfile = PreferenceManager.isPublicProfile
     val isAnalyticsEnabled = PreferenceManager.isAnalyticsEnabled
 
@@ -132,6 +135,13 @@ class ProfileViewModel(application: Application) : AndroidViewModel(application)
 
     fun updateUserName(name: String) {
         PreferenceManager.setUserName(getApplication(), name)
+    }
+
+    fun updateProfile(name: String, bio: String, id: String, image: String) {
+        PreferenceManager.setUserName(getApplication(), name)
+        PreferenceManager.setUserBio(getApplication(), bio)
+        PreferenceManager.setUserId(getApplication(), id)
+        PreferenceManager.setUserImage(getApplication(), image)
     }
 
     fun updatePublicProfile(enabled: Boolean) {

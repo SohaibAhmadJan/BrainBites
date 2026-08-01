@@ -1,0 +1,5 @@
+- [x] Update `PreferenceManager.kt` with new profile fields (ID, Bio, Image)
+- [x] Update `ProfileViewModel.kt` to expose and manage new profile fields
+- [x] Create `AvatarPicker.kt` component for profile image selection
+- [x] Enhance `ProfileScreen.kt` UI (Header and Edit Dialog)
+- [ ] Verify functionality and persistence

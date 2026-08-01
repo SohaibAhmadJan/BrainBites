@@ -11,6 +11,9 @@ object PreferenceManager {
     private const val KEY_HAPTICS = "haptic_feedback_enabled"
     private const val KEY_NOTIFIED_ACHIEVEMENTS = "notified_achievements"
     private const val KEY_USER_NAME = "user_display_name"
+    private const val KEY_USER_IMAGE = "user_profile_image"
+    private const val KEY_USER_BIO = "user_profile_bio"
+    private const val KEY_USER_ID = "user_unique_id"
     private const val KEY_PUBLIC_PROFILE = "is_public_profile"
     private const val KEY_ANALYTICS = "is_analytics_enabled"
     private const val KEY_STREAK = "current_streak_count"
@@ -31,6 +34,15 @@ object PreferenceManager {
     private val _userName = MutableStateFlow("Knowledge Seeker")
     val userName = _userName.asStateFlow()
 
+    private val _userImage = MutableStateFlow("")
+    val userImage = _userImage.asStateFlow()
+
+    private val _userBio = MutableStateFlow("Curious mind exploring the world of psychology.")
+    val userBio = _userBio.asStateFlow()
+
+    private val _userId = MutableStateFlow("")
+    val userId = _userId.asStateFlow()
+
     private val _isPublicProfile = MutableStateFlow(false)
     val isPublicProfile = _isPublicProfile.asStateFlow()
 
@@ -49,6 +61,16 @@ object PreferenceManager {
         _hapticsEnabled.value = prefs.getBoolean(KEY_HAPTICS, true)
         _notifiedAchievements.value = prefs.getStringSet(KEY_NOTIFIED_ACHIEVEMENTS, emptySet()) ?: emptySet()
         _userName.value = prefs.getString(KEY_USER_NAME, "Knowledge Seeker") ?: "Knowledge Seeker"
+        _userImage.value = prefs.getString(KEY_USER_IMAGE, "") ?: ""
+        _userBio.value = prefs.getString(KEY_USER_BIO, "Curious mind exploring the world of psychology.") ?: "Curious mind exploring the world of psychology."
+        
+        var savedId = prefs.getString(KEY_USER_ID, "") ?: ""
+        if (savedId.isEmpty()) {
+            savedId = "user_${java.util.UUID.randomUUID().toString().take(8)}"
+            prefs.edit().putString(KEY_USER_ID, savedId).apply()
+        }
+        _userId.value = savedId
+
         _isPublicProfile.value = prefs.getBoolean(KEY_PUBLIC_PROFILE, false)
         _isAnalyticsEnabled.value = prefs.getBoolean(KEY_ANALYTICS, true)
         _streakCount.value = prefs.getInt(KEY_STREAK, 0)
@@ -77,6 +99,24 @@ object PreferenceManager {
         context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
             .edit().putString(KEY_USER_NAME, name).apply()
         _userName.value = name
+    }
+
+    fun setUserImage(context: Context, image: String) {
+        context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
+            .edit().putString(KEY_USER_IMAGE, image).apply()
+        _userImage.value = image
+    }
+
+    fun setUserBio(context: Context, bio: String) {
+        context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
+            .edit().putString(KEY_USER_BIO, bio).apply()
+        _userBio.value = bio
+    }
+
+    fun setUserId(context: Context, id: String) {
+        context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
+            .edit().putString(KEY_USER_ID, id).apply()
+        _userId.value = id
     }
 
     fun setPublicProfile(context: Context, enabled: Boolean) {

@@ -5,8 +5,10 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.KeyboardArrowRight
 import androidx.compose.material.icons.filled.*
@@ -27,6 +29,7 @@ import androidx.compose.runtime.*
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.brainbites.ui.components.AnimatedEntrance
 import com.example.brainbites.ui.components.AchievementCard
+import com.example.brainbites.ui.components.AvatarPicker
 import com.example.brainbites.ui.theme.AccentYellow
 import com.example.brainbites.ui.theme.DarkGreenPrimary
 import com.example.brainbites.ui.theme.GreenSecondary
@@ -39,6 +42,9 @@ fun ProfileScreen(
     val stats by viewModel.stats.collectAsState()
     val achievements by viewModel.achievements.collectAsState()
     val userName by viewModel.userName.collectAsState()
+    val userBio by viewModel.userBio.collectAsState()
+    val userId by viewModel.userId.collectAsState()
+    val userImage by viewModel.userImage.collectAsState()
     val isPublic by viewModel.isPublicProfile.collectAsState()
     val isAnalytics by viewModel.isAnalyticsEnabled.collectAsState()
 
@@ -48,9 +54,12 @@ fun ProfileScreen(
     if (showEditDialog) {
         EditProfileDialog(
             currentName = userName,
+            currentBio = userBio,
+            currentId = userId,
+            currentImage = userImage,
             onDismiss = { showEditDialog = false },
-            onConfirm = { 
-                viewModel.updateUserName(it)
+            onConfirm = { name, bio, id, image ->
+                viewModel.updateProfile(name, bio, id, image)
                 showEditDialog = false
             }
         )
@@ -70,6 +79,9 @@ fun ProfileScreen(
         stats = stats,
         achievements = achievements,
         userName = userName,
+        userBio = userBio,
+        userId = userId,
+        userImage = userImage,
         onEditClick = { showEditDialog = true },
         onPrivacyClick = { showPrivacyDialog = true },
         onCollectionClick = onCollectionClick
@@ -81,6 +93,9 @@ fun ProfileScreenContent(
     stats: UserStats,
     achievements: List<com.example.brainbites.data.Achievement>,
     userName: String,
+    userBio: String,
+    userId: String,
+    userImage: String,
     onEditClick: () -> Unit,
     onPrivacyClick: () -> Unit,
     onCollectionClick: (String) -> Unit
@@ -95,6 +110,8 @@ fun ProfileScreenContent(
             AnimatedEntrance(index = 0) {
                 ProfileHeader(
                     userName = userName,
+                    userId = userId,
+                    userImage = userImage,
                     level = stats.level,
                     rankTitle = stats.rankTitle,
                     streak = stats.streak
@@ -102,9 +119,16 @@ fun ProfileScreenContent(
             }
         }
 
-        // 2. Stats Row
+        // 1.5 Bio Section (NEW)
         item {
             AnimatedEntrance(index = 1) {
+                BioSection(bio = userBio)
+            }
+        }
+
+        // 2. Stats Row
+        item {
+            AnimatedEntrance(index = 2) {
                 StatsSection(stats)
             }
         }
@@ -145,6 +169,8 @@ fun ProfileScreenContent(
 @Composable
 fun ProfileHeader(
     userName: String,
+    userId: String,
+    userImage: String,
     level: Int,
     rankTitle: String,
     streak: Int
@@ -160,12 +186,16 @@ fun ProfileHeader(
                 .background(MaterialTheme.colorScheme.primaryContainer),
             contentAlignment = Alignment.Center
         ) {
-            Icon(
-                imageVector = Icons.Default.AccountCircle,
-                contentDescription = null,
-                modifier = Modifier.size(80.dp),
-                tint = MaterialTheme.colorScheme.primary
-            )
+            if (userImage.isNotEmpty()) {
+                Text(text = userImage, fontSize = 60.sp)
+            } else {
+                Icon(
+                    imageVector = Icons.Default.AccountCircle,
+                    contentDescription = null,
+                    modifier = Modifier.size(80.dp),
+                    tint = MaterialTheme.colorScheme.primary
+                )
+            }
         }
         
         Spacer(modifier = Modifier.height(16.dp))
@@ -176,6 +206,15 @@ fun ProfileHeader(
             fontWeight = FontWeight.Bold,
             color = MaterialTheme.colorScheme.primary
         )
+        
+        Text(
+            text = "@$userId",
+            style = MaterialTheme.typography.bodyMedium,
+            color = MaterialTheme.colorScheme.secondary,
+            fontWeight = FontWeight.Medium
+        )
+        
+        Spacer(modifier = Modifier.height(8.dp))
         
         Row(
             verticalAlignment = Alignment.CenterVertically,
@@ -208,6 +247,30 @@ fun ProfileHeader(
                     }
                 }
             }
+        }
+    }
+}
+
+@Composable
+fun BioSection(bio: String) {
+    Surface(
+        modifier = Modifier.fillMaxWidth(),
+        shape = RoundedCornerShape(16.dp),
+        color = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.3f)
+    ) {
+        Column(modifier = Modifier.padding(16.dp)) {
+            Text(
+                text = "About Me",
+                style = MaterialTheme.typography.labelMedium,
+                fontWeight = FontWeight.Bold,
+                color = MaterialTheme.colorScheme.primary
+            )
+            Spacer(modifier = Modifier.height(4.dp))
+            Text(
+                text = bio,
+                style = MaterialTheme.typography.bodyMedium,
+                color = MaterialTheme.colorScheme.onSurfaceVariant
+            )
         }
     }
 }
@@ -449,31 +512,72 @@ fun ProfileActionItem(title: String, icon: ImageVector, onClick: () -> Unit) {
 @Composable
 fun EditProfileDialog(
     currentName: String,
+    currentBio: String,
+    currentId: String,
+    currentImage: String,
     onDismiss: () -> Unit,
-    onConfirm: (String) -> Unit
+    onConfirm: (String, String, String, String) -> Unit
 ) {
     var name by remember { mutableStateOf(currentName) }
+    var bio by remember { mutableStateOf(currentBio) }
+    var userId by remember { mutableStateOf(currentId) }
+    var userImage by remember { mutableStateOf(currentImage) }
 
     AlertDialog(
         onDismissRequest = onDismiss,
         title = { Text("Edit Profile", fontWeight = FontWeight.Bold) },
         text = {
-            Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
-                Text("Your Display Name", style = MaterialTheme.typography.labelMedium)
-                OutlinedTextField(
-                    value = name,
-                    onValueChange = { name = it },
-                    placeholder = { Text("Enter your name") },
-                    shape = RoundedCornerShape(12.dp),
-                    modifier = Modifier.fillMaxWidth(),
-                    singleLine = true
+            Column(
+                verticalArrangement = Arrangement.spacedBy(16.dp),
+                modifier = Modifier.verticalScroll(rememberScrollState())
+            ) {
+                AvatarPicker(
+                    selectedAvatar = userImage,
+                    onAvatarSelected = { userImage = it }
                 )
+
+                Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
+                    Text("Display Name", style = MaterialTheme.typography.labelMedium)
+                    OutlinedTextField(
+                        value = name,
+                        onValueChange = { name = it },
+                        placeholder = { Text("Enter your name") },
+                        shape = RoundedCornerShape(12.dp),
+                        modifier = Modifier.fillMaxWidth(),
+                        singleLine = true
+                    )
+                }
+
+                Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
+                    Text("User ID", style = MaterialTheme.typography.labelMedium)
+                    OutlinedTextField(
+                        value = userId,
+                        onValueChange = { userId = it.replace(" ", "_").lowercase() },
+                        placeholder = { Text("unique_id") },
+                        leadingIcon = { Text("@", modifier = Modifier.padding(start = 12.dp)) },
+                        shape = RoundedCornerShape(12.dp),
+                        modifier = Modifier.fillMaxWidth(),
+                        singleLine = true
+                    )
+                }
+
+                Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
+                    Text("Bio", style = MaterialTheme.typography.labelMedium)
+                    OutlinedTextField(
+                        value = bio,
+                        onValueChange = { bio = it },
+                        placeholder = { Text("Tell us about yourself...") },
+                        shape = RoundedCornerShape(12.dp),
+                        modifier = Modifier.fillMaxWidth(),
+                        minLines = 3
+                    )
+                }
             }
         },
         confirmButton = {
             TextButton(
-                onClick = { onConfirm(name) },
-                enabled = name.isNotBlank()
+                onClick = { onConfirm(name, bio, userId, userImage) },
+                enabled = name.isNotBlank() && userId.isNotBlank()
             ) {
                 Text("Save Changes")
             }
@@ -559,6 +663,9 @@ fun ProfileScreenPreview() {
             ),
             achievements = emptyList(),
             userName = "Knowledge Seeker",
+            userBio = "Curious mind exploring the world of psychology.",
+            userId = "knowledge_seeker",
+            userImage = "🧠",
             onEditClick = {},
             onPrivacyClick = {},
             onCollectionClick = {}
