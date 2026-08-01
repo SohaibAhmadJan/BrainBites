@@ -1,5 +1,4 @@
-- [x] Update `PreferenceManager.kt` with new profile fields (ID, Bio, Image)
-- [x] Update `ProfileViewModel.kt` to expose and manage new profile fields
-- [x] Create `AvatarPicker.kt` component for profile image selection
-- [x] Enhance `ProfileScreen.kt` UI (Header and Edit Dialog)
-- [ ] Verify functionality and persistence
+- [x] Comprehensive reset of `userImage` in `PreferenceManager.kt` to ensure initials by default
+- [x] Finalize the list of 40 unique persona seeds in `AvatarPicker.kt`
+- [ ] Verify that initials appear on first launch
+- [ ] Verify 40 different illustrations in the picker

@@ -61,6 +61,17 @@ fun SettingsScreen() {
                         "BrainBites is your daily companion for psychology facts, mental puzzles, and habit-building insights. Our mission is to make learning about the human mind accessible and engaging for everyone.",
                         style = MaterialTheme.typography.bodySmall
                     )
+                    
+                    Spacer(modifier = Modifier.height(8.dp))
+                    
+                    Text("Credits", style = MaterialTheme.typography.labelMedium, fontWeight = FontWeight.Bold)
+                    Text(
+                        "Avatars provided by DiceBear",
+                        style = MaterialTheme.typography.labelSmall,
+                        color = Color.Gray
+                    )
+
+                    Spacer(modifier = Modifier.height(4.dp))
                     Text("© 2026 BrainBites Team", style = MaterialTheme.typography.labelSmall, color = Color.Gray)
                 }
             },

@@ -33,6 +33,10 @@ import com.example.brainbites.ui.components.AvatarPicker
 import com.example.brainbites.ui.theme.AccentYellow
 import com.example.brainbites.ui.theme.DarkGreenPrimary
 import com.example.brainbites.ui.theme.GreenSecondary
+import coil.compose.SubcomposeAsyncImage
+import coil.request.ImageRequest
+import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.layout.ContentScale
 
 @Composable
 fun ProfileScreen(
@@ -186,15 +190,30 @@ fun ProfileHeader(
                 .background(MaterialTheme.colorScheme.primaryContainer),
             contentAlignment = Alignment.Center
         ) {
+            val initial = userName.firstOrNull()?.toString()?.uppercase() ?: "?"
+            
             if (userImage.isNotEmpty()) {
-                Text(text = userImage, fontSize = 60.sp)
-            } else {
-                Icon(
-                    imageVector = Icons.Default.AccountCircle,
+                SubcomposeAsyncImage(
+                    model = ImageRequest.Builder(LocalContext.current)
+                        .data("https://api.dicebear.com/9.x/personas/png?seed=$userImage")
+                        .crossfade(true)
+                        .build(),
                     contentDescription = null,
-                    modifier = Modifier.size(80.dp),
-                    tint = MaterialTheme.colorScheme.primary
+                    modifier = Modifier.fillMaxSize(),
+                    contentScale = ContentScale.Crop,
+                    loading = {
+                        CircularProgressIndicator(
+                            modifier = Modifier.size(32.dp),
+                            color = MaterialTheme.colorScheme.primary
+                        )
+                    },
+                    error = {
+                        // Fallback to professional initial if image fails
+                        InitialAvatar(initial = initial)
+                    }
                 )
+            } else {
+                InitialAvatar(initial = initial)
             }
         }
         
@@ -207,14 +226,21 @@ fun ProfileHeader(
             color = MaterialTheme.colorScheme.primary
         )
         
-        Text(
-            text = "@$userId",
-            style = MaterialTheme.typography.bodyMedium,
-            color = MaterialTheme.colorScheme.secondary,
-            fontWeight = FontWeight.Medium
-        )
+        Surface(
+            color = MaterialTheme.colorScheme.secondaryContainer.copy(alpha = 0.5f),
+            shape = RoundedCornerShape(8.dp),
+            modifier = Modifier.padding(top = 4.dp)
+        ) {
+            Text(
+                text = "@$userId",
+                style = MaterialTheme.typography.labelMedium,
+                color = MaterialTheme.colorScheme.primary,
+                fontWeight = FontWeight.SemiBold,
+                modifier = Modifier.padding(horizontal = 12.dp, vertical = 4.dp)
+            )
+        }
         
-        Spacer(modifier = Modifier.height(8.dp))
+        Spacer(modifier = Modifier.height(12.dp))
         
         Row(
             verticalAlignment = Alignment.CenterVertically,
@@ -270,6 +296,24 @@ fun BioSection(bio: String) {
                 text = bio,
                 style = MaterialTheme.typography.bodyMedium,
                 color = MaterialTheme.colorScheme.onSurfaceVariant
+            )
+        }
+    }
+}
+
+@Composable
+fun InitialAvatar(initial: String) {
+    Surface(
+        modifier = Modifier.fillMaxSize(),
+        color = MaterialTheme.colorScheme.primary,
+        tonalElevation = 4.dp
+    ) {
+        Box(contentAlignment = Alignment.Center) {
+            Text(
+                text = initial,
+                style = MaterialTheme.typography.displayMedium,
+                fontWeight = FontWeight.Black,
+                color = MaterialTheme.colorScheme.onPrimary
             )
         }
     }

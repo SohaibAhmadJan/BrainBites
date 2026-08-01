@@ -1,46 +1,29 @@
-# Enhance User Profile and Edit Functionality
+# Reset Default Avatar and Finalize Persona List
 
-This plan details the steps to add more user information (Profile Image, User ID, and Bio) to the profile section and expand the edit profile dialog to allow managing these new fields.
+Ensure the app starts with the user's initials by default and provide the full set of 40 professional persona illustrations.
 
 ## User Review Required
 
 > [!IMPORTANT]
-> - A unique **User ID** will be generated automatically for new users if not set.
-> - The **Profile Image** will initially support selecting from a set of built-in avatars or providing a custom image URI.
+> - I am resetting the profile avatar to the **Initials (Aa)** view for this update to ensure you start with the clean "first letter" look you requested.
+> - Once you choose a persona and click "Save," it will remain saved.
 
 ## Proposed Changes
 
 ### Data Layer
 
 #### [MODIFY] [PreferenceManager.kt](file:///F:/BrainBites/app/src/main/java/com/example/brainbites/data/PreferenceManager.kt)
-- Add constants for `KEY_USER_IMAGE`, `KEY_USER_BIO`, and `KEY_USER_ID`.
-- Add `MutableStateFlow` and `asStateFlow` for `userImage`, `userBio`, and `userId`.
-- Update `initialize` to load these values.
-- Add setter functions: `setUserImage`, `setUserBio`, and `setUserId`.
+- Update the cleanup logic to be more comprehensive.
+- I will reset the `userImage` to an empty string if it contains any of the 40 seeds or old seeds, ensuring that on your next launch, you see the **Initials** circle by default.
 
-### View Model
+### UI Components
 
-#### [MODIFY] [ProfileViewModel.kt](file:///F:/BrainBites/app/src/main/java/com/example/brainbites/ui/profile/ProfileViewModel.kt)
-- Expose `userImage`, `userBio`, and `userId` from `PreferenceManager`.
-- Add `updateProfile(name, bio, userId, image)` function to update all fields at once or individual setters.
-
-### UI Layer
-
-#### [MODIFY] [ProfileScreen.kt](file:///F:/BrainBites/app/src/main/java/com/example/brainbites/ui/profile/ProfileScreen.kt)
-- **ProfileHeader**: Update to show the user's profile image and display the `@userId` below the name.
-- **ProfileScreenContent**: Pass the new data (Bio, User ID, Image) to `ProfileHeader`.
-- **Bio Section**: Add a small bio section below the stats or header.
-- **EditProfileDialog**: Add text fields for Bio and User ID. Add an avatar selection row.
-
-#### [NEW] [AvatarPicker.kt](file:///F:/BrainBites/app/src/main/java/com/example/brainbites/ui/components/AvatarPicker.kt)
-- A simple component to choose from a few pre-defined profile images.
+#### [MODIFY] [AvatarPicker.kt](file:///F:/BrainBites/app/src/main/java/com/example/brainbites/ui/components/AvatarPicker.kt)
+- Verify and finalize the list of **40 unique persona seeds** for DiceBear.
 
 ## Verification Plan
 
 ### Manual Verification
-- Navigate to the Profile screen.
-- Verify that a default avatar and a generated User ID are shown.
-- Click "Edit Profile".
-- Change the name, bio, and user ID.
-- Select a different avatar.
-- Save and verify the changes are reflected on the Profile screen and persisted after app restart.
+- **Default State**: Launch the app and verify the profile header shows your initial (e.g., "K") on a brand-green background.
+- **Picker Count**: Open Edit Profile and scroll through the picker to confirm there are **40 different illustrations** plus the "Aa" option.
+- **Persistence**: Select a character, save it, and verify it stays after app restart.
