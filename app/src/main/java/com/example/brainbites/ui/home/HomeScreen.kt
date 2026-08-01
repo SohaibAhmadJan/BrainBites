@@ -363,7 +363,10 @@ fun AchievementsSection(achievements: List<Achievement>) {
             horizontalArrangement = Arrangement.spacedBy(16.dp)
         ) {
             items(achievements) { achievement ->
-                AchievementCard(achievement = achievement)
+                AchievementCard(
+                    achievement = achievement,
+                    modifier = Modifier.width(280.dp)
+                )
             }
         }
     }

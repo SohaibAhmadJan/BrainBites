@@ -1,10 +1,4 @@
-- [x] Add bottom padding to `HomeScreen.kt`
-- [x] Add bottom padding to `CategoryListScreen.kt`
-- [x] Add bottom padding to `FavoritesScreen.kt`
-- [x] Add bottom padding to `SettingsScreen.kt`
-- [x] Add bottom padding to `HistoryScreen.kt`
-- [x] Add bottom padding to `FactListScreen.kt`
-- [x] Add bottom padding to `ProfileScreen.kt`
-- [x] Add bottom padding to `NotificationsScreen.kt`
-- [x] Add bottom padding to `CollectionDetailScreen.kt`
-- [x] Verify build and layout
+- [x] Modify `AchievementCard.kt` to remove hardcoded width
+- [x] Update `ProfileScreen.kt` to use full-width achievement cards
+- [x] Update `HomeScreen.kt` to maintain fixed-width achievement cards in the horizontal list
+- [x] Verify build and layout on both screens

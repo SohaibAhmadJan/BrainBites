@@ -393,7 +393,10 @@ fun AchievementsSection(achievements: List<com.example.brainbites.data.Achieveme
         } else {
             Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
                 achievements.forEach { achievement ->
-                    AchievementCard(achievement = achievement)
+                    AchievementCard(
+                        achievement = achievement,
+                        modifier = Modifier.fillMaxWidth()
+                    )
                 }
             }
         }

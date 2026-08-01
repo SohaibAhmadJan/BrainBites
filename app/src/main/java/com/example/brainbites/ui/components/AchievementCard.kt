@@ -109,7 +109,6 @@ fun AchievementCard(
 
     Card(
         modifier = modifier
-            .width(280.dp)
             .alpha(cardAlpha)
             .animateContentSize(),
         onClick = { showDetail = true },

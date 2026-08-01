@@ -1,36 +1,25 @@
-# Navigation Bar Overlap Fix
+# Achievement Cards Layout Fix
 
-I have applied a consistent 112dp bottom padding to all scrollable screens in the app. This ensures that even when a user scrolls to the very bottom, the last piece of content is fully visible and not obscured by the floating navigation bar.
+I have adjusted the `AchievementCard` layout to ensure that cards in the Profile screen occupy the full width, removing the previous vacant space on the right.
 
 ## Changes Made
 
-### UI Layout Adjustments
-- **Consistent Padding**: Updated the `contentPadding` of `LazyColumn` or added a `Spacer` at the bottom of the following screens:
-    - [HomeScreen.kt](file:///F:/BrainBites/app/src/main/java/com/example/brainbites/ui/home/HomeScreen.kt)
-    - [CategoryListScreen.kt](file:///F:/BrainBites/app/src/main/java/com/example/brainbites/ui/categories/CategoryListScreen.kt)
-    - [FavoritesScreen.kt](file:///F:/BrainBites/app/src/main/java/com/example/brainbites/ui/favorites/FavoritesScreen.kt)
-    - [SettingsScreen.kt](file:///F:/BrainBites/app/src/main/java/com/example/brainbites/ui/settings/SettingsScreen.kt)
-    - [HistoryScreen.kt](file:///F:/BrainBites/app/src/main/java/com/example/brainbites/ui/history/HistoryScreen.kt)
-    - [FactListScreen.kt](file:///F:/BrainBites/app/src/main/java/com/example/brainbites/ui/facts/FactListScreen.kt)
-    - [ProfileScreen.kt](file:///F:/BrainBites/app/src/main/java/com/example/brainbites/ui/profile/ProfileScreen.kt)
-    - [NotificationsScreen.kt](file:///F:/BrainBites/app/src/main/java/com/example/brainbites/ui/notifications/NotificationsScreen.kt)
-    - [CollectionDetailScreen.kt](file:///F:/BrainBites/app/src/main/java/com/example/brainbites/ui/collections/CollectionDetailScreen.kt)
+### Component Decoupling
+- **AchievementCard.kt**: Removed the hardcoded `.width(280.dp)` from the base component. This makes the card flexible and reusable in different layout contexts.
+
+### Screen-Specific Styling
+- **ProfileScreen.kt**: Updated the `AchievementsSection` to pass `Modifier.fillMaxWidth()` to each `AchievementCard`. This ensures they stretch to fit the screen, creating a balanced and professional vertical list.
+- **HomeScreen.kt**: Updated the horizontal `LazyRow` to explicitly set `Modifier.width(280.dp)` for each card. This preserves the original "carousel" behavior on the home screen while benefiting from the flexible component design.
 
 ## Verification Results
 
 ### Automated Tests
 - Successfully ran `app:assembleDebug`.
 
-### Manual Verification
-- Navigated through all main hubs (Home, Explore, Saved, Settings) and deep screens (Profile, Notifications, Collection Detail).
-- Scrolled to the bottom of each to confirm that branding footers, cards, and buttons are fully visible above the navigation bar.
+### Manual Verification Path
+- **Profile Hub**: Verified that achievements now appear as full-width cards, matching the width of other sections like "Account Settings."
+- **Home Hub**: Verified that achievements still scroll horizontally with their original dimensions, maintaining the "hero" section aesthetic.
 
-render_diffs(file:///F:/BrainBites/app/src/main/java/com/example/brainbites/ui/home/HomeScreen.kt)
-render_diffs(file:///F:/BrainBites/app/src/main/java/com/example/brainbites/ui/categories/CategoryListScreen.kt)
-render_diffs(file:///F:/BrainBites/app/src/main/java/com/example/brainbites/ui/favorites/FavoritesScreen.kt)
-render_diffs(file:///F:/BrainBites/app/src/main/java/com/example/brainbites/ui/settings/SettingsScreen.kt)
-render_diffs(file:///F:/BrainBites/app/src/main/java/com/example/brainbites/ui/history/HistoryScreen.kt)
-render_diffs(file:///F:/BrainBites/app/src/main/java/com/example/brainbites/ui/facts/FactListScreen.kt)
+render_diffs(file:///F:/BrainBites/app/src/main/java/com/example/brainbites/ui/components/AchievementCard.kt)
 render_diffs(file:///F:/BrainBites/app/src/main/java/com/example/brainbites/ui/profile/ProfileScreen.kt)
-render_diffs(file:///F:/BrainBites/app/src/main/java/com/example/brainbites/ui/notifications/NotificationsScreen.kt)
-render_diffs(file:///F:/BrainBites/app/src/main/java/com/example/brainbites/ui/collections/CollectionDetailScreen.kt)
+render_diffs(file:///F:/BrainBites/app/src/main/java/com/example/brainbites/ui/home/HomeScreen.kt)
