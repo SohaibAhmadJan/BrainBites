@@ -1,6 +1,6 @@
-- [x] Refine Global Back Button in `MainScaffold.kt`
-    - [x] Update visibility and navigation logic
-    - [x] Ensure floating placement at top-left
-    - [x] Handle potential overlap with `BrandHeader`
-- [x] Verify navigation behavior on branch screens
-- [ ] Create Walkthrough
+- [x] Modify `TaglineManager.kt` to support manual refresh and jumping
+- [x] Remove background tagline loop in `MainActivity.kt`
+- [x] Remove tagline from `BrandHeader.kt` (Top Bar)
+- [x] Implement `AnimatedTagline` in `SplashScreen.kt` with single jump logic
+- [x] Verify tagline rotation and single jump on app launch
+- [x] Verify clean headers in the main app

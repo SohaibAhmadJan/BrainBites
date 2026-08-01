@@ -23,6 +23,8 @@ import androidx.compose.ui.tooling.preview.Preview
 import com.example.brainbites.ui.theme.BrainBitesTheme
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.brainbites.ui.components.BrainBitesLogo
+import com.example.brainbites.ui.components.AnimatedTagline
+import com.example.brainbites.ui.util.TaglineManager
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 
@@ -54,6 +56,13 @@ fun SplashScreen(
     // Animation Sequence
     LaunchedEffect(Unit) {
         if (isPreview) return@LaunchedEffect
+        
+        TaglineManager.refreshTagline()
+        
+        launch {
+            delay(500)
+            TaglineManager.triggerJump()
+        }
         
         // Initialize Database while splash is showing
         launch {
@@ -137,18 +146,6 @@ fun SplashScreen(
                 modifier = Modifier.graphicsLayer(alpha = nameAlpha.value)
             )
 
-            Spacer(modifier = Modifier.height(16.dp))
-
-            // Stable Tagline
-            Text(
-                text = "Feed Your Mind Daily",
-                style = MaterialTheme.typography.headlineMedium.copy(
-                    color = MaterialTheme.colorScheme.secondary,
-                    fontSize = 18.sp
-                ),
-                modifier = Modifier.graphicsLayer(alpha = taglineAlpha.value)
-            )
-
             Spacer(modifier = Modifier.height(48.dp))
 
             // Stable Linear Loading Indicator
@@ -163,6 +160,17 @@ fun SplashScreen(
             )
 
             Spacer(modifier = Modifier.weight(1.2f))
+
+            val currentTagline by TaglineManager.currentTagline.collectAsState()
+            val jumpTrigger by TaglineManager.jumpTrigger.collectAsState()
+
+            Box(
+                modifier = Modifier
+                    .graphicsLayer(alpha = taglineAlpha.value)
+                    .padding(bottom = 8.dp)
+            ) {
+                AnimatedTagline(text = currentTagline, key = jumpTrigger)
+            }
 
             Text(
                 text = "Version 3.1",

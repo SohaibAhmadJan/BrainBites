@@ -1,32 +1,40 @@
-# Implementation Plan: Fix Persistent Bottom Black Layer
+# Relocate Animated Tagline
 
-Eliminate the black "middle layer" at the bottom of the screen by forcing a zero-inset full-screen Scaffold and ensuring the root background covers the absolute edge-to-edge area.
+Move the tagline from the top header to a more professional location (Settings and Profile screens) while maintaining the existing animations.
 
 ## User Review Required
 
-> [!IMPORTANT]
-> - The **Scaffold** will be updated to ignore system insets (`contentWindowInsets = WindowInsets(0)`). This prevents the Scaffold from adding any internal padding or drawing backgrounds in the system bar areas.
-> - The **Main Content Area** will be forced to `fillMaxSize()`, ensuring it extends behind the navigation bar.
-> - The **Root Background** will be moved to the absolute top of the hierarchy to ensure no "window black" can ever be seen.
+> [!NOTE]
+> Moving the tagline to the bottom of the Settings and Profile screens makes it less intrusive but still keeps the brand identity present.
 
 ## Proposed Changes
 
-### UI Scaffolding
+### UI Components
 
-#### [MODIFY] [MainScaffold.kt](file:///F:/BrainBites/app/src/main/java/com/example/brainbites/ui/main/MainScaffold.kt)
-- **Scaffold Configuration**: Add `contentWindowInsets = WindowInsets(0, 0, 0, 0)` to the `Scaffold` component.
-- **Content Modifier**: Update the `content` call to use `Modifier.fillMaxSize().padding(top = innerPadding.calculateTopPadding())`. This ensures the content fills the bottom of the screen while still staying below the TopAppBar.
-- **Back Button Safety**: Re-apply `statusBarsPadding()` to the back button since we are now ignoring window insets at the Scaffold level.
+#### [MODIFY] [BrandHeader.kt](file:///F:/BrainBites/app/src/main/java/com/example/brainbites/ui/components/BrandHeader.kt)
+- Remove `AnimatedTagline` from the `BrandHeader` layout.
+- Keep `AnimatedTagline` as a public composable so it can be used elsewhere.
 
-### Navigation Root
+#### [MODIFY] [SettingsScreen.kt](file:///F:/BrainBites/app/src/main/java/com/example/brainbites/ui/settings/SettingsScreen.kt)
+- Import `AnimatedTagline` and `TaglineManager`.
+- Add a footer item to the `LazyColumn` that displays the `AnimatedTagline`.
 
-#### [MODIFY] [BrainBitesNavGraph.kt](file:///F:/BrainBites/app/src/main/java/com/example/brainbites/navigation/BrainBitesNavGraph.kt)
-- Ensure the root `Surface` has NO padding and uses the primary background color.
+#### [MODIFY] [ProfileScreen.kt](file:///F:/BrainBites/app/src/main/java/com/example/brainbites/ui/profile/ProfileScreen.kt)
+- Import `AnimatedTagline` and `TaglineManager`.
+- Add a footer item to the `LazyColumn` that displays the `AnimatedTagline`.
+
+### Cleanup
+
+#### [MODIFY] [FactListScreen.kt](file:///F:/BrainBites/app/src/main/java/com/example/brainbites/ui/facts/FactListScreen.kt)
+- Remove unused `BrandHeader` import.
+
+#### [MODIFY] [HistoryScreen.kt](file:///F:/BrainBites/app/src/main/java/com/example/brainbites/ui/history/HistoryScreen.kt)
+- Remove unused `BrandHeader` import.
 
 ## Verification Plan
 
 ### Manual Verification
-1. Launch the app and check the bottom of the screen.
-2. Verify that the greenish background pattern extends all the way to the bottom edge, including the area behind the grey system navigation bar buttons.
-3. Confirm that the black "ears" and gaps around the navigation pill are completely gone.
-4. Verify that the navigation pill floats cleanly over the screen patterns.
+- Deploy the app and verify that the tagline is gone from the top bar on all screens.
+- Go to the **Settings** screen and scroll to the bottom to see the animated tagline.
+- Go to the **Profile** screen and scroll to the bottom to see the animated tagline.
+- Verify that the "jumping" animation and periodic tagline changes still work.

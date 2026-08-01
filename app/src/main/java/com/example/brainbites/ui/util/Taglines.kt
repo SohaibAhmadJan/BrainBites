@@ -1,6 +1,5 @@
 package com.example.brainbites.ui.util
 
-import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -28,24 +27,11 @@ object TaglineManager {
     private val _jumpTrigger = MutableStateFlow(0)
     val jumpTrigger = _jumpTrigger.asStateFlow()
 
-    private var isStarted = false
+    fun refreshTagline() {
+        _currentTagline.value = list.filter { it != _currentTagline.value }.randomOrNull() ?: list.random()
+    }
 
-    fun start(scope: CoroutineScope) {
-        if (isStarted) return
-        isStarted = true
-
-        scope.launch {
-            var tickCount = 0
-            while (true) {
-                delay(8000L) // Wait 8 seconds
-                _jumpTrigger.value++ // Trigger the jumping animation
-                tickCount++
-
-                if (tickCount >= 5) { // Every 40 seconds (5 * 8s)
-                    _currentTagline.value = list.filter { it != _currentTagline.value }.randomOrNull() ?: list.random()
-                    tickCount = 0
-                }
-            }
-        }
+    fun triggerJump() {
+        _jumpTrigger.value++
     }
 }

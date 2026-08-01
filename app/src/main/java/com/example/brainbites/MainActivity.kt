@@ -6,7 +6,6 @@ import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
-import androidx.lifecycle.lifecycleScope
 import com.example.brainbites.data.PreferenceManager
 import com.example.brainbites.data.theme.ThemeManager
 import com.example.brainbites.navigation.BrainBitesNavGraph
@@ -19,7 +18,6 @@ class MainActivity : ComponentActivity() {
         
         ThemeManager.initialize(this)
         PreferenceManager.initialize(this)
-        TaglineManager.start(lifecycleScope)
         enableEdgeToEdge()
         
         setContent {

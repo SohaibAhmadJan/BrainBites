@@ -1,40 +1,29 @@
-# Walkthrough - Floating Back Button
+# Tagline Relocation and Animation Refinement
 
-I have implemented a global floating back button that appears on all "branch" screens (screens that are not the root pager). This button allows users to navigate back to the previous screen, eventually reaching the root screen as requested.
+I have successfully moved the tagline from the main app headers to the Splash Screen, following professional design patterns. I also refined the animation to trigger once per launch with a fresh tagline every time.
 
-## Changes
+## Changes Made
 
-### [MainScaffold.kt](file:///F:/BrainBites/app/src/main/java/com/example/brainbites/ui/main/MainScaffold.kt)
+### Branding & UI Consistency
+- **Clean Headers**: The tagline has been removed from the `BrandHeader` component, ensuring all top app bars across the application look professional and uncluttered.
+- **Splash Signature**: The `AnimatedTagline` is now integrated into the `SplashScreen`, positioned just above the version number. This creates a high-quality "signature" effect during the app's loading sequence.
 
-- **Floating Back Button**: Added a `SmallFloatingActionButton` that floats at the top-left of the screen.
-- **Adaptive Padding**: The `TopAppBar` title now automatically shifts to the right when the back button is visible to prevent any overlap with the `BrandHeader`.
-- **Smooth Transitions**: Used `AnimatedVisibility` with scale and fade animations for a polished entry and exit of the back button.
-- **Navigation Logic**: The button uses `navController.popBackStack()` to move back through the history, ensuring users can return to the root screen (`root_pager`) from any depth.
-
-```kotlin
-// Snippet of the implementation in MainScaffold.kt
-AnimatedVisibility(
-    visible = showBackButton,
-    enter = fadeIn() + scaleIn(initialScale = 0.8f),
-    exit = fadeOut() + scaleOut(targetScale = 0.8f),
-    modifier = Modifier
-        .statusBarsPadding()
-        .padding(start = 12.dp, top = 8.dp)
-        .align(Alignment.TopStart)
-) {
-    SmallFloatingActionButton(
-        onClick = { navController.popBackStack() },
-        // ... styling ...
-    )
-}
-```
+### Animation & Logic Refinement
+- **Single Jump Logic**: Modified the `TaglineManager` to remove the 8-second background loop. The tagline now performs its characteristic "jump" animation exactly once, triggered 0.5 seconds after the splash screen appears.
+- **Dynamic Rotation**: Implemented `refreshTagline()` in the `TaglineManager`, which is called at the start of every splash sequence. This ensures the user sees a different branding message each time they open the app.
+- **Performance**: Removed unnecessary coroutines from `MainActivity` that were previously managing the periodic tagline updates, saving system resources.
 
 ## Verification Results
 
-### Manual Verification
-- Navigated from Home -> Daily Teaser: Back button appeared and returned to Home.
-- Navigated from Explore -> Categories -> Fact Detail: Back button allowed sequential return to Explore.
-- Verified that on the main tabs (Home, Explore, Saved, Settings), the back button is hidden and the title returns to its original position.
+### Automated Tests
+- Ran `app:assembleDebug` and the build finished successfully, confirming no regression in compilation.
 
-> [!TIP]
-> The back button is placed with `statusBarsPadding()`, ensuring it stays clear of the system status bar on all devices.
+### Manual Verification Path
+- Verified that `BrandHeader` no longer displays the tagline in its preview and implementation.
+- Confirmed `SplashScreen` now correctly calls `refreshTagline()` and `triggerJump()` within its animation lifecycle.
+- Verified that `AnimatedTagline` is positioned correctly in the Splash Screen layout.
+
+render_diffs(file:///F:/BrainBites/app/src/main/java/com/example/brainbites/MainActivity.kt)
+render_diffs(file:///F:/BrainBites/app/src/main/java/com/example/brainbites/ui/util/Taglines.kt)
+render_diffs(file:///F:/BrainBites/app/src/main/java/com/example/brainbites/ui/components/BrandHeader.kt)
+render_diffs(file:///F:/BrainBites/app/src/main/java/com/example/brainbites/ui/splash/SplashScreen.kt)

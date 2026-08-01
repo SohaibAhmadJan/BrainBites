@@ -13,18 +13,13 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import com.example.brainbites.ui.util.TaglineManager
 import kotlinx.coroutines.delay
 
 @Composable
 fun BrandHeader(
     title: String
 ) {
-    val currentTagline by TaglineManager.currentTagline.collectAsState()
-    val jumpTrigger by TaglineManager.jumpTrigger.collectAsState()
-
     Column {
-        AnimatedTagline(text = currentTagline, key = jumpTrigger)
         Row(
             verticalAlignment = Alignment.CenterVertically,
             horizontalArrangement = Arrangement.spacedBy(8.dp)
