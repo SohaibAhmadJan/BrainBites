@@ -10,7 +10,6 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
@@ -56,7 +55,7 @@ fun SettingsScreen() {
             title = { Text("About BrainBites", fontWeight = FontWeight.Bold) },
             text = {
                 Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
-                    Text("Version 2.7.3", style = MaterialTheme.typography.bodyMedium)
+                    Text("Version 3.4.1", style = MaterialTheme.typography.bodyMedium)
                     Text(
                         "BrainBites is your daily companion for psychology facts, mental puzzles, and habit-building insights. Our mission is to make learning about the human mind accessible and engaging for everyone.",
                         style = MaterialTheme.typography.bodySmall
@@ -68,11 +67,11 @@ fun SettingsScreen() {
                     Text(
                         "Avatars provided by DiceBear",
                         style = MaterialTheme.typography.labelSmall,
-                        color = Color.Gray
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
                     )
 
                     Spacer(modifier = Modifier.height(4.dp))
-                    Text("© 2026 BrainBites Team", style = MaterialTheme.typography.labelSmall, color = Color.Gray)
+                    Text("© 2026 BrainBites Team", style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
                 }
             },
             confirmButton = {
@@ -271,9 +270,9 @@ fun TextScaleSelector(currentScale: Float, onScaleChanged: (Float) -> Unit) {
                 modifier = Modifier.padding(top = 8.dp)
             )
             Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
-                Text("A", style = MaterialTheme.typography.labelSmall, color = Color.Gray)
-                Text("Normal", style = MaterialTheme.typography.labelMedium, color = Color.Gray)
-                Text("A", style = MaterialTheme.typography.titleMedium, color = Color.Gray)
+                Text("A", style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                Text("Normal", style = MaterialTheme.typography.labelMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                Text("A", style = MaterialTheme.typography.titleMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
             }
         }
     }
@@ -330,7 +329,7 @@ fun SettingsToggleItem(title: String, subtitle: String, icon: ImageVector, check
             Spacer(modifier = Modifier.width(16.dp))
             Column(Modifier.weight(1f)) {
                 Text(title, style = MaterialTheme.typography.titleSmall, fontWeight = FontWeight.Bold)
-                Text(subtitle, style = MaterialTheme.typography.bodySmall, color = Color.Gray)
+                Text(subtitle, style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
             }
             Switch(checked = checked, onCheckedChange = onCheckedChange)
         }
@@ -353,10 +352,10 @@ fun SettingsActionItem(title: String, subtitle: String? = null, icon: ImageVecto
             Column(Modifier.weight(1f)) {
                 Text(title, style = MaterialTheme.typography.titleSmall, fontWeight = FontWeight.Bold)
                 subtitle?.let {
-                    Text(it, style = MaterialTheme.typography.bodySmall, color = Color.Gray)
+                    Text(it, style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
                 }
             }
-            Icon(Icons.Default.ChevronRight, contentDescription = null, tint = Color.LightGray)
+            Icon(Icons.Default.ChevronRight, contentDescription = null, tint = MaterialTheme.colorScheme.outline)
         }
     }
 }

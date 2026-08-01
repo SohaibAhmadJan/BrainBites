@@ -16,9 +16,6 @@ import androidx.compose.ui.unit.sp
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Lightbulb
 import com.example.brainbites.ui.home.PsychologyTip
-import com.example.brainbites.ui.theme.AccentYellow
-import com.example.brainbites.ui.theme.DarkGreenPrimary
-import com.example.brainbites.ui.theme.GreenSecondary
 
 @Composable
 fun DailyTipCard(
@@ -39,8 +36,8 @@ fun DailyTipCard(
                 .background(
                     brush = Brush.linearGradient(
                         colors = listOf(
-                            AccentYellow.copy(alpha = 0.4f),
-                            GreenSecondary.copy(alpha = 0.15f)
+                            MaterialTheme.colorScheme.tertiary.copy(alpha = 0.4f),
+                            MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.15f)
                         )
                     )
                 )
@@ -49,7 +46,7 @@ fun DailyTipCard(
             Icon(
                 imageVector = Icons.Default.Lightbulb,
                 contentDescription = null,
-                tint = AccentYellow.copy(alpha = 0.1f),
+                tint = MaterialTheme.colorScheme.tertiary.copy(alpha = 0.1f),
                 modifier = Modifier
                     .size(140.dp)
                     .align(Alignment.BottomEnd)
@@ -64,7 +61,7 @@ fun DailyTipCard(
                 verticalArrangement = Arrangement.spacedBy(12.dp)
             ) {
                 Surface(
-                    color = DarkGreenPrimary.copy(alpha = 0.1f),
+                    color = MaterialTheme.colorScheme.primary.copy(alpha = 0.1f),
                     shape = RoundedCornerShape(12.dp)
                 ) {
                     Row(
@@ -74,7 +71,7 @@ fun DailyTipCard(
                         Icon(
                             Icons.Default.Lightbulb,
                             contentDescription = null,
-                            tint = DarkGreenPrimary,
+                            tint = MaterialTheme.colorScheme.primary,
                             modifier = Modifier.size(14.dp)
                         )
                         Spacer(Modifier.width(6.dp))
@@ -82,7 +79,7 @@ fun DailyTipCard(
                             text = "BITE OF ADVICE",
                             style = MaterialTheme.typography.labelSmall,
                             fontWeight = FontWeight.Black,
-                            color = DarkGreenPrimary,
+                            color = MaterialTheme.colorScheme.primary,
                             fontSize = 10.sp,
                             letterSpacing = 1.sp
                         )
@@ -93,13 +90,13 @@ fun DailyTipCard(
                     text = tip.title,
                     style = MaterialTheme.typography.headlineSmall,
                     fontWeight = FontWeight.ExtraBold,
-                    color = DarkGreenPrimary
+                    color = MaterialTheme.colorScheme.primary
                 )
 
                 Text(
                     text = tip.message,
                     style = MaterialTheme.typography.bodyLarge,
-                    color = DarkGreenPrimary.copy(alpha = 0.8f),
+                    color = MaterialTheme.colorScheme.primary.copy(alpha = 0.8f),
                     lineHeight = 24.sp,
                     fontWeight = FontWeight.Medium
                 )

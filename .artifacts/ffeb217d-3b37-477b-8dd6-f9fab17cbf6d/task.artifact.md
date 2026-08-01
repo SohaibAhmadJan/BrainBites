@@ -1,4 +1,5 @@
-- [x] Comprehensive reset of `userImage` in `PreferenceManager.kt` to ensure initials by default
-- [x] Finalize the list of 40 unique persona seeds in `AvatarPicker.kt`
-- [ ] Verify that initials appear on first launch
-- [ ] Verify 40 different illustrations in the picker
+- [x] Replace `LazyRow` with `HorizontalPager` for Featured Insights in `CategoryListScreen.kt`
+- [x] Replace `LazyRow` with `HorizontalPager` for Learning Collections in `CategoryListScreen.kt`
+- [x] Adjust card widths to fill the pager space
+- [x] Add snapping and horizontal padding to pagers
+- [x] Verify build and professional "one-at-a-time" behavior

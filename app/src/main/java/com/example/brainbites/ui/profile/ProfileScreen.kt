@@ -33,6 +33,7 @@ import com.example.brainbites.ui.components.AvatarPicker
 import com.example.brainbites.ui.theme.AccentYellow
 import com.example.brainbites.ui.theme.DarkGreenPrimary
 import com.example.brainbites.ui.theme.GreenSecondary
+import com.example.brainbites.ui.util.getCollectionIcon
 import coil.compose.SubcomposeAsyncImage
 import coil.request.ImageRequest
 import androidx.compose.ui.platform.LocalContext
@@ -249,14 +250,14 @@ fun ProfileHeader(
             Text(
                 text = "Level $level • $rankTitle",
                 style = MaterialTheme.typography.bodyMedium,
-                color = Color.Gray
+                color = MaterialTheme.colorScheme.onSurfaceVariant
             )
             
             if (streak > 0) {
                 Surface(
-                    color = Color(0xFFFFF7ED),
+                    color = MaterialTheme.colorScheme.tertiary.copy(alpha = 0.1f),
                     shape = RoundedCornerShape(8.dp),
-                    border = BorderStroke(1.dp, Color(0xFFFDBA74))
+                    border = BorderStroke(1.dp, MaterialTheme.colorScheme.tertiary.copy(alpha = 0.5f))
                 ) {
                     Row(
                         modifier = Modifier.padding(horizontal = 8.dp, vertical = 2.dp),
@@ -268,7 +269,7 @@ fun ProfileHeader(
                             text = "$streak Day Streak",
                             style = MaterialTheme.typography.labelSmall,
                             fontWeight = FontWeight.Bold,
-                            color = Color(0xFFC2410C)
+                            color = MaterialTheme.colorScheme.onTertiary
                         )
                     }
                 }
@@ -354,9 +355,9 @@ fun StatCard(
     Surface(
         modifier = modifier,
         shape = RoundedCornerShape(16.dp),
-        color = if (isHighlight) AccentYellow.copy(alpha = 0.15f) 
+        color = if (isHighlight) MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.2f) 
                 else MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f),
-        border = if (isHighlight) BorderStroke(1.dp, AccentYellow.copy(alpha = 0.5f)) else null
+        border = if (isHighlight) BorderStroke(1.dp, MaterialTheme.colorScheme.primary.copy(alpha = 0.5f)) else null
     ) {
         Column(
             modifier = Modifier.padding(16.dp),
@@ -366,12 +367,12 @@ fun StatCard(
                 text = value,
                 style = MaterialTheme.typography.titleLarge,
                 fontWeight = FontWeight.Bold,
-                color = if (isHighlight) DarkGreenPrimary else MaterialTheme.colorScheme.primary
+                color = if (isHighlight) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurface
             )
             Text(
                 text = label,
                 style = MaterialTheme.typography.labelSmall,
-                color = if (isHighlight) DarkGreenPrimary.copy(alpha = 0.7f) else Color.Gray
+                color = MaterialTheme.colorScheme.onSurfaceVariant
             )
         }
     }
@@ -406,7 +407,7 @@ fun CollectionProgressItem(
     item: CollectionProgress,
     onClick: () -> Unit
 ) {
-    val baseColor = Color(android.graphics.Color.parseColor(item.collection.color))
+    val icon = getCollectionIcon(item.collection.id)
     
     Surface(
         onClick = onClick,
@@ -427,12 +428,17 @@ fun CollectionProgressItem(
             ) {
                 Row(verticalAlignment = Alignment.CenterVertically) {
                     Surface(
-                        color = baseColor.copy(alpha = 0.1f),
+                        color = MaterialTheme.colorScheme.primary.copy(alpha = 0.1f),
                         shape = RoundedCornerShape(8.dp),
                         modifier = Modifier.size(32.dp)
                     ) {
                         Box(contentAlignment = Alignment.Center) {
-                            Text(item.collection.icon, fontSize = 16.sp)
+                            Icon(
+                                imageVector = icon,
+                                contentDescription = null,
+                                modifier = Modifier.size(18.dp),
+                                tint = MaterialTheme.colorScheme.primary
+                            )
                         }
                     }
                     Spacer(Modifier.width(12.dp))
@@ -447,7 +453,7 @@ fun CollectionProgressItem(
                     Icon(
                         imageVector = Icons.Default.CheckCircle,
                         contentDescription = "Mastered",
-                        tint = Color(0xFF40916C),
+                        tint = MaterialTheme.colorScheme.primary,
                         modifier = Modifier.size(20.dp)
                     )
                 } else {
@@ -455,7 +461,7 @@ fun CollectionProgressItem(
                         text = "${(item.progress * 100).toInt()}%",
                         style = MaterialTheme.typography.labelSmall,
                         fontWeight = FontWeight.Bold,
-                        color = baseColor
+                        color = MaterialTheme.colorScheme.primary
                     )
                 }
             }
@@ -466,8 +472,8 @@ fun CollectionProgressItem(
                     .fillMaxWidth()
                     .height(6.dp)
                     .clip(RoundedCornerShape(3.dp)),
-                color = if (item.progress >= 1f) Color(0xFF40916C) else baseColor,
-                trackColor = baseColor.copy(alpha = 0.1f)
+                color = if (item.progress >= 1f) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.primary.copy(alpha = 0.4f),
+                trackColor = MaterialTheme.colorScheme.primary.copy(alpha = 0.1f)
             )
         }
     }
@@ -492,7 +498,7 @@ fun AchievementsSection(achievements: List<com.example.brainbites.data.Achieveme
                 Text(
                     text = "No milestones reached yet. Keep exploring to earn trophies!",
                     style = MaterialTheme.typography.bodyMedium,
-                    color = Color.Gray,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
                     modifier = Modifier.padding(16.dp),
                     textAlign = TextAlign.Center
                 )
@@ -547,7 +553,7 @@ fun ProfileActionItem(title: String, icon: ImageVector, onClick: () -> Unit) {
             Icon(
                 imageVector = Icons.Default.ChevronRight,
                 contentDescription = null,
-                tint = Color.LightGray
+                tint = MaterialTheme.colorScheme.outline
             )
         }
     }
@@ -685,7 +691,7 @@ fun PrivacyToggleItem(
     ) {
         Column(modifier = Modifier.weight(1f)) {
             Text(title, fontWeight = FontWeight.Bold, style = MaterialTheme.typography.bodyLarge)
-            Text(description, style = MaterialTheme.typography.bodySmall, color = Color.Gray)
+            Text(description, style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
         }
         Switch(checked = checked, onCheckedChange = onCheckedChange)
     }

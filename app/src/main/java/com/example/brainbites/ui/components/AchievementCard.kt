@@ -41,7 +41,7 @@ fun AchievementCard(
                     Icon(
                         imageVector = achievement.icon,
                         contentDescription = null,
-                        tint = if (isCompleted) AccentYellow else MaterialTheme.colorScheme.primary
+                        tint = if (isCompleted) MaterialTheme.colorScheme.tertiary else MaterialTheme.colorScheme.primary
                     )
                     Spacer(modifier = Modifier.width(12.dp))
                     Text(text = achievement.title, fontWeight = FontWeight.Bold)
@@ -78,32 +78,29 @@ fun AchievementCard(
     val cardAlpha = 1.0f
 
     val cardBorder = when {
-        isCompleted -> BorderStroke(1.5.dp, AccentYellow)
+        isCompleted -> BorderStroke(1.5.dp, MaterialTheme.colorScheme.tertiary)
         else -> null
     }
 
-    val containerColor = when {
-        isCompleted -> MaterialTheme.colorScheme.surface
-        else -> MaterialTheme.colorScheme.surface
-    }
+    val containerColor = MaterialTheme.colorScheme.surface
 
     val iconBackgroundColor = when {
-        isCompleted -> AccentYellow.copy(alpha = 0.25f)
+        isCompleted -> MaterialTheme.colorScheme.tertiary.copy(alpha = 0.25f)
         else -> MaterialTheme.colorScheme.primaryContainer
     }
 
     val iconTint = when {
-        isCompleted -> DarkGreenPrimary
+        isCompleted -> MaterialTheme.colorScheme.onTertiary
         else -> MaterialTheme.colorScheme.primary
     }
 
     val progressTrackColor = when {
-        isCompleted -> AccentYellow.copy(alpha = 0.3f)
+        isCompleted -> MaterialTheme.colorScheme.tertiary.copy(alpha = 0.3f)
         else -> MaterialTheme.colorScheme.secondaryContainer
     }
 
     val progressIndicatorColor = when {
-        isCompleted -> AccentYellow
+        isCompleted -> MaterialTheme.colorScheme.tertiary
         else -> MaterialTheme.colorScheme.primary
     }
 
@@ -187,7 +184,7 @@ fun AchievementCard(
                         text = achievement.progressText,
                         style = MaterialTheme.typography.labelMedium,
                         fontWeight = FontWeight.Bold,
-                        color = if (isCompleted) DarkGreenPrimary else MaterialTheme.colorScheme.onSurface
+                        color = if (isCompleted) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurface
                     )
                 }
 

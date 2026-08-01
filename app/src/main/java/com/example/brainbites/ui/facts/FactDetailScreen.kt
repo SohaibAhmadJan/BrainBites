@@ -258,7 +258,7 @@ fun FactPage(fact: BiteItem, onToggleBookmark: () -> Unit, onShare: () -> Unit) 
                     ) {
                         Text(
                             text = fact.category.displayName.uppercase(),
-                            color = Color.White,
+                            color = MaterialTheme.colorScheme.onPrimary,
                             style = MaterialTheme.typography.labelSmall,
                             fontWeight = FontWeight.Black,
                             modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp)
@@ -303,7 +303,7 @@ fun FactPage(fact: BiteItem, onToggleBookmark: () -> Unit, onShare: () -> Unit) 
                     Icon(
                         imageVector = if (fact.isBookmarked) Icons.Default.Favorite else Icons.Default.FavoriteBorder,
                         contentDescription = null,
-                        tint = if (fact.isBookmarked) Color.Red else MaterialTheme.colorScheme.primary,
+                        tint = if (fact.isBookmarked) MaterialTheme.colorScheme.error else MaterialTheme.colorScheme.primary,
                         modifier = Modifier.size(18.dp)
                     )
                     Spacer(modifier = Modifier.width(4.dp))

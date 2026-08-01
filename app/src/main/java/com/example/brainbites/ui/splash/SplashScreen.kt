@@ -12,7 +12,6 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
@@ -173,9 +172,9 @@ fun SplashScreen(
             }
 
             Text(
-                text = "Version 3.1",
+                text = "Version 3.4.1",
                 style = MaterialTheme.typography.labelSmall.copy(
-                    color = Color.Gray.copy(alpha = 0.6f)
+                    color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.6f)
                 ),
                 modifier = Modifier.padding(bottom = 32.dp)
             )

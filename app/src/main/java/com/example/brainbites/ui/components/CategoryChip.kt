@@ -39,7 +39,7 @@ fun CategoryChip(
             .padding(horizontal = 14.dp, vertical = 8.dp)
     ) {
         Surface(
-            color = if (isSelected) Color.White.copy(alpha = 0.2f) else categoryColor.copy(alpha = 0.1f),
+            color = if (isSelected) MaterialTheme.colorScheme.onPrimary.copy(alpha = 0.2f) else categoryColor.copy(alpha = 0.1f),
             shape = RoundedCornerShape(8.dp),
             modifier = Modifier.size(24.dp)
         ) {

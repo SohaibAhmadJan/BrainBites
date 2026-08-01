@@ -60,7 +60,7 @@ fun TeaserContent(
         Icon(
             imageVector = Icons.Default.Lightbulb,
             contentDescription = null,
-            tint = Color(0xFFE9C46A),
+            tint = MaterialTheme.colorScheme.tertiary,
             modifier = Modifier.size(64.dp)
         )
         
@@ -69,14 +69,14 @@ fun TeaserContent(
         Text(
             text = "Mystery Insight",
             style = MaterialTheme.typography.labelLarge,
-            color = Color.Gray
+            color = MaterialTheme.colorScheme.onSurfaceVariant
         )
         
         Spacer(modifier = Modifier.height(16.dp))
         
         Card(
             shape = RoundedCornerShape(24.dp),
-            colors = CardDefaults.cardColors(containerColor = Color.White),
+            colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
             elevation = CardDefaults.cardElevation(defaultElevation = 4.dp),
             modifier = Modifier.fillMaxWidth()
         ) {
@@ -88,7 +88,7 @@ fun TeaserContent(
                     text = question,
                     style = MaterialTheme.typography.titleLarge,
                     fontWeight = FontWeight.Bold,
-                    color = DarkGreenPrimary,
+                    color = MaterialTheme.colorScheme.primary,
                     textAlign = TextAlign.Center
                 )
                 
@@ -105,14 +105,14 @@ fun TeaserContent(
                         Text(
                             text = fact,
                             style = MaterialTheme.typography.bodyLarge,
-                            color = DarkGreenPrimary,
+                            color = MaterialTheme.colorScheme.onSurface,
                             textAlign = TextAlign.Center,
                             lineHeight = 24.sp
                         )
                     } else {
                         Button(
                             onClick = onReveal,
-                            colors = ButtonDefaults.buttonColors(containerColor = DarkGreenPrimary),
+                            colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.primary),
                             shape = RoundedCornerShape(12.dp)
                         ) {
                             Text("Reveal Insight", fontWeight = FontWeight.Bold)
@@ -128,7 +128,7 @@ fun TeaserContent(
                 onClick = onDone,
                 modifier = Modifier.fillMaxWidth().height(56.dp),
                 shape = RoundedCornerShape(16.dp),
-                colors = ButtonDefaults.buttonColors(containerColor = DarkGreenPrimary)
+                colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.primary)
             ) {
                 Text("Got it!", fontWeight = FontWeight.Bold)
             }

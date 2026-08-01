@@ -141,7 +141,7 @@ fun NotificationItem(
                         style = MaterialTheme.typography.bodyLarge,
                         fontWeight = if (notification.isRead) FontWeight.Medium else FontWeight.Bold,
                         color = if (notification.isRead) MaterialTheme.colorScheme.onSurface 
-                                else DarkGreenPrimary,
+                                else MaterialTheme.colorScheme.primary,
                         maxLines = 1,
                         overflow = TextOverflow.Ellipsis
                     )
@@ -151,7 +151,7 @@ fun NotificationItem(
                             modifier = Modifier
                                 .size(8.dp)
                                 .clip(CircleShape)
-                                .background(DarkGreenPrimary)
+                                .background(MaterialTheme.colorScheme.primary)
                         )
                     }
                 }
@@ -169,7 +169,7 @@ fun NotificationItem(
                 Text(
                     text = formatTimestamp(notification.timestamp),
                     style = MaterialTheme.typography.labelSmall,
-                    color = Color.Gray
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
                 )
             }
         }
@@ -187,18 +187,18 @@ fun EmptyNotifications() {
                 imageVector = Icons.Default.NotificationsNone,
                 contentDescription = null,
                 modifier = Modifier.size(64.dp),
-                tint = Color.LightGray
+                tint = MaterialTheme.colorScheme.outline
             )
             Spacer(modifier = Modifier.height(16.dp))
             Text(
                 text = "No Notifications Yet",
                 style = MaterialTheme.typography.titleMedium,
-                color = Color.Gray
+                color = MaterialTheme.colorScheme.onSurfaceVariant
             )
             Text(
                 text = "Stay tuned for updates and insights.",
                 style = MaterialTheme.typography.bodySmall,
-                color = Color.LightGray
+                color = MaterialTheme.colorScheme.outline
             )
         }
     }
@@ -218,7 +218,7 @@ fun getNotificationColor(type: NotificationType): Color {
     return when (type) {
         NotificationType.NEW_FACT -> Color(0xFFE76F51) // Warm orange
         NotificationType.ACHIEVEMENT -> Color(0xFFF4A261) // Golden
-        NotificationType.SYSTEM -> DarkGreenPrimary
+        NotificationType.SYSTEM -> MaterialTheme.colorScheme.primary
         NotificationType.GENERAL -> MaterialTheme.colorScheme.secondary
     }
 }

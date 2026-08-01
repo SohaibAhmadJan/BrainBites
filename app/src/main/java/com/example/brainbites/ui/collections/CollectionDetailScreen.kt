@@ -32,6 +32,7 @@ import com.example.brainbites.data.BiteRepository
 import com.example.brainbites.data.CollectionSet
 import com.example.brainbites.ui.components.BiteCard
 import com.example.brainbites.ui.theme.BrainBitesTheme
+import com.example.brainbites.ui.util.getCollectionIcon
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -111,8 +112,6 @@ fun CollectionDetailScreen(
     }
 
     collection?.let { set ->
-        val baseColor = Color(android.graphics.Color.parseColor(set.color))
-
         Box(modifier = Modifier.fillMaxSize()) {
             LazyColumn(
                 modifier = Modifier.fillMaxSize(),
@@ -121,7 +120,7 @@ fun CollectionDetailScreen(
             ) {
                 // Header section
                 item {
-                    CollectionHeader(set, progress, baseColor)
+                    CollectionHeader(set, progress)
                 }
 
                 // Fact list
@@ -143,26 +142,32 @@ fun CollectionDetailScreen(
 @Composable
 fun CollectionHeader(
     collection: CollectionSet,
-    progress: Float,
-    baseColor: Color
+    progress: Float
 ) {
+    val icon = getCollectionIcon(collection.id)
+    
     Surface(
         modifier = Modifier.fillMaxWidth(),
         shape = RoundedCornerShape(24.dp),
-        color = baseColor.copy(alpha = 0.1f),
-        border = BorderStroke(1.dp, baseColor.copy(alpha = 0.2f))
+        color = MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.2f),
+        border = BorderStroke(1.dp, MaterialTheme.colorScheme.primary.copy(alpha = 0.2f))
     ) {
         Column(
             modifier = Modifier.padding(24.dp),
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
             Surface(
-                color = baseColor.copy(alpha = 0.2f),
+                color = MaterialTheme.colorScheme.primary.copy(alpha = 0.15f),
                 shape = RoundedCornerShape(16.dp),
                 modifier = Modifier.size(64.dp)
             ) {
                 Box(contentAlignment = Alignment.Center) {
-                    Text(collection.icon, fontSize = 32.sp)
+                    Icon(
+                        imageVector = icon,
+                        contentDescription = null,
+                        modifier = Modifier.size(32.dp),
+                        tint = MaterialTheme.colorScheme.primary
+                    )
                 }
             }
             
@@ -188,13 +193,13 @@ fun CollectionHeader(
                         text = if (progress >= 1f) "Collection Mastered!" else "Progress",
                         style = MaterialTheme.typography.labelMedium,
                         fontWeight = FontWeight.Bold,
-                        color = if (progress >= 1f) Color(0xFF2D6A4F) else baseColor
+                        color = MaterialTheme.colorScheme.primary
                     )
                     Text(
                         text = "${(progress * 100).toInt()}%",
                         style = MaterialTheme.typography.labelMedium,
                         fontWeight = FontWeight.Bold,
-                        color = baseColor
+                        color = MaterialTheme.colorScheme.primary
                     )
                 }
                 
@@ -206,8 +211,8 @@ fun CollectionHeader(
                         .fillMaxWidth()
                         .height(10.dp)
                         .clip(RoundedCornerShape(5.dp)),
-                    color = if (progress >= 1f) Color(0xFF40916C) else baseColor,
-                    trackColor = baseColor.copy(alpha = 0.1f)
+                    color = MaterialTheme.colorScheme.primary,
+                    trackColor = MaterialTheme.colorScheme.primary.copy(alpha = 0.1f)
                 )
             }
 
@@ -217,11 +222,11 @@ fun CollectionHeader(
                     verticalAlignment = Alignment.CenterVertically,
                     horizontalArrangement = Arrangement.spacedBy(8.dp)
                 ) {
-                    Icon(Icons.Default.CheckCircle, contentDescription = null, tint = Color(0xFF40916C))
+                    Icon(Icons.Default.CheckCircle, contentDescription = null, tint = MaterialTheme.colorScheme.primary)
                     Text(
                         text = "You've unlocked all insights in this set.",
                         style = MaterialTheme.typography.bodySmall,
-                        color = Color(0xFF2D6A4F)
+                        color = MaterialTheme.colorScheme.primary
                     )
                 }
             }

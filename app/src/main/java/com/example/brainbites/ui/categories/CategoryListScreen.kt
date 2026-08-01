@@ -1,16 +1,21 @@
 package com.example.brainbites.ui.categories
 
+import androidx.compose.animation.*
 import androidx.compose.animation.core.*
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
-import androidx.compose.foundation.lazy.itemsIndexed
+import androidx.compose.foundation.pager.HorizontalPager
+import androidx.compose.foundation.pager.rememberPagerState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.AutoAwesome
+import androidx.compose.material.icons.filled.CheckCircle
+import androidx.compose.material.icons.filled.Search
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -21,7 +26,7 @@ import androidx.compose.ui.draw.rotate
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.graphicsLayer
-import com.example.brainbites.ui.components.AnimatedEntrance
+import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
@@ -29,21 +34,15 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
+import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.brainbites.data.BiteCategory
 import com.example.brainbites.data.BiteItem
 import com.example.brainbites.data.BiteRepository
-import androidx.lifecycle.viewmodel.compose.viewModel
+import com.example.brainbites.ui.components.AnimatedEntrance
 import com.example.brainbites.ui.theme.BrainBitesTheme
 import com.example.brainbites.ui.util.getIconDrawable
-import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.LazyRow
-import androidx.compose.foundation.lazy.items
-import androidx.compose.foundation.lazy.itemsIndexed
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.AutoAwesome
-import androidx.compose.material.icons.filled.CheckCircle
-import androidx.compose.material.icons.filled.Search
-import kotlinx.coroutines.delay
+import com.example.brainbites.ui.util.getCollectionIcon
 
 @Composable
 fun CategoryListScreen(
@@ -126,7 +125,6 @@ fun ExploreScreenContent(
                     )
                 }
             } else {
-                // Search Results
                 items(searchResults) { fact ->
                     Text(
                         text = fact.fact,
@@ -157,13 +155,23 @@ fun ExploreScreenContent(
                         color = MaterialTheme.colorScheme.primary,
                         modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp)
                     )
-                    LazyRow(
-                        contentPadding = PaddingValues(horizontal = 16.dp),
-                        horizontalArrangement = Arrangement.spacedBy(12.dp)
-                    ) {
-                        itemsIndexed(featuredFacts) { index, fact ->
-                            AnimatedEntrance(index = index + 2, delayMultiplier = 80L) {
-                                FeaturedFactCard(fact = fact, onClick = { onFactClick(fact.id) })
+                    
+                    if (featuredFacts.isNotEmpty()) {
+                        val featuredPagerState = rememberPagerState { featuredFacts.size }
+                        
+                        HorizontalPager(
+                            state = featuredPagerState,
+                            contentPadding = PaddingValues(horizontal = 24.dp),
+                            pageSpacing = 16.dp,
+                            modifier = Modifier.fillMaxWidth()
+                        ) { page ->
+                            val fact = featuredFacts[page]
+                            AnimatedEntrance(index = page + 2, delayMultiplier = 80L) {
+                                FeaturedFactCard(
+                                    fact = fact, 
+                                    onClick = { onFactClick(fact.id) },
+                                    modifier = Modifier.fillMaxWidth()
+                                )
                             }
                         }
                     }
@@ -180,15 +188,22 @@ fun ExploreScreenContent(
                         color = MaterialTheme.colorScheme.primary,
                         modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp)
                     )
-                    LazyRow(
-                        contentPadding = PaddingValues(horizontal = 16.dp),
-                        horizontalArrangement = Arrangement.spacedBy(16.dp)
-                    ) {
-                        itemsIndexed(collectionList) { index, set ->
-                            AnimatedEntrance(index = index + 3, delayMultiplier = 100L) {
+                    
+                    if (collectionList.isNotEmpty()) {
+                        val collectionsPagerState = rememberPagerState { collectionList.size }
+                        
+                        HorizontalPager(
+                            state = collectionsPagerState,
+                            contentPadding = PaddingValues(horizontal = 24.dp),
+                            pageSpacing = 16.dp,
+                            modifier = Modifier.fillMaxWidth()
+                        ) { page ->
+                            val set = collectionList[page]
+                            AnimatedEntrance(index = page + 3, delayMultiplier = 100L) {
                                 CollectionCard(
                                     collection = set,
-                                    onClick = { onCollectionClick(set.id) }
+                                    onClick = { onCollectionClick(set.id) },
+                                    modifier = Modifier.fillMaxWidth()
                                 )
                             }
                         }
@@ -240,8 +255,8 @@ fun ExploreScreenContent(
 
 @Composable
 fun SurpriseMeCard(onClick: () -> Unit) {
-    val startColor = Color(0xFF8E2DE2) // Magic Purple
-    val endColor = Color(0xFF4A00E0)   // Electric Blue
+    val startColor = MaterialTheme.colorScheme.primaryContainer
+    val endColor = MaterialTheme.colorScheme.primary
 
     Surface(
         onClick = onClick,
@@ -250,9 +265,8 @@ fun SurpriseMeCard(onClick: () -> Unit) {
             .padding(horizontal = 16.dp, vertical = 8.dp)
             .heightIn(min = 100.dp),
         shape = RoundedCornerShape(24.dp),
-        color = endColor // Root solid color to prevent gaps
+        color = endColor
     ) {
-        // Background applied to root container within Surface
         Box(
             modifier = Modifier
                 .fillMaxSize()
@@ -264,10 +278,10 @@ fun SurpriseMeCard(onClick: () -> Unit) {
             Row(
                 modifier = Modifier.padding(20.dp),
                 verticalAlignment = Alignment.CenterVertically,
-                horizontalArrangement = Arrangement.Center // Content centering
+                horizontalArrangement = Arrangement.Center
             ) {
                 Surface(
-                    color = Color.White.copy(alpha = 0.2f),
+                    color = MaterialTheme.colorScheme.onPrimary.copy(alpha = 0.2f),
                     shape = CircleShape,
                     modifier = Modifier.size(56.dp)
                 ) {
@@ -275,7 +289,7 @@ fun SurpriseMeCard(onClick: () -> Unit) {
                         Icon(
                             imageVector = Icons.Default.AutoAwesome,
                             contentDescription = null,
-                            tint = Color.White,
+                            tint = MaterialTheme.colorScheme.onPrimary,
                             modifier = Modifier.size(28.dp)
                         )
                     }
@@ -288,12 +302,12 @@ fun SurpriseMeCard(onClick: () -> Unit) {
                         text = "Surprise Me",
                         style = MaterialTheme.typography.headlineSmall,
                         fontWeight = FontWeight.ExtraBold,
-                        color = Color.White
+                        color = MaterialTheme.colorScheme.onPrimary
                     )
                     Text(
                         text = "Discover a random psychological insight",
                         style = MaterialTheme.typography.bodyMedium,
-                        color = Color.White.copy(alpha = 0.8f)
+                        color = MaterialTheme.colorScheme.onPrimary.copy(alpha = 0.8f)
                     )
                 }
             }
@@ -302,18 +316,21 @@ fun SurpriseMeCard(onClick: () -> Unit) {
 }
 
 @Composable
-fun FeaturedFactCard(fact: BiteItem, onClick: () -> Unit) {
+fun FeaturedFactCard(
+    fact: BiteItem, 
+    onClick: () -> Unit,
+    modifier: Modifier = Modifier
+) {
     val categoryColor = Color(android.graphics.Color.parseColor(fact.category.colorHex))
-    val endColor = categoryColor.copy(alpha = 0.12f)
+    val endColor = MaterialTheme.colorScheme.surfaceVariant
     
     Surface(
         onClick = onClick,
-        modifier = Modifier
-            .width(260.dp)
+        modifier = modifier
             .heightIn(min = 140.dp),
         shape = RoundedCornerShape(20.dp),
         color = endColor,
-        border = BorderStroke(1.dp, categoryColor.copy(alpha = 0.3f))
+        border = BorderStroke(1.dp, MaterialTheme.colorScheme.outline.copy(alpha = 0.5f))
     ) {
         Box(
             modifier = Modifier
@@ -321,7 +338,7 @@ fun FeaturedFactCard(fact: BiteItem, onClick: () -> Unit) {
                 .background(
                     brush = Brush.linearGradient(
                         colors = listOf(
-                            categoryColor.copy(alpha = 0.22f),
+                            categoryColor.copy(alpha = 0.15f),
                             endColor
                         )
                     )
@@ -346,13 +363,13 @@ fun FeaturedFactCard(fact: BiteItem, onClick: () -> Unit) {
                 Spacer(modifier = Modifier.height(12.dp))
                 
                 Surface(
-                    color = categoryColor.copy(alpha = 0.2f),
+                    color = MaterialTheme.colorScheme.primary.copy(alpha = 0.15f),
                     shape = RoundedCornerShape(8.dp)
                 ) {
                     Text(
                         text = fact.category.displayName.uppercase(),
                         style = MaterialTheme.typography.labelSmall,
-                        color = categoryColor,
+                        color = MaterialTheme.colorScheme.primary,
                         fontWeight = FontWeight.Black,
                         modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp)
                     )
@@ -365,7 +382,7 @@ fun FeaturedFactCard(fact: BiteItem, onClick: () -> Unit) {
 @Composable
 fun CategoryGridItem(info: CategoryInfo, onClick: () -> Unit) {
     val categoryColor = Color(android.graphics.Color.parseColor(info.category.colorHex))
-    val endColor = categoryColor.copy(alpha = 0.15f)
+    val surfaceColor = MaterialTheme.colorScheme.surfaceVariant
 
     Surface(
         onClick = onClick,
@@ -373,8 +390,8 @@ fun CategoryGridItem(info: CategoryInfo, onClick: () -> Unit) {
             .fillMaxWidth()
             .heightIn(min = 180.dp),
         shape = RoundedCornerShape(24.dp),
-        color = endColor,
-        border = BorderStroke(1.dp, categoryColor.copy(alpha = 0.3f))
+        color = surfaceColor,
+        border = BorderStroke(1.dp, MaterialTheme.colorScheme.outline.copy(alpha = 0.3f))
     ) {
         Box(
             modifier = Modifier
@@ -383,13 +400,12 @@ fun CategoryGridItem(info: CategoryInfo, onClick: () -> Unit) {
                     brush = Brush.verticalGradient(
                         colors = listOf(
                             categoryColor.copy(alpha = 0.05f),
-                            endColor
+                            surfaceColor
                         )
                     )
                 ),
-            contentAlignment = Alignment.Center // ROOT CENTERING
+            contentAlignment = Alignment.Center
         ) {
-            //decorative ghost icon strictly in background
             Text(
                 text = info.category.iconRes,
                 style = MaterialTheme.typography.displayLarge,
@@ -406,17 +422,16 @@ fun CategoryGridItem(info: CategoryInfo, onClick: () -> Unit) {
                 verticalArrangement = Arrangement.Center
             ) {
                 Surface(
-                    color = categoryColor.copy(alpha = 0.2f),
+                    color = MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.5f),
                     shape = RoundedCornerShape(12.dp),
                     modifier = Modifier.size(56.dp)
                 ) {
                     Box(contentAlignment = Alignment.Center) {
-                        // Icon perfectly centered within square
                         Icon(
                             painter = painterResource(id = info.category.getIconDrawable()),
                             contentDescription = null,
                             modifier = Modifier.size(28.dp),
-                            tint = categoryColor
+                            tint = MaterialTheme.colorScheme.primary
                         )
                     }
                 }
@@ -436,14 +451,14 @@ fun CategoryGridItem(info: CategoryInfo, onClick: () -> Unit) {
                 Spacer(modifier = Modifier.height(4.dp))
 
                 Surface(
-                    color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.05f),
+                    color = MaterialTheme.colorScheme.primary.copy(alpha = 0.1f),
                     shape = RoundedCornerShape(8.dp)
                 ) {
                     Text(
                         text = "${info.count} Facts",
                         style = MaterialTheme.typography.labelSmall,
                         fontWeight = FontWeight.SemiBold,
-                        color = categoryColor,
+                        color = MaterialTheme.colorScheme.primary,
                         modifier = Modifier.padding(horizontal = 8.dp, vertical = 2.dp)
                     )
                 }
@@ -474,7 +489,7 @@ fun NoResultsState(
                     imageVector = Icons.Default.Search,
                     contentDescription = null,
                     modifier = Modifier.size(40.dp),
-                    tint = MaterialTheme.colorScheme.outline
+                    tint = MaterialTheme.colorScheme.onSurfaceVariant
                 )
             }
         }
@@ -485,6 +500,7 @@ fun NoResultsState(
             text = "No results for \"$query\"",
             style = MaterialTheme.typography.titleMedium,
             fontWeight = FontWeight.Bold,
+            color = MaterialTheme.colorScheme.onSurface,
             textAlign = TextAlign.Center
         )
         
@@ -501,11 +517,17 @@ fun NoResultsState(
         
         OutlinedButton(
             onClick = onSurpriseMe,
-            shape = RoundedCornerShape(12.dp)
+            shape = RoundedCornerShape(12.dp),
+            border = BorderStroke(1.dp, MaterialTheme.colorScheme.outline)
         ) {
-            Icon(Icons.Default.AutoAwesome, contentDescription = null, modifier = Modifier.size(18.dp))
+            Icon(
+                Icons.Default.AutoAwesome, 
+                contentDescription = null, 
+                modifier = Modifier.size(18.dp),
+                tint = MaterialTheme.colorScheme.primary
+            )
             Spacer(modifier = Modifier.width(8.dp))
-            Text("Surprise Me")
+            Text("Surprise Me", color = MaterialTheme.colorScheme.primary)
         }
     }
 }
@@ -513,34 +535,34 @@ fun NoResultsState(
 @Composable
 fun CollectionCard(
     collection: com.example.brainbites.data.CollectionSet,
-    onClick: () -> Unit
+    onClick: () -> Unit,
+    modifier: Modifier = Modifier
 ) {
-    val baseColor = Color(android.graphics.Color.parseColor(collection.color))
-    val context = LocalContext.current
     val progress by BiteRepository.getCollectionProgress(collection.id).collectAsState(initial = 0f)
     val readCount = (progress * collection.factIds.size).toInt()
+    val surfaceColor = MaterialTheme.colorScheme.surfaceVariant
+    val icon = getCollectionIcon(collection.id)
     
     Surface(
         onClick = onClick,
-        modifier = Modifier
-            .width(220.dp)
-            .height(160.dp), // Increased height for progress bar
+        modifier = modifier
+            .height(160.dp),
         shape = RoundedCornerShape(24.dp),
-        color = baseColor.copy(alpha = 0.1f),
-        border = BorderStroke(1.dp, baseColor.copy(alpha = 0.3f))
+        color = surfaceColor,
+        border = BorderStroke(1.dp, MaterialTheme.colorScheme.outline.copy(alpha = 0.3f))
     ) {
         Box(
             modifier = Modifier.fillMaxSize()
         ) {
-            // Background Icon
-            Text(
-                text = collection.icon,
-                style = MaterialTheme.typography.displayMedium,
+            Icon(
+                imageVector = icon,
+                contentDescription = null,
+                tint = MaterialTheme.colorScheme.primary.copy(alpha = 0.08f),
                 modifier = Modifier
+                    .size(100.dp)
                     .align(Alignment.BottomEnd)
-                    .offset(x = 10.dp, y = 10.dp)
-                    .alpha(0.15f)
-                    .rotate(-20f)
+                    .offset(x = 20.dp, y = 20.dp)
+                    .graphicsLayer(rotationZ = -15f)
             )
 
             Column(
@@ -555,13 +577,14 @@ fun CollectionCard(
                     verticalAlignment = Alignment.Top
                 ) {
                     Surface(
-                        color = baseColor.copy(alpha = 0.2f),
+                        color = MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.5f),
                         shape = RoundedCornerShape(10.dp)
                     ) {
-                        Text(
-                            text = collection.icon,
-                            modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp),
-                            style = MaterialTheme.typography.titleMedium
+                        Icon(
+                            imageVector = icon,
+                            contentDescription = null,
+                            modifier = Modifier.padding(8.dp).size(20.dp),
+                            tint = MaterialTheme.colorScheme.primary
                         )
                     }
                     
@@ -569,7 +592,7 @@ fun CollectionCard(
                         Icon(
                             imageVector = Icons.Default.CheckCircle,
                             contentDescription = "Mastered",
-                            tint = Color(0xFF40916C),
+                            tint = MaterialTheme.colorScheme.primary,
                             modifier = Modifier.size(20.dp)
                         )
                     }
@@ -600,7 +623,7 @@ fun CollectionCard(
                         Text(
                             text = "${(progress * 100).toInt()}%",
                             style = MaterialTheme.typography.labelSmall,
-                            color = baseColor,
+                            color = MaterialTheme.colorScheme.primary,
                             fontWeight = FontWeight.Black
                         )
                     }
@@ -611,8 +634,8 @@ fun CollectionCard(
                             .fillMaxWidth()
                             .height(6.dp)
                             .clip(RoundedCornerShape(3.dp)),
-                        color = if (progress >= 1f) Color(0xFF40916C) else baseColor,
-                        trackColor = baseColor.copy(alpha = 0.1f)
+                        color = if (progress >= 1f) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.primary.copy(alpha = 0.4f),
+                        trackColor = MaterialTheme.colorScheme.primary.copy(alpha = 0.1f)
                     )
                 }
             }

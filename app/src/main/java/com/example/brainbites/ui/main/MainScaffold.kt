@@ -108,7 +108,7 @@ fun MainScaffold(
                         .fillMaxWidth()
                         .align(Alignment.BottomCenter)
                         .padding(horizontal = 24.dp)
-                        .padding(bottom = 24.dp)
+                        .padding(bottom = 46.dp)
                 ) {
                     BoxWithConstraints(modifier = Modifier.fillMaxWidth()) {
                         val tabWidth = this.maxWidth / 4

@@ -86,7 +86,7 @@ fun BiteCard(
                             Icon(
                                 imageVector = Icons.Default.CheckCircle,
                                 contentDescription = "Completed",
-                                tint = Color(0xFF40916C),
+                                tint = MaterialTheme.colorScheme.primary,
                                 modifier = Modifier.size(16.dp)
                             )
                         }
@@ -122,7 +122,7 @@ fun BiteCard(
                         Icon(
                             imageVector = if (bite.isBookmarked) Icons.Default.Favorite else Icons.Default.FavoriteBorder,
                             contentDescription = null,
-                            tint = if (bite.isBookmarked) Color.Red else MaterialTheme.colorScheme.primary,
+                            tint = if (bite.isBookmarked) MaterialTheme.colorScheme.error else MaterialTheme.colorScheme.primary,
                             modifier = Modifier.size(22.dp)
                         )
                     }

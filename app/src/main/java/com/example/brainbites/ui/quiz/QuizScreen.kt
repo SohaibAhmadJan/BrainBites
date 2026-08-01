@@ -89,8 +89,8 @@ fun QuizQuestionView(
                     .fillMaxWidth()
                     .height(8.dp)
                     .clip(RoundedCornerShape(4.dp)),
-                color = DarkGreenPrimary,
-                trackColor = Color.White
+                color = MaterialTheme.colorScheme.primary,
+                trackColor = MaterialTheme.colorScheme.surfaceVariant
             )
 
             Spacer(modifier = Modifier.height(32.dp))
@@ -98,7 +98,7 @@ fun QuizQuestionView(
             Text(
                 text = "Question $questionNumber of $totalQuestions",
                 style = MaterialTheme.typography.labelLarge,
-                color = Color.Gray
+                color = MaterialTheme.colorScheme.onSurfaceVariant
             )
 
             Spacer(modifier = Modifier.height(16.dp))
@@ -107,7 +107,7 @@ fun QuizQuestionView(
                 text = question,
                 style = MaterialTheme.typography.headlineSmall,
                 fontWeight = FontWeight.Bold,
-                color = DarkGreenPrimary,
+                color = MaterialTheme.colorScheme.primary,
                 textAlign = TextAlign.Center
             )
 
@@ -148,20 +148,20 @@ fun QuizQuestionView(
                                 text = option,
                                 modifier = Modifier.weight(1f),
                                 style = MaterialTheme.typography.bodyLarge,
-                                color = DarkGreenPrimary
+                                color = if (selectedIndex == null) MaterialTheme.colorScheme.onSurface else MaterialTheme.colorScheme.primary
                             )
                             if (selectedIndex != null) {
                                 if (isCorrect) {
                                     Icon(
                                         Icons.Default.CheckCircle,
                                         contentDescription = null,
-                                        tint = Color(0xFF198754)
+                                        tint = MaterialTheme.colorScheme.primary
                                     )
                                 } else if (isSelected) {
                                     Icon(
                                         Icons.Default.Close,
                                         contentDescription = null,
-                                        tint = Color(0xFFDC3545)
+                                        tint = MaterialTheme.colorScheme.error
                                     )
                                 }
                             }
@@ -181,8 +181,8 @@ fun QuizQuestionView(
         ) {
             FloatingActionButton(
                 onClick = onNext,
-                containerColor = DarkGreenPrimary,
-                contentColor = Color.White,
+                containerColor = MaterialTheme.colorScheme.primary,
+                contentColor = MaterialTheme.colorScheme.onPrimary,
                 shape = RoundedCornerShape(16.dp)
             ) {
                 Icon(
@@ -212,13 +212,13 @@ fun QuizResultView(score: Int, total: Int, onRestart: () -> Unit, onDone: () -> 
             text = "Quiz Completed!",
             style = MaterialTheme.typography.headlineMedium,
             fontWeight = FontWeight.Bold,
-            color = DarkGreenPrimary
+            color = MaterialTheme.colorScheme.primary
         )
         Spacer(modifier = Modifier.height(8.dp))
         Text(
             text = "You scored $score out of $total",
             style = MaterialTheme.typography.bodyLarge,
-            color = Color.Gray
+            color = MaterialTheme.colorScheme.onSurfaceVariant
         )
         
         Spacer(modifier = Modifier.height(48.dp))
@@ -227,7 +227,7 @@ fun QuizResultView(score: Int, total: Int, onRestart: () -> Unit, onDone: () -> 
             onClick = onRestart,
             modifier = Modifier.fillMaxWidth().height(56.dp),
             shape = RoundedCornerShape(16.dp),
-            colors = ButtonDefaults.buttonColors(containerColor = DarkGreenPrimary)
+            colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.primary)
         ) {
             Text("Try Another Quiz", fontWeight = FontWeight.Bold)
         }
@@ -238,9 +238,9 @@ fun QuizResultView(score: Int, total: Int, onRestart: () -> Unit, onDone: () -> 
             onClick = onDone,
             modifier = Modifier.fillMaxWidth().height(56.dp),
             shape = RoundedCornerShape(16.dp),
-            border = BorderStroke(1.dp, DarkGreenPrimary)
+            border = BorderStroke(1.dp, MaterialTheme.colorScheme.primary)
         ) {
-            Text("Back to Home", color = DarkGreenPrimary, fontWeight = FontWeight.Bold)
+            Text("Back to Home", color = MaterialTheme.colorScheme.primary, fontWeight = FontWeight.Bold)
         }
     }
 }
