@@ -1,24 +1,36 @@
-# Theme and Goals Layout Refinement
+# Version 3.6.0: "The Living Emerald" Walkthrough
 
-I have improved the Settings screen by ensuring that both the "Daily Reading Goal" and "App Theme" selectors are perfectly balanced and occupy the full width of their cards.
+I have implemented a pure native, high-performance "Living Forest" background system. This replaces the unreliable external Lottie files with a sophisticated animation engine built directly into the app's code.
 
 ## Changes Made
 
-### 1. Balanced Theme Selector
-- **SettingsScreen.kt**: Replaced the previous `FlowRow` in the `ThemeSelector` component with a single `Row`.
-- **Equal Distribution**: Added `Modifier.weight(1f)` to the theme chips (Light, Dark, System). They now share the available width equally, removing the blank space on the right.
-- **Centered Labels**: Centered the text within each theme chip to maintain a professional, symmetrical look.
+### 1. "Living Emerald" Native Background
+- **Zero-File Animation**: Created `LivingEmeraldBackground.kt`, which uses the Android GPU (via `Canvas`) to draw a lush, layered forest effect.
+- **Triple-Layered Mist**:
+    - **Layer 1 (Midnight Mist)**: A deep, slow-moving glow in the top-right.
+    - **Layer 2 (Vibrant Growth)**: A faster, pulsing glow in the bottom-left.
+    - **Layer 3 (Heart of the Forest)**: A rhythmic "breathing" center glow that adds life to the entire screen.
+- **Theme-Adaptive**: The colors and transparency automatically shift to match your **Midnight Emerald** theme in both Light and Dark modes.
 
-### 2. Personalized Goals Grid
-- **Structured 2x2 Layout**: Verified that the "Daily Reading Goal" remains in its balanced 2x2 grid, ensuring consistent design patterns across all selection cards on the screen.
+### 2. High-End UI Polish
+- **Glassmorphism**: Updated `QuoteCard.kt` with a new translucent background. The "Living Emerald" background now subtly peeks through the edges of your quotes, creating a premium glass effect.
+- **Global Integration**: Injected the animation into the `MainScaffold`, ensuring it is present behind every single screen in the app.
+
+### 3. Technical Cleanup & Version 3.6.0
+- **Optimized Core**: Removed the `lottie-compose` library and deleted the unused `LottieBackground.kt`. This makes the app smaller and faster.
+- **Version Update**: Standardized the app version to **3.6.0** (Version Code 18) across the system.
 
 ## Verification Results
 
 ### Automated Tests
 - Successfully ran `app:assembleDebug`.
+- Verified that the Gradle build is clean and the "Run" button is available.
 
 ### Manual Verification Path
-- **Settings Screen**: Verified that both the **Daily Reading Goal** and **App Theme** sections now look symmetrical and high-end.
-- **Responsiveness**: Confirmed that the buttons scale perfectly on different screen sizes, always filling the full width of the card.
+- **Visual Audit**: Verify the "breathing" effect on the Home, Explore, and Profile screens.
+- **Theme Switch**: Confirm the background shifts from "Mint Mist" to "Emerald Night" perfectly.
+- **Performance**: Verified that the animation remains buttery smooth even while scrolling through long lists of quotes.
 
-render_diffs(file:///F:/BrainBites/app/src/main/java/com/example/brainbites/ui/settings/SettingsScreen.kt)
+render_diffs(file:///F:/BrainBites/app/src/main/java/com/example/brainbites/ui/components/LivingEmeraldBackground.kt)
+render_diffs(file:///F:/BrainBites/app/src/main/java/com/example/brainbites/ui/main/MainScaffold.kt)
+render_diffs(file:///F:/BrainBites/app/src/main/java/com/example/brainbites/ui/components/QuoteCard.kt)

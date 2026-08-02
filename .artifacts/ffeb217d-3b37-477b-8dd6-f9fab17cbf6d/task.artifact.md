@@ -1,3 +1,10 @@
-- [x] Replace `FlowRow` with a 2x2 grid in `GoalSelector` (SettingsScreen.kt)
-- [x] Ensure goal chips are evenly weighted and aligned
-- [x] Verify build and layout on the Settings screen
+- `[x]` Implement "Living Emerald" Native Background
+    - `[x]` Create `LivingEmeraldBackground.kt` with triple-layered mist animation
+    - `[x]` Inject background into `MainScaffold.kt`
+    - `[x]` Add translucency to `QuoteCard.kt` for "Glass" effect
+- `[x]` App-wide Version Update (3.6.0)
+    - `[x]` Update `build.gradle.kts`, `SplashScreen.kt`, and `SettingsScreen.kt`
+- `[x]` Cleanup and Optimization
+    - `[x]` Remove `lottie-compose` dependency
+    - `[x]` Remove failed `LottieBackground.kt`
+- `[x]` Verify performance and theme adaptive colors

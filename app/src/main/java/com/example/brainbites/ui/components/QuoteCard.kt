@@ -29,8 +29,8 @@ fun QuoteCard(
             .background(
                 Brush.verticalGradient(
                     colors = listOf(
-                        MaterialTheme.colorScheme.background,
-                        MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.2f)
+                        MaterialTheme.colorScheme.background.copy(alpha = 0.85f),
+                        MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.25f)
                     )
                 )
             )

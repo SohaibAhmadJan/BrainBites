@@ -2,6 +2,7 @@ package com.example.brainbites.ui.main
 
 import androidx.compose.animation.*
 import androidx.compose.animation.core.*
+import androidx.compose.foundation.background
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.interaction.MutableInteractionSource
@@ -31,6 +32,7 @@ import com.example.brainbites.data.PreferenceManager
 import com.example.brainbites.navigation.Screen
 import com.example.brainbites.navigation.bottomNavItems
 import com.example.brainbites.ui.components.BrandHeader
+import com.example.brainbites.ui.components.LottieBackground
 import kotlinx.coroutines.launch
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -52,6 +54,7 @@ fun MainScaffold(
     val currentTitle = "BrainBites"
 
     Box(modifier = Modifier.fillMaxSize()) {
+        LottieBackground()
         Scaffold(
             containerColor = Color.Transparent,
             topBar = {
@@ -128,18 +131,12 @@ fun MainScaffold(
                             label = "indicatorOffset"
                         )
 
-                        val borderColor by animateColorAsState(
-                            targetValue = MaterialTheme.colorScheme.primary.copy(alpha = 0.4f),
-                            animationSpec = tween(600),
-                            label = "borderColor"
-                        )
-
                         Surface(
                             shape = RoundedCornerShape(24.dp),
-                            color = MaterialTheme.colorScheme.surface.copy(alpha = 0.95f),
-                            tonalElevation = 12.dp,
-                            shadowElevation = 12.dp,
-                            border = BorderStroke(1.dp, borderColor)
+                            color = MaterialTheme.colorScheme.surface,
+                            tonalElevation = 0.dp,
+                            shadowElevation = 16.dp,
+                            border = BorderStroke(1.5.dp, MaterialTheme.colorScheme.outline.copy(alpha = 0.5f))
                         ) {
                             Box(modifier = Modifier.fillMaxWidth().height(72.dp)) {
                                 // 1. Sliding Indicator Pill

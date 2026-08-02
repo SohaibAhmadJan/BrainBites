@@ -54,7 +54,7 @@ fun SettingsScreen() {
             title = { Text("About BrainBites", fontWeight = FontWeight.Bold) },
             text = {
                 Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
-                    Text("Version 3.4.2", style = MaterialTheme.typography.bodyMedium)
+                    Text("Version 3.6.0", style = MaterialTheme.typography.bodyMedium)
                     Text(
                         "BrainBites is your daily companion for psychology facts, mental puzzles, and habit-building insights. Our mission is to make learning about the human mind accessible and engaging for everyone.",
                         style = MaterialTheme.typography.bodySmall

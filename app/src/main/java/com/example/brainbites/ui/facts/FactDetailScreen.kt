@@ -130,64 +130,6 @@ fun FactPage(fact: BiteItem, onToggleBookmark: () -> Unit, onShare: () -> Unit) 
     val categoryColor = Color(android.graphics.Color.parseColor(fact.category.colorHex))
     
     Box(modifier = Modifier.fillMaxSize()) {
-        // --- BACKGROUND LAYER ---
-        // 1. Dynamic Category Gradient
-        Box(
-            modifier = Modifier
-                .fillMaxSize()
-                .background(
-                    Brush.verticalGradient(
-                        colors = listOf(
-                            MaterialTheme.colorScheme.background,
-                            MaterialTheme.colorScheme.primary.copy(alpha = 0.08f)
-                        )
-                    )
-                )
-        )
-
-        // 2. Ghost Emojis Pattern (Kept as requested)
-        Box(modifier = Modifier.fillMaxSize()) {
-            Text(
-                text = fact.category.iconRes,
-                style = MaterialTheme.typography.displayLarge,
-                modifier = Modifier
-                    .align(Alignment.TopStart)
-                    .offset(x = (-20).dp, y = 40.dp)
-                    .alpha(0.04f)
-                    .graphicsLayer {
-                        rotationZ = -15f
-                        scaleX = 1.5f
-                        scaleY = 1.5f
-                    }
-            )
-            Text(
-                text = fact.category.iconRes,
-                style = MaterialTheme.typography.displayLarge,
-                modifier = Modifier
-                    .align(Alignment.CenterEnd)
-                    .offset(x = 40.dp, y = 100.dp)
-                    .alpha(0.03f)
-                    .graphicsLayer {
-                        rotationZ = 20f
-                        scaleX = 2.25f
-                        scaleY = 2.25f
-                    }
-            )
-            Text(
-                text = fact.category.iconRes,
-                style = MaterialTheme.typography.displayLarge,
-                modifier = Modifier
-                    .align(Alignment.BottomStart)
-                    .offset(x = (-10).dp, y = 20.dp)
-                    .alpha(0.04f)
-                    .graphicsLayer {
-                        rotationZ = -10f
-                        scaleX = 1.75f
-                        scaleY = 1.75f
-                    }
-            )
-        }
-
         // --- CONTENT LAYER ---
         Column(
             modifier = Modifier

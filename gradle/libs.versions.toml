@@ -16,6 +16,7 @@ lifecycleViewModelCompose = "2.8.7"
 lifecycleRuntimeKtx = "2.8.7"
 kotlinxSerialization = "1.7.3"
 coil = "2.7.0"
+lottie = "6.7.1"
 
 [libraries]
 coil-svg = { group = "io.coil-kt", name = "coil-svg", version.ref = "coil" }
@@ -42,6 +43,7 @@ androidx-constraintlayout = { group = "androidx.constraintlayout", name = "const
 androidx-material-icons-extended = { group = "androidx.compose.material", name = "material-icons-extended" }
 kotlinx-serialization-json = { group = "org.jetbrains.kotlinx", name = "kotlinx-serialization-json", version.ref = "kotlinxSerialization" }
 coil-compose = { group = "io.coil-kt", name = "coil-compose", version.ref = "coil" }
+lottie-compose = { group = "com.airbnb.android", name = "lottie-compose", version.ref = "lottie" }
 
 [plugins]
 android-application = { id = "com.android.application", version.ref = "agp" }

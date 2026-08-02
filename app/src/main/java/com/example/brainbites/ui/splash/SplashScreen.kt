@@ -166,17 +166,17 @@ fun SplashScreen(
             Box(
                 modifier = Modifier
                     .graphicsLayer(alpha = taglineAlpha.value)
-                    .padding(bottom = 8.dp)
+                    .padding(bottom = 12.dp)
             ) {
                 AnimatedTagline(text = currentTagline, key = jumpTrigger)
             }
 
             Text(
-                text = "Version 3.4.2",
+                text = "Version 3.6.0",
                 style = MaterialTheme.typography.labelSmall.copy(
                     color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.6f)
                 ),
-                modifier = Modifier.padding(bottom = 32.dp)
+                modifier = Modifier.padding(bottom = 24.dp)
             )
         }
     }
