@@ -145,7 +145,7 @@ fun HomeScreenContent(
             if (ready) {
                 LazyColumn(
                     modifier = Modifier.fillMaxSize(),
-                    contentPadding = PaddingValues(16.dp, 16.dp, 16.dp, 112.dp),
+                    contentPadding = PaddingValues(16.dp, 16.dp, 16.dp, 150.dp),
                     verticalArrangement = Arrangement.spacedBy(20.dp)
                 ) {
                     // 1. HERO CARD: Fact of the Day
@@ -410,7 +410,7 @@ fun FactOfTheDayCard(fact: BiteItem, onToggleBookmark: (String) -> Unit, onShare
             .clickable { onClick() },
         shape = RoundedCornerShape(24.dp),
         colors = CardDefaults.cardColors(
-            containerColor = MaterialTheme.colorScheme.secondary
+            containerColor = MaterialTheme.colorScheme.primaryContainer
         ),
         elevation = CardDefaults.cardElevation(defaultElevation = 4.dp)
     ) {
@@ -426,7 +426,7 @@ fun FactOfTheDayCard(fact: BiteItem, onToggleBookmark: (String) -> Unit, onShare
                 verticalAlignment = Alignment.CenterVertically
             ) {
                 Surface(
-                    color = MaterialTheme.colorScheme.tertiary,
+                    color = MaterialTheme.colorScheme.primary.copy(alpha = 0.2f),
                     shape = RoundedCornerShape(8.dp),
                     modifier = Modifier.width(160.dp)
                 ) {
@@ -449,14 +449,14 @@ fun FactOfTheDayCard(fact: BiteItem, onToggleBookmark: (String) -> Unit, onShare
                                 painter = painterResource(id = category.getIconDrawable()),
                                 contentDescription = null,
                                 modifier = Modifier.size(14.dp),
-                                tint = MaterialTheme.colorScheme.onTertiary
+                                tint = MaterialTheme.colorScheme.primary
                             )
                             Spacer(modifier = Modifier.width(6.dp))
                             Text(
                                 text = category.displayName.uppercase(),
                                 style = MaterialTheme.typography.labelSmall,
                                 fontWeight = FontWeight.Black,
-                                color = MaterialTheme.colorScheme.onTertiary,
+                                color = MaterialTheme.colorScheme.primary,
                                 textAlign = TextAlign.Center
                             )
                         }
@@ -475,7 +475,7 @@ fun FactOfTheDayCard(fact: BiteItem, onToggleBookmark: (String) -> Unit, onShare
                         Icon(
                             imageVector = if (fact.isBookmarked) Icons.Default.Favorite else Icons.Default.FavoriteBorder,
                             contentDescription = "Save",
-                            tint = if (fact.isBookmarked) MaterialTheme.colorScheme.error else MaterialTheme.colorScheme.tertiary,
+                            tint = if (fact.isBookmarked) MaterialTheme.colorScheme.error else MaterialTheme.colorScheme.primary,
                             modifier = Modifier.size(20.dp)
                         )
                     }
@@ -489,7 +489,7 @@ fun FactOfTheDayCard(fact: BiteItem, onToggleBookmark: (String) -> Unit, onShare
                         Icon(
                             imageVector = Icons.Default.Share,
                             contentDescription = "Share",
-                            tint = MaterialTheme.colorScheme.tertiary,
+                            tint = MaterialTheme.colorScheme.primary,
                             modifier = Modifier.size(18.dp)
                         )
                     }
@@ -513,9 +513,9 @@ fun FactOfTheDayCard(fact: BiteItem, onToggleBookmark: (String) -> Unit, onShare
                     Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.CenterStart) {
                         Text(
                             text = factText,
-                            color = MaterialTheme.colorScheme.onSecondary,
+                            color = MaterialTheme.colorScheme.onPrimaryContainer,
                             style = MaterialTheme.typography.headlineSmall,
-                            fontWeight = FontWeight.Medium,
+                            fontWeight = FontWeight.Bold,
                             overflow = TextOverflow.Ellipsis,
                             modifier = Modifier.fillMaxWidth()
                         )
@@ -534,7 +534,7 @@ fun FactOfTheDayCard(fact: BiteItem, onToggleBookmark: (String) -> Unit, onShare
                 Row(verticalAlignment = Alignment.CenterVertically) {
                     Text(
                         text = "Read More",
-                        color = MaterialTheme.colorScheme.tertiary,
+                        color = MaterialTheme.colorScheme.primary,
                         fontWeight = FontWeight.Bold,
                         style = MaterialTheme.typography.labelLarge
                     )
@@ -542,13 +542,13 @@ fun FactOfTheDayCard(fact: BiteItem, onToggleBookmark: (String) -> Unit, onShare
                     Icon(
                         Icons.AutoMirrored.Filled.ArrowForward,
                         contentDescription = null,
-                        tint = MaterialTheme.colorScheme.tertiary,
+                        tint = MaterialTheme.colorScheme.primary,
                         modifier = Modifier.size(16.dp)
                     )
                 }
 
                 Surface(
-                    color = MaterialTheme.colorScheme.tertiary,
+                    color = MaterialTheme.colorScheme.primary,
                     shape = RoundedCornerShape(8.dp),
                     modifier = Modifier.width(110.dp)
                 ) {
@@ -558,7 +558,7 @@ fun FactOfTheDayCard(fact: BiteItem, onToggleBookmark: (String) -> Unit, onShare
                             modifier = Modifier.padding(vertical = 4.dp),
                             style = MaterialTheme.typography.labelSmall,
                             fontWeight = FontWeight.Black,
-                            color = MaterialTheme.colorScheme.onTertiary
+                            color = MaterialTheme.colorScheme.onPrimary
                         )
                     }
                 }

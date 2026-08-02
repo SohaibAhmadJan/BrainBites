@@ -77,7 +77,7 @@ fun FavoritesContent(
         } else {
             LazyColumn(
                 modifier = Modifier.fillMaxSize(),
-                contentPadding = PaddingValues(16.dp, 16.dp, 16.dp, 112.dp),
+                contentPadding = PaddingValues(16.dp, 16.dp, 16.dp, 150.dp),
                 verticalArrangement = Arrangement.spacedBy(16.dp)
             ) {
                 itemsIndexed(favorites, key = { _, it -> it.id }) { index, fact ->

@@ -23,8 +23,6 @@ fun QuoteCard(
     fact: BiteItem,
     modifier: Modifier = Modifier
 ) {
-    val categoryColor = Color(android.graphics.Color.parseColor(fact.category.colorHex))
-    
     Box(
         modifier = modifier
             .size(1080.dp, 1080.dp) // Standard Square Social Media Size
@@ -32,7 +30,7 @@ fun QuoteCard(
                 Brush.verticalGradient(
                     colors = listOf(
                         MaterialTheme.colorScheme.background,
-                        categoryColor.copy(alpha = 0.2f)
+                        MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.2f)
                     )
                 )
             )
@@ -63,7 +61,7 @@ fun QuoteCard(
                 text = "“",
                 style = MaterialTheme.typography.displayLarge,
                 fontSize = 120.sp,
-                color = categoryColor,
+                color = MaterialTheme.colorScheme.primary,
                 fontWeight = FontWeight.Black
             )
             
@@ -80,7 +78,7 @@ fun QuoteCard(
             Spacer(modifier = Modifier.height(32.dp))
 
             Surface(
-                color = categoryColor,
+                color = MaterialTheme.colorScheme.primary,
                 shape = RoundedCornerShape(12.dp)
             ) {
                 Text(
@@ -97,9 +95,9 @@ fun QuoteCard(
         Text(
             text = "Feed Your Mind Daily.",
             style = MaterialTheme.typography.bodyLarge,
-            color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.6f),
+            color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.8f),
             modifier = Modifier.align(Alignment.BottomCenter),
-            fontWeight = FontWeight.Medium
+            fontWeight = FontWeight.Bold
         )
     }
 }

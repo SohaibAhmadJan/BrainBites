@@ -77,7 +77,7 @@ fun NotificationsScreenContent(
         } else {
             LazyColumn(
                 modifier = Modifier.fillMaxSize(),
-                contentPadding = PaddingValues(bottom = 112.dp)
+                contentPadding = PaddingValues(bottom = 150.dp)
             ) {
                 items(notifications, key = { it.id }) { notification ->
                     NotificationItem(
@@ -141,7 +141,7 @@ fun NotificationItem(
                         style = MaterialTheme.typography.bodyLarge,
                         fontWeight = if (notification.isRead) FontWeight.Medium else FontWeight.Bold,
                         color = if (notification.isRead) MaterialTheme.colorScheme.onSurface 
-                                else MaterialTheme.colorScheme.primary,
+                                else MaterialTheme.colorScheme.error,
                         maxLines = 1,
                         overflow = TextOverflow.Ellipsis
                     )
@@ -151,7 +151,7 @@ fun NotificationItem(
                             modifier = Modifier
                                 .size(8.dp)
                                 .clip(CircleShape)
-                                .background(MaterialTheme.colorScheme.primary)
+                                .background(MaterialTheme.colorScheme.error)
                         )
                     }
                 }
@@ -216,7 +216,7 @@ fun getNotificationIcon(type: NotificationType): androidx.compose.ui.graphics.ve
 @Composable
 fun getNotificationColor(type: NotificationType): Color {
     return when (type) {
-        NotificationType.NEW_FACT -> Color(0xFFE76F51) // Warm orange
+        NotificationType.NEW_FACT -> MaterialTheme.colorScheme.error
         NotificationType.ACHIEVEMENT -> Color(0xFFF4A261) // Golden
         NotificationType.SYSTEM -> MaterialTheme.colorScheme.primary
         NotificationType.GENERAL -> MaterialTheme.colorScheme.secondary

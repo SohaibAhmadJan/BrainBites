@@ -1,31 +1,29 @@
-# Explore Screen Carousel Integration
+# Fix Personalized Goals Layout
 
-Transform the "Featured Insights" and "Learning Collections" sections into full-width carousels to ensure a clean, one-card-at-a-time focus.
+Improve the "Daily Reading Goal" selector on the Settings screen to display the options in a balanced 2x2 grid instead of an uneven 3-on-top, 1-on-bottom layout.
 
 ## User Review Required
 
 > [!NOTE]
-> I am replacing the `LazyRow` components with `HorizontalPager`. This will provide a "snapping" behavior where only one card is centered at a time, removing the "one and a half card" look.
+> I will replace the current `FlowRow` with a structured 2x2 grid using nested `Row` and `Column` layouts. Each goal chip will be set to `weight(1f)` so they all occupy exactly the same amount of space, creating a professional and balanced look.
 
 ## Proposed Changes
 
-### UI Components
+### Settings UI
 
-#### [MODIFY] [CategoryListScreen.kt](file:///F:/BrainBites/app/src/main/java/com/example/brainbites/ui/categories/CategoryListScreen.kt)
-- **Featured Insights**:
-    - Replace `LazyRow` with `HorizontalPager`.
-    - Set `pageSpacing = 16.dp`.
-    - Adjust `FeaturedFactCard` to `fillMaxWidth()`.
-- **Learning Collections**:
-    - Replace `LazyRow` with `HorizontalPager`.
-    - Set `pageSpacing = 16.dp`.
-    - Adjust `CollectionCard` to `fillMaxWidth()`.
-- **Styling**:
-    - Use `contentPadding = PaddingValues(horizontal = 24.dp)` in the pagers to allow a hint of the next/previous cards while keeping the current one dominant.
+#### [MODIFY] [SettingsScreen.kt](file:///F:/BrainBites/app/src/main/java/com/example/brainbites/ui/settings/SettingsScreen.kt)
+- Locate the `GoalSelector` composable.
+- Replace the `FlowRow` with a `Column`.
+- Inside the `Column`, create two `Row`s.
+- Distribute the goal options (3, 5, 10, 20) evenly:
+    - Row 1: "3 Facts" and "5 Facts"
+    - Row 2: "10 Facts" and "20 Facts"
+- Apply `Modifier.weight(1f)` to each chip to ensure they are equal in width.
 
 ## Verification Plan
 
 ### Manual Verification
-- **Explore Hub**: Verify that scrolling through Featured Insights and Collections snaps one card at a time.
-- **Card Width**: Confirm cards now take up the majority of the screen width, looking more intentional.
-- **Smoothness**: Ensure the horizontal swipe gesture feels natural and professional.
+- Navigate to the **Settings** screen.
+- Scroll to the **Personalized Goals** section.
+- Verify that the goal chips (3, 5, 10, 20) are now perfectly aligned in two rows of two.
+- Confirm that selecting a chip still updates the preference correctly.

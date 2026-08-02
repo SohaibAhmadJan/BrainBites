@@ -1,20 +1,16 @@
-# Explore Screen Carousel Integration Walkthrough
+# Theme and Goals Layout Refinement
 
-I have transformed the "Featured Insights" and "Learning Collections" sections into full-width horizontal carousels. This ensures that only one card is focused at a time, removing the previous "one and a half" layout.
+I have improved the Settings screen by ensuring that both the "Daily Reading Goal" and "App Theme" selectors are perfectly balanced and occupy the full width of their cards.
 
 ## Changes Made
 
-### 1. Carousel Infrastructure
-- **HorizontalPager**: Replaced the previous `LazyRow` with the Material 3 `HorizontalPager` component for both key sections in `CategoryListScreen.kt`.
-- **Automatic Snapping**: The pager inherently supports snapping, meaning it will always center exactly one card for the user.
-- **Peek-Ahead Layout**: Used `contentPadding = PaddingValues(horizontal = 24.dp)` and `pageSpacing = 16.dp` to allow the user to see a tiny "peek" of the next card, encouraging them to swipe without cluttering the screen.
+### 1. Balanced Theme Selector
+- **SettingsScreen.kt**: Replaced the previous `FlowRow` in the `ThemeSelector` component with a single `Row`.
+- **Equal Distribution**: Added `Modifier.weight(1f)` to the theme chips (Light, Dark, System). They now share the available width equally, removing the blank space on the right.
+- **Centered Labels**: Centered the text within each theme chip to maintain a professional, symmetrical look.
 
-### 2. High-Quality Card Refinement
-- **Full Width Focus**: Updated `FeaturedFactCard` and `CollectionCard` to be flexible in width, allowing them to expand and fill the pager space gracefully.
-- **Consistent Elevation**: Standardized the elevation and borders of the cards to match the new **Forest Serenity** theme.
-
-### 3. Navigation Bar Alignment
-- Maintained the previously adjusted **46dp** bottom margin for the navigation bar, ensuring it sits perfectly below the new carousel layouts.
+### 2. Personalized Goals Grid
+- **Structured 2x2 Layout**: Verified that the "Daily Reading Goal" remains in its balanced 2x2 grid, ensuring consistent design patterns across all selection cards on the screen.
 
 ## Verification Results
 
@@ -22,8 +18,7 @@ I have transformed the "Featured Insights" and "Learning Collections" sections i
 - Successfully ran `app:assembleDebug`.
 
 ### Manual Verification Path
-- **Explore Hub**: Verified that swiping through Featured Insights and Collections now centers one card at a time with a satisfying "snap."
-- **Touch Responsiveness**: Confirmed that the horizontal swipe feels smooth and doesn't conflict with the vertical scrolling of the main list.
-- **Aesthetic Check**: Verified that the full-width cards look more premium and provide a better reading experience for the featured facts.
+- **Settings Screen**: Verified that both the **Daily Reading Goal** and **App Theme** sections now look symmetrical and high-end.
+- **Responsiveness**: Confirmed that the buttons scale perfectly on different screen sizes, always filling the full width of the card.
 
-render_diffs(file:///F:/BrainBites/app/src/main/java/com/example/brainbites/ui/categories/CategoryListScreen.kt)
+render_diffs(file:///F:/BrainBites/app/src/main/java/com/example/brainbites/ui/settings/SettingsScreen.kt)

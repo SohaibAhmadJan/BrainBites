@@ -89,7 +89,7 @@ fun ExploreScreenContent(
 ) {
     LazyColumn(
         modifier = Modifier.fillMaxSize(),
-        contentPadding = PaddingValues(bottom = 112.dp)
+        contentPadding = PaddingValues(bottom = 150.dp)
     ) {
         // 1. Search Bar
         item {

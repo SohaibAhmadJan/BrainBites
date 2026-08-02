@@ -1,5 +1,3 @@
-- [x] Replace `LazyRow` with `HorizontalPager` for Featured Insights in `CategoryListScreen.kt`
-- [x] Replace `LazyRow` with `HorizontalPager` for Learning Collections in `CategoryListScreen.kt`
-- [x] Adjust card widths to fill the pager space
-- [x] Add snapping and horizontal padding to pagers
-- [x] Verify build and professional "one-at-a-time" behavior
+- [x] Replace `FlowRow` with a 2x2 grid in `GoalSelector` (SettingsScreen.kt)
+- [x] Ensure goal chips are evenly weighted and aligned
+- [x] Verify build and layout on the Settings screen

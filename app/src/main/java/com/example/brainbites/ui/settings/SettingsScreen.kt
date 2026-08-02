@@ -1,8 +1,6 @@
 package com.example.brainbites.ui.settings
 
 import androidx.compose.foundation.layout.*
-import androidx.compose.foundation.layout.ExperimentalLayoutApi
-import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.*
@@ -13,6 +11,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.foundation.lazy.LazyColumn
@@ -55,7 +54,7 @@ fun SettingsScreen() {
             title = { Text("About BrainBites", fontWeight = FontWeight.Bold) },
             text = {
                 Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
-                    Text("Version 3.4.1", style = MaterialTheme.typography.bodyMedium)
+                    Text("Version 3.4.2", style = MaterialTheme.typography.bodyMedium)
                     Text(
                         "BrainBites is your daily companion for psychology facts, mental puzzles, and habit-building insights. Our mission is to make learning about the human mind accessible and engaging for everyone.",
                         style = MaterialTheme.typography.bodySmall
@@ -85,7 +84,7 @@ fun SettingsScreen() {
 
     LazyColumn(
         modifier = Modifier.fillMaxSize(),
-        contentPadding = PaddingValues(16.dp, 16.dp, 16.dp, 112.dp),
+        contentPadding = PaddingValues(16.dp, 16.dp, 16.dp, 150.dp),
         verticalArrangement = Arrangement.spacedBy(8.dp)
     ) {
         item {
@@ -219,7 +218,6 @@ fun SettingsScreen() {
     }
 }
 
-@OptIn(ExperimentalLayoutApi::class)
 @Composable
 fun GoalSelector(selectedGoal: Int, onGoalSelected: (Int) -> Unit) {
     Surface(
@@ -232,18 +230,36 @@ fun GoalSelector(selectedGoal: Int, onGoalSelected: (Int) -> Unit) {
                 Spacer(modifier = Modifier.width(12.dp))
                 Text("Daily Reading Goal", style = MaterialTheme.typography.titleSmall, fontWeight = FontWeight.Bold)
             }
-            Spacer(modifier = Modifier.height(12.dp))
-            FlowRow(
-                horizontalArrangement = Arrangement.spacedBy(8.dp),
-                verticalArrangement = Arrangement.spacedBy(8.dp),
-                modifier = Modifier.fillMaxWidth()
-            ) {
-                listOf(3, 5, 10, 20).forEach { goal ->
-                    FilterChip(
-                        selected = goal == selectedGoal,
-                        onClick = { onGoalSelected(goal) },
-                        label = { Text("$goal Facts", style = MaterialTheme.typography.labelSmall) }
-                    )
+            
+            Spacer(modifier = Modifier.height(16.dp))
+            
+            val goals = listOf(3, 5, 10, 20)
+            Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                goals.chunked(2).forEach { rowGoals ->
+                    Row(
+                        horizontalArrangement = Arrangement.spacedBy(8.dp),
+                        modifier = Modifier.fillMaxWidth()
+                    ) {
+                        rowGoals.forEach { goal ->
+                            FilterChip(
+                                selected = goal == selectedGoal,
+                                onClick = { onGoalSelected(goal) },
+                                label = { 
+                                    Text(
+                                        text = "$goal Facts", 
+                                        modifier = Modifier.fillMaxWidth(),
+                                        textAlign = TextAlign.Center,
+                                        style = MaterialTheme.typography.labelSmall
+                                    ) 
+                                },
+                                modifier = Modifier.weight(1f),
+                                colors = FilterChipDefaults.filterChipColors(
+                                    selectedContainerColor = MaterialTheme.colorScheme.primary,
+                                    selectedLabelColor = MaterialTheme.colorScheme.onPrimary
+                                )
+                            )
+                        }
+                    }
                 }
             }
         }
@@ -278,7 +294,6 @@ fun TextScaleSelector(currentScale: Float, onScaleChanged: (Float) -> Unit) {
     }
 }
 
-@OptIn(ExperimentalLayoutApi::class)
 @Composable
 fun ThemeSelector(selectedMode: ThemeMode, onModeSelected: (ThemeMode) -> Unit) {
     Surface(
@@ -294,16 +309,24 @@ fun ThemeSelector(selectedMode: ThemeMode, onModeSelected: (ThemeMode) -> Unit) 
             
             Spacer(modifier = Modifier.height(12.dp))
             
-            FlowRow(
+            Row(
                 horizontalArrangement = Arrangement.spacedBy(8.dp),
-                verticalArrangement = Arrangement.spacedBy(8.dp)
+                modifier = Modifier.fillMaxWidth()
             ) {
                 ThemeMode.entries.forEach { mode ->
                     val isSelected = mode == selectedMode
                     FilterChip(
                         selected = isSelected,
                         onClick = { onModeSelected(mode) },
-                        label = { Text(mode.name.lowercase().replaceFirstChar { it.uppercase() }, style = MaterialTheme.typography.labelSmall) },
+                        label = { 
+                            Text(
+                                text = mode.name.lowercase().replaceFirstChar { it.uppercase() }, 
+                                modifier = Modifier.fillMaxWidth(),
+                                textAlign = TextAlign.Center,
+                                style = MaterialTheme.typography.labelSmall
+                            ) 
+                        },
+                        modifier = Modifier.weight(1f),
                         colors = FilterChipDefaults.filterChipColors(
                             selectedContainerColor = MaterialTheme.colorScheme.primary,
                             selectedLabelColor = MaterialTheme.colorScheme.onPrimary

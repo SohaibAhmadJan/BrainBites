@@ -167,7 +167,7 @@ fun ProfileScreenContent(
             }
         }
         
-        item { Spacer(modifier = Modifier.height(112.dp)) }
+        item { Spacer(modifier = Modifier.height(150.dp)) }
     }
 }
 
@@ -283,7 +283,8 @@ fun BioSection(bio: String) {
     Surface(
         modifier = Modifier.fillMaxWidth(),
         shape = RoundedCornerShape(16.dp),
-        color = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.3f)
+        color = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f),
+        border = BorderStroke(1.dp, MaterialTheme.colorScheme.outline.copy(alpha = 0.2f))
     ) {
         Column(modifier = Modifier.padding(16.dp)) {
             Text(
@@ -339,8 +340,7 @@ fun StatsSection(stats: UserStats) {
         StatCard(
             label = "Unlocked",
             value = stats.achievementsUnlocked.toString(),
-            modifier = Modifier.weight(1f),
-            isHighlight = stats.achievementsUnlocked > 0
+            modifier = Modifier.weight(1f)
         )
     }
 }
@@ -349,15 +349,13 @@ fun StatsSection(stats: UserStats) {
 fun StatCard(
     label: String, 
     value: String, 
-    modifier: Modifier = Modifier,
-    isHighlight: Boolean = false
+    modifier: Modifier = Modifier
 ) {
     Surface(
         modifier = modifier,
         shape = RoundedCornerShape(16.dp),
-        color = if (isHighlight) MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.2f) 
-                else MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f),
-        border = if (isHighlight) BorderStroke(1.dp, MaterialTheme.colorScheme.primary.copy(alpha = 0.5f)) else null
+        color = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f),
+        border = BorderStroke(1.dp, MaterialTheme.colorScheme.outline.copy(alpha = 0.2f))
     ) {
         Column(
             modifier = Modifier.padding(16.dp),
@@ -367,7 +365,7 @@ fun StatCard(
                 text = value,
                 style = MaterialTheme.typography.titleLarge,
                 fontWeight = FontWeight.Bold,
-                color = if (isHighlight) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurface
+                color = MaterialTheme.colorScheme.primary
             )
             Text(
                 text = label,

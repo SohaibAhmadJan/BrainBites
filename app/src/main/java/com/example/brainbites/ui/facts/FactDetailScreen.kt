@@ -139,7 +139,7 @@ fun FactPage(fact: BiteItem, onToggleBookmark: () -> Unit, onShare: () -> Unit) 
                     Brush.verticalGradient(
                         colors = listOf(
                             MaterialTheme.colorScheme.background,
-                            categoryColor.copy(alpha = 0.15f)
+                            MaterialTheme.colorScheme.primary.copy(alpha = 0.08f)
                         )
                     )
                 )
@@ -153,7 +153,7 @@ fun FactPage(fact: BiteItem, onToggleBookmark: () -> Unit, onShare: () -> Unit) 
                 modifier = Modifier
                     .align(Alignment.TopStart)
                     .offset(x = (-20).dp, y = 40.dp)
-                    .alpha(0.08f)
+                    .alpha(0.04f)
                     .graphicsLayer {
                         rotationZ = -15f
                         scaleX = 1.5f
@@ -166,7 +166,7 @@ fun FactPage(fact: BiteItem, onToggleBookmark: () -> Unit, onShare: () -> Unit) 
                 modifier = Modifier
                     .align(Alignment.CenterEnd)
                     .offset(x = 40.dp, y = 100.dp)
-                    .alpha(0.06f)
+                    .alpha(0.03f)
                     .graphicsLayer {
                         rotationZ = 20f
                         scaleX = 2.25f
@@ -179,7 +179,7 @@ fun FactPage(fact: BiteItem, onToggleBookmark: () -> Unit, onShare: () -> Unit) 
                 modifier = Modifier
                     .align(Alignment.BottomStart)
                     .offset(x = (-10).dp, y = 20.dp)
-                    .alpha(0.07f)
+                    .alpha(0.04f)
                     .graphicsLayer {
                         rotationZ = -10f
                         scaleX = 1.75f

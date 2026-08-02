@@ -133,7 +133,7 @@ fun CollectionDetailScreen(
                     )
                 }
                 
-                item { Spacer(modifier = Modifier.height(112.dp)) }
+                item { Spacer(modifier = Modifier.height(150.dp)) }
             }
         }
     }
