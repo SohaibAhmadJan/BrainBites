@@ -85,7 +85,7 @@ fun AchievementCard(
     val containerColor = MaterialTheme.colorScheme.surface
 
     val iconBackgroundColor = when {
-        isCompleted -> MaterialTheme.colorScheme.tertiary.copy(alpha = 0.25f)
+        isCompleted -> MaterialTheme.colorScheme.tertiary
         else -> MaterialTheme.colorScheme.primaryContainer
     }
 

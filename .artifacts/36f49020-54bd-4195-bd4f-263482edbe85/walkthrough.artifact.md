@@ -1,23 +1,24 @@
-# Walkthrough - Identifiable "Forest Serenity" Background
+# Walkthrough - "Soft Serenity" Dark Mode Refinement
 
-I have completed the final identifiable refinement for your background. Every element of the forest and mountain range is now distinct and follows your brand's color palette.
+I have successfully refined the Dark Mode aesthetics by introducing a more natural, muted color palette and premium gold accents.
 
-## 🏔️ Identifiable Mountain Ranges
+## ✨ Aesthetic Enhancements
 
-Instead of a single color, I have explicitly assigned different shades of green to each mountain layer to create professional depth and clarity:
+### 1. Natural Sage Headings
+- Replaced the bright "neon" mint text with **Soft Sage Green** (`onSurfaceVariant`).
+- This change applies to all section headings ("Explore Categories", "Recently Viewed", etc.), the "Show all" buttons, and the "Read More" links.
+- **Visual Impact**: The UI now feels more "Serene" and integrated with the forest background, reducing eye strain in dark environments.
 
-- **Lush Green Foreground**: Mountains `m1` and `m2` use your `Primary Container` green.
-- **Misty Midground**: Mountains `m3`, `m4`, and `m5` use your `Secondary` green.
-- **Pale Sage Background**: Mountains `m6`, `m31`, and `m34` use your `Secondary Container` green.
-- **Soft Atmosphere**: The sky and extra background shapes (`Shape Layer 4, 11, 12, 13`) now perfectly match your app's `Background` and `Surface Variant` colors.
+### 2. Premium Gold Branding
+- Switched the **Logo** and the **"BrainBites" Title** to your brand's **Tertiary Gold** on both the Splash and Home screens.
+- **Visual Impact**: This adds a high-end "Signature" feel to the app, making the branding stand out as a luxury element against the green forest.
 
-## ✨ Perfection Touches
-- **No More Wildcards**: I replaced the wildcard `m*` logic with **explicit layer targeting**. This guarantees that every single part of the animation is colored exactly as intended.
-- **Brand Gold Sun**: The sun/moon remains your premium gold accent.
-- **Ghostly Clouds**: Clouds are now even subtler (8% opacity) to ensure they never distract from your content.
+### 3. Clean Action Icons
+- Updated the **Profile** and **Notification** icons in the top bar to match the Soft Sage palette.
+- This keeps the focus on your brand and content while maintaining clear utility.
 
-## ✅ Verification Results
+## ✅ Verification
 - **Success**: Build `app:assembleDebug` completed successfully.
-- **Harmony**: The background now looks like a multi-layered painting made specifically for BrainBites.
+- **Harmony**: The combination of Gold branding and Sage Green text creates a much more professional and balanced "Forest Serenity" experience in Dark Mode.
 
-**Your background is now a perfectly unified, identifiable multi-layer forest!**
+**Your app now features a truly high-end, professional Dark Mode aesthetic!**

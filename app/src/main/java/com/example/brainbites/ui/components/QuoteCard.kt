@@ -41,14 +41,14 @@ fun QuoteCard(
             modifier = Modifier.align(Alignment.TopCenter),
             verticalAlignment = Alignment.CenterVertically
         ) {
-            BrainBitesLogo(modifier = Modifier.size(40.dp), color = MaterialTheme.colorScheme.primary)
+            BrainBitesLogo(modifier = Modifier.size(40.dp), color = MaterialTheme.colorScheme.onSecondaryContainer)
             Spacer(modifier = Modifier.width(12.dp))
             Text(
                 text = "BRAINBITES",
                 style = MaterialTheme.typography.titleLarge,
                 fontWeight = FontWeight.Black,
                 letterSpacing = 4.sp,
-                color = MaterialTheme.colorScheme.primary
+                color = MaterialTheme.colorScheme.secondary
             )
         }
 

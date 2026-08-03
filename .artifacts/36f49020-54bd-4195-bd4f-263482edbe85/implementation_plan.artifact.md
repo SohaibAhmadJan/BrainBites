@@ -1,49 +1,25 @@
-# Implementation Plan - "Forest Serenity" Multi-Shade Mountain Refinement
+# Implementation Plan - "Misty Forest" Background Refinement
 
-Refine the Lottie background by explicitly targeting all remaining grey/purple areas and applying a variety of green shades to create a layered, identifiable mountain range.
+Refine the Lottie background to use semi-transparency for all land elements (mountains and trees). This ensures 100% text readability while keeping the "Forest Serenity" atmosphere as a subtle, moving "mist."
 
 ## User Review Required
 
-> [!IMPORTANT]
-> I will use **distinct shades of green** for each mountain layer (`m1` through `m34`). This will ensure that all "greyish" areas are gone while keeping the mountains identifiable as separate elements.
-
-> [!NOTE]
-> As requested, I will **not** modify the Sun/Moon or the Clouds.
+> [!TIP]
+> I will set the **Mountains** and **Trees** to **20% opacity**.
+> This makes them look like ghostly shapes in the background, preventing them from competing with your UI text.
+> The **Sun/Moon** and **Clouds** will remain fully visible to keep the sky alive.
 
 ## Proposed Changes
 
 ### UI Components
 
 #### [MODIFY] [LottieBackground.kt](file:///F:/BrainBites/app/src/main/java/com/example/brainbites/ui/components/LottieBackground.kt)
-- **Sky Harmony**: Ensure `Shape Layer 1` perfectly matches the app background.
-- **Mountain Layering**: Apply different palette greens to each mountain layer:
-    - **Close Mountains (`m1`, `m2`)**: `primaryContainer` (Lush green).
-    - **Mid Mountains (`m3`, `m4`, `m5`)**: `secondary` (Misty green).
-    - **Far Mountains (`m6`, `m31`, `m34`)**: `secondaryContainer` (Pale sage).
-    - **Background Details (`Shape Layer 4, 11, 12, 13`)**: `surfaceVariant` or `outline` (Soft forest air).
-
-## Proposed Changes
-
-### Theme & Assets
-
-#### [MODIFY] [Color.kt](file:///F:/BrainBites/app/src/main/java/com/example/brainbites/ui/theme/Color.kt)
-- Update all brand colors to the "Forest Serenity" palette provided (#2D6A4F, #F1FAEE, etc.).
-
-#### [MODIFY] [LottieBackground.kt](file:///F:/BrainBites/app/src/main/java/com/example/brainbites/ui/components/LottieBackground.kt)
-- Use `rememberLottieDynamicProperties` to target specific `keyPath` groups:
-    - `arrayOf("moon", "**")` -> `Tertiary`
-    - `arrayOf("tree*", "**")` -> `Primary`/`Secondary`
-    - `arrayOf("m*", "**")` -> `SecondaryContainer` (low alpha)
-    - `arrayOf("c*", "**")` -> `OnBackground` (very low alpha)
-
-#### [MODIFY] [MainScaffold.kt](file:///F:/BrainBites/app/src/main/java/com/example/brainbites/ui/main/MainScaffold.kt)
-- Replace or overlay `LivingEmeraldBackground()` with `LottieBackground()`.
+- Target all mountain layers (`m1`, `m2`, `m3`, `m4`, `m5`, `m6`, `m31`, `m34`) with `LottieProperty.OPACITY` and set to `20`.
+- Target all tree layers (`tree1` through `tree6`) with `LottieProperty.OPACITY` and set to `20`.
+- This will fix the blending issue permanently because the background will be 80% solid theme color.
 
 ## Verification Plan
 
-### Automated Tests
-- `gradlew assembleDebug` to ensure successful build.
-
 ### Manual Verification
-- Deploy to device/emulator.
-- Verify the animation plays smoothly in the background across different screens.
+- Verify text contrast in Dark Mode.
+- Ensure the animation still feels "Serene" and premium.

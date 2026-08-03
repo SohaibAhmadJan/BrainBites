@@ -9,6 +9,8 @@ import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.pager.HorizontalPager
+import androidx.compose.foundation.pager.rememberPagerState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowForward
@@ -35,6 +37,7 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.brainbites.data.Achievement
 import com.example.brainbites.data.BiteCategory
@@ -169,7 +172,7 @@ fun HomeScreenContent(
                                 Text(
                                     text = "Explore Categories",
                                     style = MaterialTheme.typography.titleMedium,
-                                    color = MaterialTheme.colorScheme.primary,
+                                    color = MaterialTheme.colorScheme.secondary, // Identifiable Forest Green
                                     fontWeight = FontWeight.Bold
                                 )
                                 LazyRow(
@@ -236,11 +239,11 @@ fun HomeScreenContent(
                                         Text(
                                             text = "Recently Viewed",
                                             style = MaterialTheme.typography.titleMedium,
-                                            color = MaterialTheme.colorScheme.primary,
+                                            color = MaterialTheme.colorScheme.secondary,
                                             fontWeight = FontWeight.Bold
                                         )
                                         TextButton(onClick = onNavigateToHistory) {
-                                            Text("Show all", color = MaterialTheme.colorScheme.primary, fontWeight = FontWeight.Bold)
+                                            Text("Show all", color = MaterialTheme.colorScheme.secondary, fontWeight = FontWeight.Bold)
                                         }
                                     }
                                     Spacer(modifier = Modifier.height(8.dp))
@@ -269,6 +272,7 @@ fun HomeScreenContent(
                                 },
                                 modifier = Modifier.fillMaxWidth().height(56.dp),
                                 shape = RoundedCornerShape(16.dp),
+                                border = BorderStroke(1.5.dp, MaterialTheme.colorScheme.primary),
                                 colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.secondary)
                             ) {
                                 Row(verticalAlignment = Alignment.CenterVertically) {
@@ -318,7 +322,7 @@ fun DailyMoodSection(selectedMood: String?, onMoodSelected: (String) -> Unit) {
         Text(
             text = "How are you feeling today?",
             style = MaterialTheme.typography.titleMedium,
-            color = MaterialTheme.colorScheme.primary,
+            color = MaterialTheme.colorScheme.secondary,
             fontWeight = FontWeight.Bold
         )
         LazyRow(
@@ -351,7 +355,7 @@ fun AchievementsSection(achievements: List<Achievement>) {
         Text(
             text = "Achievements",
             style = MaterialTheme.typography.titleMedium,
-            color = MaterialTheme.colorScheme.primary,
+            color = MaterialTheme.colorScheme.secondary,
             fontWeight = FontWeight.Bold
         )
         Text(
@@ -359,15 +363,19 @@ fun AchievementsSection(achievements: List<Achievement>) {
             style = MaterialTheme.typography.labelSmall,
             color = MaterialTheme.colorScheme.onSurfaceVariant
         )
-        LazyRow(
-            horizontalArrangement = Arrangement.spacedBy(16.dp)
-        ) {
-            items(achievements) { achievement ->
-                AchievementCard(
-                    achievement = achievement,
-                    modifier = Modifier.width(280.dp)
-                )
-            }
+        
+        val pagerState = rememberPagerState { achievements.size }
+        
+        HorizontalPager(
+            state = pagerState,
+            modifier = Modifier.fillMaxWidth(),
+            contentPadding = PaddingValues(horizontal = 0.dp),
+            pageSpacing = 16.dp
+        ) { page ->
+            AchievementCard(
+                achievement = achievements[page],
+                modifier = Modifier.fillMaxWidth()
+            )
         }
     }
 }
@@ -378,7 +386,7 @@ fun TrendingQuotesSection(allFacts: List<BiteItem>, onNavigateToDetail: (String)
         Text(
             text = "Trending Quotes",
             style = MaterialTheme.typography.titleMedium,
-            color = MaterialTheme.colorScheme.primary,
+            color = MaterialTheme.colorScheme.secondary,
             fontWeight = FontWeight.Bold
         )
         val trendingFacts = allFacts.take(4)
@@ -426,7 +434,7 @@ fun FactOfTheDayCard(fact: BiteItem, onToggleBookmark: (String) -> Unit, onShare
                 verticalAlignment = Alignment.CenterVertically
             ) {
                 Surface(
-                    color = MaterialTheme.colorScheme.primary.copy(alpha = 0.2f),
+                    color = MaterialTheme.colorScheme.secondary.copy(alpha = 0.2f),
                     shape = RoundedCornerShape(8.dp),
                     modifier = Modifier.width(160.dp)
                 ) {
@@ -445,20 +453,20 @@ fun FactOfTheDayCard(fact: BiteItem, onToggleBookmark: (String) -> Unit, onShare
                             verticalAlignment = Alignment.CenterVertically,
                             horizontalArrangement = Arrangement.Center
                         ) {
-                            Icon(
-                                painter = painterResource(id = category.getIconDrawable()),
-                                contentDescription = null,
-                                modifier = Modifier.size(14.dp),
-                                tint = MaterialTheme.colorScheme.primary
-                            )
-                            Spacer(modifier = Modifier.width(6.dp))
-                            Text(
-                                text = category.displayName.uppercase(),
-                                style = MaterialTheme.typography.labelSmall,
-                                fontWeight = FontWeight.Black,
-                                color = MaterialTheme.colorScheme.primary,
-                                textAlign = TextAlign.Center
-                            )
+                                Icon(
+                                    painter = painterResource(id = category.getIconDrawable()),
+                                    contentDescription = null,
+                                    modifier = Modifier.size(14.dp),
+                                    tint = MaterialTheme.colorScheme.onSurfaceVariant // Soft Sage
+                                )
+                                Spacer(modifier = Modifier.width(6.dp))
+                                Text(
+                                    text = category.displayName.uppercase(),
+                                    style = MaterialTheme.typography.labelSmall,
+                                    fontWeight = FontWeight.Black,
+                                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                                    textAlign = TextAlign.Center
+                                )
                         }
                     }
                 }
@@ -498,30 +506,30 @@ fun FactOfTheDayCard(fact: BiteItem, onToggleBookmark: (String) -> Unit, onShare
 
             Spacer(modifier = Modifier.height(16.dp))
 
-            // Main Content: Quote text only (Animated)
-            Box(modifier = Modifier.weight(1f)) {
-                AnimatedContent(
-                    targetState = fact.fact,
-                    transitionSpec = {
-                        (slideInVertically { height -> height / 2 } + fadeIn(tween(600))).togetherWith(
-                            slideOutVertically { height -> -height / 2 } + fadeOut(tween(600))
-                        )
-                    },
-                    label = "quoteTextRotation",
-                    modifier = Modifier.fillMaxSize()
-                ) { factText ->
-                    Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.CenterStart) {
-                        Text(
-                            text = factText,
-                            color = MaterialTheme.colorScheme.onPrimaryContainer,
-                            style = MaterialTheme.typography.headlineSmall,
-                            fontWeight = FontWeight.Bold,
-                            overflow = TextOverflow.Ellipsis,
-                            modifier = Modifier.fillMaxWidth()
-                        )
+                // Main Content: Quote text only (Animated)
+                Box(modifier = Modifier.weight(1f)) {
+                    AnimatedContent(
+                        targetState = fact.fact,
+                        transitionSpec = {
+                            (slideInVertically { height -> height / 2 } + fadeIn(tween(600))).togetherWith(
+                                slideOutVertically { height -> -height / 2 } + fadeOut(tween(600))
+                            )
+                        },
+                        label = "quoteTextRotation",
+                        modifier = Modifier.fillMaxSize()
+                    ) { factText ->
+                        Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.CenterStart) {
+                            Text(
+                                text = factText,
+                                color = MaterialTheme.colorScheme.onPrimaryContainer,
+                                style = MaterialTheme.typography.titleLarge,
+                                fontWeight = FontWeight.SemiBold,
+                                overflow = TextOverflow.Ellipsis,
+                                modifier = Modifier.fillMaxWidth()
+                            )
+                        }
                     }
                 }
-            }
 
             Spacer(modifier = Modifier.height(16.dp))
 
@@ -534,7 +542,7 @@ fun FactOfTheDayCard(fact: BiteItem, onToggleBookmark: (String) -> Unit, onShare
                 Row(verticalAlignment = Alignment.CenterVertically) {
                     Text(
                         text = "Read More",
-                        color = MaterialTheme.colorScheme.primary,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant, // Soft Sage
                         fontWeight = FontWeight.Bold,
                         style = MaterialTheme.typography.labelLarge
                     )
@@ -542,7 +550,7 @@ fun FactOfTheDayCard(fact: BiteItem, onToggleBookmark: (String) -> Unit, onShare
                     Icon(
                         Icons.AutoMirrored.Filled.ArrowForward,
                         contentDescription = null,
-                        tint = MaterialTheme.colorScheme.primary,
+                        tint = MaterialTheme.colorScheme.onSurfaceVariant,
                         modifier = Modifier.size(16.dp)
                     )
                 }

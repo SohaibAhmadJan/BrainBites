@@ -26,13 +26,13 @@ fun BrandHeader(
         ) {
             BrainBitesLogo(
                 modifier = Modifier.size(28.dp),
-                color = MaterialTheme.colorScheme.primary
+                color = MaterialTheme.colorScheme.secondary
             )
             Text(
                 text = title,
                 style = MaterialTheme.typography.titleLarge,
                 fontWeight = FontWeight.Bold,
-                color = MaterialTheme.colorScheme.primary
+                color = MaterialTheme.colorScheme.secondary
             )
         }
     }

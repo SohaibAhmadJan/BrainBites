@@ -1,8 +1,8 @@
-# Tasks - Premium Lottie Background Refinement
+# Tasks - "Soft Serenity" Refinement
 
-- `[x]` Update `Color.kt` with "Forest Serenity" palette
-- `[x]` Update `LottieBackground.kt` with initial targeting
-- `[x]` Atmospheric Refinement (Remove Purples/Blues, Fix Sky)
-- `[x]` Multi-Shade Mountain Refinement (identifiable elements)
-- `[x]` Verify build and color harmony
-- `[x]` Create final walkthrough
+- `[x]` Update `HomeScreen.kt` headings and labels to `onSurfaceVariant`
+- `[x]` Update `BrandHeader.kt` logo and title to `tertiary` (Gold)
+- `[x]` Update `SplashScreen.kt` logo and title to `tertiary` (Gold)
+- `[x]` Update `MainScaffold.kt` icons to `onSurfaceVariant`
+- `[x]` Verify build and Dark Mode aesthetics
+- `[x]` Create walkthrough

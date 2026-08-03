@@ -68,7 +68,7 @@ fun MainScaffold(
                                 Icon(
                                     imageVector = Icons.Default.AccountCircle,
                                     contentDescription = "Profile",
-                                    tint = MaterialTheme.colorScheme.primary
+                                    tint = MaterialTheme.colorScheme.secondary
                                 )
                             }
                         }
@@ -86,14 +86,15 @@ fun MainScaffold(
                                     Icon(
                                         imageVector = Icons.Default.Notifications,
                                         contentDescription = "Notifications",
-                                        tint = MaterialTheme.colorScheme.primary
+                                        tint = MaterialTheme.colorScheme.secondary
                                     )
                                 }
                             }
                         }
                     },
                     colors = TopAppBarDefaults.topAppBarColors(
-                        containerColor = MaterialTheme.colorScheme.background
+                        containerColor = MaterialTheme.colorScheme.background,
+                        actionIconContentColor = MaterialTheme.colorScheme.secondary
                     )
                 )
             }

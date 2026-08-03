@@ -129,7 +129,8 @@ fun SplashScreen(
                         scaleX = logoScale.value,
                         scaleY = logoScale.value,
                         translationY = logoTranslationY.value
-                    )
+                    ),
+                color = MaterialTheme.colorScheme.secondary
             )
 
             Spacer(modifier = Modifier.height(24.dp))
@@ -138,7 +139,7 @@ fun SplashScreen(
             Text(
                 text = "BrainBites",
                 style = MaterialTheme.typography.displayLarge.copy(
-                    color = MaterialTheme.colorScheme.primary,
+                    color = MaterialTheme.colorScheme.secondary,
                     fontWeight = FontWeight.Bold,
                     fontSize = 40.sp
                 ),
@@ -149,8 +150,8 @@ fun SplashScreen(
 
             // Stable Linear Loading Indicator
             LinearProgressIndicator(
-                color = MaterialTheme.colorScheme.tertiary,
-                trackColor = MaterialTheme.colorScheme.tertiary.copy(alpha = 0.2f),
+                color = MaterialTheme.colorScheme.secondary,
+                trackColor = MaterialTheme.colorScheme.secondary.copy(alpha = 0.2f),
                 modifier = Modifier
                     .width(140.dp)
                     .height(4.dp)
@@ -172,7 +173,7 @@ fun SplashScreen(
             }
 
             Text(
-                text = "Version 3.6.0",
+                text = "Version 3.4.4",
                 style = MaterialTheme.typography.labelSmall.copy(
                     color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.6f)
                 ),
