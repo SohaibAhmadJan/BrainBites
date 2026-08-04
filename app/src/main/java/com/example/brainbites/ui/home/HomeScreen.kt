@@ -553,7 +553,7 @@ fun FactOfTheDayCard(fact: BiteItem, onToggleBookmark: (String) -> Unit, onShare
                     Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.CenterStart) {
                         Text(
                             text = factText,
-                            color = MaterialTheme.colorScheme.secondary,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant, // Matching "Test Your Knowledge"
                             style = MaterialTheme.typography.titleLarge.copy(
                                 fontSize = 20.sp,
                                 fontWeight = FontWeight.Normal

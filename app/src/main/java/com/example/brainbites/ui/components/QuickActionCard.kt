@@ -32,7 +32,9 @@ fun QuickActionCard(
                 onClick = onClick
             ),
         shape = RoundedCornerShape(20.dp),
-        colors = CardDefaults.cardColors(containerColor = containerColor),
+        colors = CardDefaults.cardColors(
+            containerColor = containerColor.copy(alpha = 1f) // Matching Hero Card transparency
+        ),
         elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
     ) {
         Column(
@@ -58,7 +60,7 @@ fun QuickActionCard(
             Text(
                 text = description,
                 style = MaterialTheme.typography.bodySmall,
-                color = contentColor.copy(alpha = 0.7f),
+                color = MaterialTheme.colorScheme.onSurfaceVariant, // Refined Soft Sage
                 maxLines = 1
             )
         }
