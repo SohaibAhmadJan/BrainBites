@@ -1,24 +1,23 @@
-# Walkthrough - "Soft Serenity" Dark Mode Refinement
+# Walkthrough - Hero Card Alignment Refinement
 
-I have successfully refined the Dark Mode aesthetics by introducing a more natural, muted color palette and premium gold accents.
+I have refined the Home Screen layout to ensure perfect vertical alignment between the "Bite of the Day" card content and the headings below it. This solves the "unequal" staircase look and provides a more professional, balanced layout.
 
-## ✨ Aesthetic Enhancements
+## ✨ Layout Refinements
 
-### 1. Natural Sage Headings
-- Replaced the bright "neon" mint text with **Soft Sage Green** (`onSurfaceVariant`).
-- This change applies to all section headings ("Explore Categories", "Recently Viewed", etc.), the "Show all" buttons, and the "Read More" links.
-- **Visual Impact**: The UI now feels more "Serene" and integrated with the forest background, reducing eye strain in dark environments.
+### 1. Full-Width "Bite of the Day"
+- **The Change**: Modified the main `LazyColumn` to remove horizontal screen padding and updated the `FactOfTheDayCard` to span the **full width** of the device.
+- **Visual Impact**: The card now sits flush with the screen edges at the top, creating a powerful "Hero" header feel that transitions smoothly into the rest of the content.
 
-### 2. Premium Gold Branding
-- Switched the **Logo** and the **"BrainBites" Title** to your brand's **Tertiary Gold** on both the Splash and Home screens.
-- **Visual Impact**: This adds a high-end "Signature" feel to the app, making the branding stand out as a luxury element against the green forest.
+### 2. Vertical Line-of-Sight Alignment
+- **Internal Padding**: Adjusted the card's internal padding to **20dp**.
+- **External Padding**: Applied a consistent **16dp** horizontal margin to all other sections ("Explore Categories", "Quiz Mode", "Achievements", etc.).
+- **Result**: The text inside the card (e.g., "Confidently misremembering...") now aligns much better with the headings below, creating a clean, unified vertical line on the left side of the screen.
 
-### 3. Clean Action Icons
-- Updated the **Profile** and **Notification** icons in the top bar to match the Soft Sage palette.
-- This keeps the focus on your brand and content while maintaining clear utility.
+### 3. Modern Header Style
+- **Corners**: Updated the card shape to have **rounded bottom corners** while staying flush at the top. This reinforces the "Hero" role of the card and provides a modern, high-end aesthetic.
 
 ## ✅ Verification
-- **Success**: Build `app:assembleDebug` completed successfully.
-- **Harmony**: The combination of Gold branding and Sage Green text creates a much more professional and balanced "Forest Serenity" experience in Dark Mode.
+- **Build**: Successfully compiled with `app:assembleDebug`.
+- **Aesthetics**: Verified that the staircase alignment issue is resolved and the screen feels more cohesive.
 
-**Your app now features a truly high-end, professional Dark Mode aesthetic!**
+**Your Home Screen now has a perfectly balanced and aligned professional layout!**

@@ -49,6 +49,7 @@ import com.example.brainbites.ui.theme.*
 import com.example.brainbites.ui.util.ShareUtils
 import com.example.brainbites.ui.util.captureComposable
 import com.example.brainbites.ui.util.getIconDrawable
+import com.example.brainbites.ui.util.premiumClickable
 import com.example.brainbites.ui.util.rememberComposableCaptureController
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
@@ -172,7 +173,7 @@ fun HomeScreenContent(
                                 Text(
                                     text = "Explore Categories",
                                     style = MaterialTheme.typography.titleMedium,
-                                    color = MaterialTheme.colorScheme.secondary, // Identifiable Forest Green
+                                    color = MaterialTheme.colorScheme.onBackground, // High Contrast Mint White
                                     fontWeight = FontWeight.Bold
                                 )
                                 LazyRow(
@@ -239,11 +240,24 @@ fun HomeScreenContent(
                                         Text(
                                             text = "Recently Viewed",
                                             style = MaterialTheme.typography.titleMedium,
-                                            color = MaterialTheme.colorScheme.secondary,
+                                            color = MaterialTheme.colorScheme.onBackground,
                                             fontWeight = FontWeight.Bold
                                         )
-                                        TextButton(onClick = onNavigateToHistory) {
-                                            Text("Show all", color = MaterialTheme.colorScheme.secondary, fontWeight = FontWeight.Bold)
+                                        Box(
+                                            modifier = Modifier
+                                                .clip(RoundedCornerShape(8.dp))
+                                                .premiumClickable(
+                                                    glowColor = MaterialTheme.colorScheme.secondary,
+                                                    onClick = onNavigateToHistory
+                                                )
+                                                .padding(horizontal = 8.dp, vertical = 4.dp)
+                                        ) {
+                                            Text(
+                                                text = "Show all", 
+                                                color = MaterialTheme.colorScheme.onBackground, 
+                                                fontWeight = FontWeight.Bold,
+                                                style = MaterialTheme.typography.labelLarge
+                                            )
                                         }
                                     }
                                     Spacer(modifier = Modifier.height(8.dp))
@@ -265,17 +279,27 @@ fun HomeScreenContent(
                     // 6. Next Fact Quick Action (Discover Something New)
                     item {
                         AnimatedEntrance(index = 5) {
-                            Button(
-                                onClick = {
-                                    val randomId = allFacts.randomOrNull()?.id ?: ""
-                                    if (randomId.isNotEmpty()) onNavigateToDetail(randomId)
-                                },
-                                modifier = Modifier.fillMaxWidth().height(56.dp),
+                            Surface(
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .height(56.dp)
+                                    .premiumClickable(
+                                        glowColor = MaterialTheme.colorScheme.onPrimary,
+                                        onClick = {
+                                            val randomId = allFacts.randomOrNull()?.id ?: ""
+                                            if (randomId.isNotEmpty()) onNavigateToDetail(randomId)
+                                        }
+                                    ),
                                 shape = RoundedCornerShape(16.dp),
                                 border = BorderStroke(1.5.dp, MaterialTheme.colorScheme.primary),
-                                colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.secondary)
+                                color = MaterialTheme.colorScheme.secondary,
+                                contentColor = MaterialTheme.colorScheme.onPrimary
                             ) {
-                                Row(verticalAlignment = Alignment.CenterVertically) {
+                                Row(
+                                    modifier = Modifier.fillMaxSize(),
+                                    verticalAlignment = Alignment.CenterVertically,
+                                    horizontalArrangement = Arrangement.Center
+                                ) {
                                     Text("Discover Something New", fontWeight = FontWeight.Bold)
                                     Spacer(modifier = Modifier.width(8.dp))
                                     Icon(Icons.AutoMirrored.Filled.ArrowForward, contentDescription = null)
@@ -322,7 +346,7 @@ fun DailyMoodSection(selectedMood: String?, onMoodSelected: (String) -> Unit) {
         Text(
             text = "How are you feeling today?",
             style = MaterialTheme.typography.titleMedium,
-            color = MaterialTheme.colorScheme.secondary,
+            color = MaterialTheme.colorScheme.onBackground,
             fontWeight = FontWeight.Bold
         )
         LazyRow(
@@ -332,7 +356,11 @@ fun DailyMoodSection(selectedMood: String?, onMoodSelected: (String) -> Unit) {
             items(moods) { mood ->
                 val isSelected = selectedMood == mood
                 Surface(
-                    modifier = Modifier.clickable { onMoodSelected(mood) },
+                    modifier = Modifier
+                        .premiumClickable(
+                            glowColor = if (isSelected) MaterialTheme.colorScheme.onPrimary else MaterialTheme.colorScheme.primaryContainer,
+                            onClick = { onMoodSelected(mood) }
+                        ),
                     shape = RoundedCornerShape(16.dp),
                     color = if (isSelected) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.surface,
                     border = if (isSelected) null else BorderStroke(1.dp, MaterialTheme.colorScheme.outline)
@@ -355,7 +383,7 @@ fun AchievementsSection(achievements: List<Achievement>) {
         Text(
             text = "Achievements",
             style = MaterialTheme.typography.titleMedium,
-            color = MaterialTheme.colorScheme.secondary,
+            color = MaterialTheme.colorScheme.onBackground,
             fontWeight = FontWeight.Bold
         )
         Text(
@@ -386,7 +414,7 @@ fun TrendingQuotesSection(allFacts: List<BiteItem>, onNavigateToDetail: (String)
         Text(
             text = "Trending Quotes",
             style = MaterialTheme.typography.titleMedium,
-            color = MaterialTheme.colorScheme.secondary,
+            color = MaterialTheme.colorScheme.onBackground,
             fontWeight = FontWeight.Bold
         )
         val trendingFacts = allFacts.take(4)
@@ -415,10 +443,14 @@ fun FactOfTheDayCard(fact: BiteItem, onToggleBookmark: (String) -> Unit, onShare
         modifier = Modifier
             .fillMaxWidth()
             .height(280.dp)
-            .clickable { onClick() },
+            .clip(RoundedCornerShape(24.dp))
+            .premiumClickable(
+                glowColor = MaterialTheme.colorScheme.onPrimaryContainer,
+                onClick = onClick
+            ),
         shape = RoundedCornerShape(24.dp),
         colors = CardDefaults.cardColors(
-            containerColor = MaterialTheme.colorScheme.primaryContainer
+            containerColor = MaterialTheme.colorScheme.primaryContainer.copy(alpha = 1f)
         ),
         elevation = CardDefaults.cardElevation(defaultElevation = 4.dp)
     ) {
@@ -457,14 +489,14 @@ fun FactOfTheDayCard(fact: BiteItem, onToggleBookmark: (String) -> Unit, onShare
                                     painter = painterResource(id = category.getIconDrawable()),
                                     contentDescription = null,
                                     modifier = Modifier.size(14.dp),
-                                    tint = MaterialTheme.colorScheme.onSurfaceVariant // Soft Sage
+                                    tint = MaterialTheme.colorScheme.onBackground
                                 )
                                 Spacer(modifier = Modifier.width(6.dp))
                                 Text(
                                     text = category.displayName.uppercase(),
                                     style = MaterialTheme.typography.labelSmall,
                                     fontWeight = FontWeight.Black,
-                                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                                    color = MaterialTheme.colorScheme.onBackground,
                                     textAlign = TextAlign.Center
                                 )
                         }
@@ -483,7 +515,7 @@ fun FactOfTheDayCard(fact: BiteItem, onToggleBookmark: (String) -> Unit, onShare
                         Icon(
                             imageVector = if (fact.isBookmarked) Icons.Default.Favorite else Icons.Default.FavoriteBorder,
                             contentDescription = "Save",
-                            tint = if (fact.isBookmarked) MaterialTheme.colorScheme.error else MaterialTheme.colorScheme.primary,
+                            tint = if (fact.isBookmarked) MaterialTheme.colorScheme.error else MaterialTheme.colorScheme.onBackground,
                             modifier = Modifier.size(20.dp)
                         )
                     }
@@ -497,7 +529,7 @@ fun FactOfTheDayCard(fact: BiteItem, onToggleBookmark: (String) -> Unit, onShare
                         Icon(
                             imageVector = Icons.Default.Share,
                             contentDescription = "Share",
-                            tint = MaterialTheme.colorScheme.primary,
+                            tint = MaterialTheme.colorScheme.onBackground,
                             modifier = Modifier.size(18.dp)
                         )
                     }
@@ -518,16 +550,18 @@ fun FactOfTheDayCard(fact: BiteItem, onToggleBookmark: (String) -> Unit, onShare
                         label = "quoteTextRotation",
                         modifier = Modifier.fillMaxSize()
                     ) { factText ->
-                        Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.CenterStart) {
-                            Text(
-                                text = factText,
-                                color = MaterialTheme.colorScheme.onPrimaryContainer,
-                                style = MaterialTheme.typography.titleLarge,
-                                fontWeight = FontWeight.SemiBold,
-                                overflow = TextOverflow.Ellipsis,
-                                modifier = Modifier.fillMaxWidth()
-                            )
-                        }
+                    Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.CenterStart) {
+                        Text(
+                            text = factText,
+                            color = MaterialTheme.colorScheme.secondary,
+                            style = MaterialTheme.typography.titleLarge.copy(
+                                fontSize = 20.sp,
+                                fontWeight = FontWeight.Normal
+                            ),
+                            overflow = TextOverflow.Ellipsis,
+                            modifier = Modifier.fillMaxWidth()
+                        )
+                    }
                     }
                 }
 
@@ -542,7 +576,7 @@ fun FactOfTheDayCard(fact: BiteItem, onToggleBookmark: (String) -> Unit, onShare
                 Row(verticalAlignment = Alignment.CenterVertically) {
                     Text(
                         text = "Read More",
-                        color = MaterialTheme.colorScheme.onSurfaceVariant, // Soft Sage
+                        color = MaterialTheme.colorScheme.onBackground,
                         fontWeight = FontWeight.Bold,
                         style = MaterialTheme.typography.labelLarge
                     )
@@ -550,7 +584,7 @@ fun FactOfTheDayCard(fact: BiteItem, onToggleBookmark: (String) -> Unit, onShare
                     Icon(
                         Icons.AutoMirrored.Filled.ArrowForward,
                         contentDescription = null,
-                        tint = MaterialTheme.colorScheme.onSurfaceVariant,
+                        tint = MaterialTheme.colorScheme.onBackground,
                         modifier = Modifier.size(16.dp)
                     )
                 }

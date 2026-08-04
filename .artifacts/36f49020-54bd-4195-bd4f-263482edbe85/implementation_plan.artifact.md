@@ -1,25 +1,27 @@
-# Implementation Plan - "Misty Forest" Background Refinement
+# Implementation Plan - Hero Card Alignment Refinement
 
-Refine the Lottie background to use semi-transparency for all land elements (mountains and trees). This ensures 100% text readability while keeping the "Forest Serenity" atmosphere as a subtle, moving "mist."
+Align the "Bite of the Day" card content with the rest of the Home Screen headings to create a unified vertical "line of sight" and a more professional layout.
 
 ## User Review Required
 
-> [!TIP]
-> I will set the **Mountains** and **Trees** to **20% opacity**.
-> This makes them look like ghostly shapes in the background, preventing them from competing with your UI text.
-> The **Sun/Moon** and **Clouds** will remain fully visible to keep the sky alive.
+> [!IMPORTANT]
+> I will make the **Bite of the Day** card span the **full width** of the screen. This allows the text inside to align perfectly with the headings below it, solving the "unequal" look shown in your screenshot.
 
 ## Proposed Changes
 
 ### UI Components
 
-#### [MODIFY] [LottieBackground.kt](file:///F:/BrainBites/app/src/main/java/com/example/brainbites/ui/components/LottieBackground.kt)
-- Target all mountain layers (`m1`, `m2`, `m3`, `m4`, `m5`, `m6`, `m31`, `m34`) with `LottieProperty.OPACITY` and set to `20`.
-- Target all tree layers (`tree1` through `tree6`) with `LottieProperty.OPACITY` and set to `20`.
-- This will fix the blending issue permanently because the background will be 80% solid theme color.
+#### [MODIFY] [HomeScreen.kt](file:///F:/BrainBites/app/src/main/java/com/example/brainbites/ui/home/HomeScreen.kt)
+- **Layout Restructure**:
+    - Remove horizontal padding from the main `LazyColumn`.
+    - Apply `padding(horizontal = 16.dp)` to all items **except** the Hero card.
+- **FactOfTheDayCard Refinement**:
+    - Set internal padding to `20.dp`.
+    - Remove external horizontal padding.
+    - Adjust corner radius to `20.dp` for a sleeker full-width appearance.
 
 ## Verification Plan
 
 ### Manual Verification
-- Verify text contrast in Dark Mode.
-- Ensure the animation still feels "Serene" and premium.
+- Verify the vertical alignment of text inside the card vs. headings below.
+- Ensure no other screen elements were accidentally shifted.

@@ -6,12 +6,13 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import com.example.brainbites.ui.util.premiumClickable
 
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun QuickActionCard(
     title: String,
@@ -23,8 +24,13 @@ fun QuickActionCard(
     modifier: Modifier = Modifier
 ) {
     Card(
-        onClick = onClick,
-        modifier = modifier.height(110.dp),
+        modifier = modifier
+            .height(110.dp)
+            .clip(RoundedCornerShape(20.dp))
+            .premiumClickable(
+                glowColor = MaterialTheme.colorScheme.onPrimaryContainer,
+                onClick = onClick
+            ),
         shape = RoundedCornerShape(20.dp),
         colors = CardDefaults.cardColors(containerColor = containerColor),
         elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)

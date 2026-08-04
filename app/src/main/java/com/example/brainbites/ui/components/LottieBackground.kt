@@ -47,7 +47,7 @@ fun LottieBackground() {
 
     // --- MANUALLY SET VALUES HERE ---
     val landOpacity = 100 // Forest elements opacity (0 to 100)
-    val backgroundScrimOpacity = 0.28f // Transparent sheet opacity (0.0f to 1.0f)
+    val backgroundScrimOpacity = 0.30f // Transparent sheet opacity (0.0f to 1.0f)
     // --------------------------------
 
     val dynamicProperties = rememberLottieDynamicProperties(

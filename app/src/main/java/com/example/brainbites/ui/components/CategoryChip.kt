@@ -1,7 +1,6 @@
 package com.example.brainbites.ui.components
 
 import androidx.compose.foundation.background
-import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Surface
@@ -18,6 +17,7 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import com.example.brainbites.data.BiteCategory
 import com.example.brainbites.ui.util.getIconDrawable
+import com.example.brainbites.ui.util.premiumClickable
 
 @Composable
 fun CategoryChip(
@@ -35,7 +35,10 @@ fun CategoryChip(
         modifier = modifier
             .clip(RoundedCornerShape(20.dp))
             .background(backgroundColor)
-            .clickable { onSelect(category) }
+            .premiumClickable(
+                glowColor = MaterialTheme.colorScheme.primaryContainer,
+                onClick = { onSelect(category) }
+            )
             .padding(horizontal = 14.dp, vertical = 8.dp)
     ) {
         Surface(
