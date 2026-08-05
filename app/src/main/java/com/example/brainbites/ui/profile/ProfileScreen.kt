@@ -30,6 +30,7 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.brainbites.ui.components.AnimatedEntrance
 import com.example.brainbites.ui.components.AchievementCard
 import com.example.brainbites.ui.components.AvatarPicker
+import com.example.brainbites.ui.components.AvatarView
 import com.example.brainbites.ui.theme.AccentYellow
 import com.example.brainbites.ui.theme.DarkGreenPrimary
 import com.example.brainbites.ui.theme.GreenSecondary
@@ -187,46 +188,11 @@ fun ProfileHeader(
         modifier = Modifier.fillMaxWidth(),
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
-        Box(
-            modifier = Modifier
-                .size(100.dp)
-                .clip(CircleShape)
-                .background(MaterialTheme.colorScheme.primaryContainer),
-            contentAlignment = Alignment.Center
-        ) {
-            val initial = userName.firstOrNull()?.toString()?.uppercase() ?: "?"
-            
-            val imageData = if (userImage.startsWith("content://") || userImage.startsWith("file://")) {
-                userImage
-            } else if (userImage.isNotEmpty()) {
-                "https://api.dicebear.com/9.x/personas/png?seed=$userImage"
-            } else {
-                null
-            }
-
-            if (imageData != null) {
-                SubcomposeAsyncImage(
-                    model = ImageRequest.Builder(LocalContext.current)
-                        .data(imageData)
-                        .crossfade(true)
-                        .build(),
-                    contentDescription = null,
-                    modifier = Modifier.fillMaxSize(),
-                    contentScale = ContentScale.Crop,
-                    loading = {
-                        CircularProgressIndicator(
-                            modifier = Modifier.size(32.dp),
-                            color = MaterialTheme.colorScheme.primary
-                        )
-                    },
-                    error = {
-                        InitialAvatar(initial = initial)
-                    }
-                )
-            } else {
-                InitialAvatar(initial = initial)
-            }
-        }
+        AvatarView(
+            userName = userName,
+            userImage = userImage,
+            modifier = Modifier.size(100.dp)
+        )
         
         Spacer(modifier = Modifier.height(16.dp))
         
@@ -308,24 +274,6 @@ fun BioSection(bio: String) {
                 text = bio,
                 style = MaterialTheme.typography.bodyMedium,
                 color = MaterialTheme.colorScheme.onSurfaceVariant
-            )
-        }
-    }
-}
-
-@Composable
-fun InitialAvatar(initial: String) {
-    Surface(
-        modifier = Modifier.fillMaxSize(),
-        color = MaterialTheme.colorScheme.primary,
-        tonalElevation = 4.dp
-    ) {
-        Box(contentAlignment = Alignment.Center) {
-            Text(
-                text = initial,
-                style = MaterialTheme.typography.displayMedium,
-                fontWeight = FontWeight.Black,
-                color = MaterialTheme.colorScheme.onPrimary
             )
         }
     }

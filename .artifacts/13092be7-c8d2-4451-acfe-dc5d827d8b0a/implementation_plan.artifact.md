@@ -1,31 +1,42 @@
-# Unify Header Colors with Navigation Bar
+# Synchronize Profile Avatar in Top Bar
 
-This plan outlines the changes to unify the colors of the top header elements (Logo, Title, Profile, and Notifications) with the primary color used in the bottom navigation bar.
+This plan addresses the issue where the selected profile avatar is not reflected in the top bar icon on the Home screen (or other screens).
 
 ## User Review Required
 
-> [!NOTE]
-> I will update the header elements to use the **Primary Green** color (`MaterialTheme.colorScheme.primary`), which is the same color used for the active icons in the bottom navigation bar (like the "Home" icon when selected).
+> [!IMPORTANT]
+> - I will replace the static "Account" icon in the `MainScaffold` top bar with a dynamic avatar that reflects the user's selected image or initials.
+> - A new shared component `AvatarView` will be created to ensure consistency between the `ProfileScreen` and the `MainScaffold`.
 
 ## Proposed Changes
 
 ### [UI Components]
 
-#### [MODIFY] [BrandHeader.kt](file:///F:/BrainBites/app/src/main/java/com/example/brainbites/ui/components/BrandHeader.kt)
-- Update the `BrainBitesLogo` color to `MaterialTheme.colorScheme.primary`.
-- Update the title `Text` color to `MaterialTheme.colorScheme.primary`.
+#### [NEW] [AvatarView.kt](file:///F:/BrainBites/app/src/main/java/com/example/brainbites/ui/components/AvatarView.kt)
+- Create a reusable `AvatarView` component that handles:
+    - Loading gallery images (`content://`, `file://`).
+    - Loading DiceBear avatars (seeds).
+    - Displaying initials as a fallback.
+- This component will be used in both `ProfileScreen` and `MainScaffold`.
 
 ### [Main Scaffold]
 
 #### [MODIFY] [MainScaffold.kt](file:///F:/BrainBites/app/src/main/java/com/example/brainbites/ui/main/MainScaffold.kt)
-- Update the `IconButton` tints for both the **Profile** icon and the **Notifications** icon to use `MaterialTheme.colorScheme.primary`.
-- Update the `TopAppBarDefaults` color settings to ensure consistency if needed.
+- Collect `userImage` and `userName` from `PreferenceManager`.
+- Replace the static `IconButton` icon with `AvatarView`.
+- Ensure it's sized correctly for the `TopAppBar`.
+
+### [Profile Screen]
+
+#### [MODIFY] [ProfileScreen.kt](file:///F:/BrainBites/app/src/main/java/com/example/brainbites/ui/profile/ProfileScreen.kt)
+- Use the new `AvatarView` component in the `ProfileHeader` to reduce code duplication and ensure identical behavior.
 
 ## Verification Plan
 
 ### Manual Verification
-1. Open the application.
-2. Observe the top bar:
-    - The BrainBites logo and text should now be Green (matching the Home icon).
-    - The Profile and Notifications icons should also be Green.
-3. Switch between bottom navigation tabs and verify that the header colors remain consistent and match the "Active" state of the bottom icons.
+1. Open the app to the Home screen.
+2. Observe the profile icon in the top bar (should show initials or default).
+3. Navigate to the Profile screen and edit the profile.
+4. Select a new avatar or upload a gallery image.
+5. Save changes and navigate back to the Home screen.
+6. Verify that the top bar icon now matches the selected avatar.

@@ -31,6 +31,7 @@ import com.example.brainbites.data.NotificationRepository
 import com.example.brainbites.data.PreferenceManager
 import com.example.brainbites.navigation.Screen
 import com.example.brainbites.navigation.bottomNavItems
+import com.example.brainbites.ui.components.AvatarView
 import com.example.brainbites.ui.components.BrandHeader
 import com.example.brainbites.ui.components.LottieBackground
 import kotlinx.coroutines.launch
@@ -52,6 +53,9 @@ fun MainScaffold(
     val showBackButton = canNavigateBack && !isRootScreen
 
     val currentTitle = "BrainBites"
+    
+    val userName by PreferenceManager.userName.collectAsState()
+    val userImage by PreferenceManager.userImage.collectAsState()
 
     Box(modifier = Modifier.fillMaxSize()) {
         LottieBackground()
@@ -64,11 +68,15 @@ fun MainScaffold(
                         val unreadCount by NotificationRepository.getUnreadCount().collectAsState(initial = 0)
 
                         if (currentRoute != Screen.Profile.route) {
-                            IconButton(onClick = { navController.navigate(Screen.Profile.route) }) {
-                                Icon(
-                                    imageVector = Icons.Default.AccountCircle,
-                                    contentDescription = "Profile",
-                                    tint = MaterialTheme.colorScheme.primary
+                            IconButton(
+                                onClick = { navController.navigate(Screen.Profile.route) },
+                                modifier = Modifier.size(40.dp)
+                            ) {
+                                AvatarView(
+                                    userName = userName,
+                                    userImage = userImage,
+                                    modifier = Modifier.size(32.dp),
+                                    indicatorSize = true
                                 )
                             }
                         }

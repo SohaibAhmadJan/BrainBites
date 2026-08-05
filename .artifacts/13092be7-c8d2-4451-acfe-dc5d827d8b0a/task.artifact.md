@@ -10,5 +10,9 @@
 - `[x]` Unify Header Colors
     - `[x]` Update `BrandHeader.kt` colors
     - `[x]` Update `MainScaffold.kt` icon tints
+- `[x]` Synchronize Profile Avatar in Top Bar
+    - `[x]` Create `AvatarView.kt` component
+    - `[x]` Update `MainScaffold.kt` to use `AvatarView`
+    - `[x]` Update `ProfileScreen.kt` to use `AvatarView`
 - `[x]` Verify Functionality
-    - `[x]` Verify color consistency across screens
+    - `[x]` Test avatar sync between profile and home screen

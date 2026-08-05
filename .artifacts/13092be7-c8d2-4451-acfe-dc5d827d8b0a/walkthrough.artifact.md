@@ -50,6 +50,11 @@ I have successfully integrated a "Choose from Gallery" option into the profile e
 - Reduced the size and weight of the heading in the **Bite of Advice** card (e.g., "Salami Slicing").
 - Changed the font style from `headlineSmall` (24sp) with `ExtraBold` to `titleLarge` (22sp) with `Bold`, making it more balanced and easier to read.
 
+### 9. Synchronized Top Bar Avatar
+- Replaced the static "Account" icon in the top bar with a dynamic **AvatarView**.
+- The top bar icon now correctly displays the user's selected gallery photo, avatar seed, or initials.
+- It updates instantly when profile changes are saved, ensuring a consistent identity across all screens.
+
 ## Verification Results
 
 ### Manual Verification
