@@ -79,7 +79,7 @@ fun AchievementCard(
 
     val cardBorder = when {
         isCompleted -> BorderStroke(1.5.dp, MaterialTheme.colorScheme.tertiary)
-        else -> null
+        else -> BorderStroke(1.dp, MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.3f))
     }
 
     val containerColor = MaterialTheme.colorScheme.surface

@@ -27,7 +27,15 @@ I have successfully integrated a "Choose from Gallery" option into the profile e
 - **Darker Borders:** Significantly darkened the borders of the "Display Name", "User ID", and "Bio" input fields.
 - **Privacy Settings:**
     - Added a visible **bordered container** around each privacy toggle (Public Profile & Analytics).
-    - Improved **Switch visibility**: The "off" state now has a darker border and a much more distinct **dark-colored thumb** (inner circle). This provides better internal contrast and a "solid" feel that matches the visual quality of the "on" state.
+    - **Unified Color Theme:** Switched the "off" state of the switches to use the primary green color family (instead of grey). Now, both "on" and "off" states feel like part of the same "one" theme, with the "off" state being a lighter, semi-transparent green and the "on" state being solid green.
+
+### 6. Profile Section Visual Boundaries
+- Added clear, visible borders to all sections in the profile screen:
+    - **About Me (Bio):** Now has a distinct border.
+    - **Stat Cards:** "Facts Read", "Favorites", and "Unlocked" cards now have clearly defined boundaries.
+    - **Achievements & Collections:** Added/darkened borders to locked achievements and collection progress items.
+    - **Account Settings:** Added borders to the "Edit Profile" and "Privacy Settings" action items.
+- All boundaries now use a consistent **GrayGreen** stroke (`onSurfaceVariant`) for a unified, high-quality look.
 
 ## Verification Results
 
