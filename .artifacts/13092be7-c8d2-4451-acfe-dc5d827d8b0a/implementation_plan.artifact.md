@@ -1,43 +1,40 @@
-# Fix Profile Avatar Display Issues
+# Personalize Home Screen based on Mood
 
-The user reported that gallery images do not appear correctly in the profile or top bar. This is likely due to URI permission issues or how the image data is being passed to the loading library.
+This plan outlines the changes to make the "How are you feeling today?" section functional by providing a personalized "Mood Insight" when a mood is selected.
 
 ## User Review Required
 
 > [!IMPORTANT]
-> - I will improve the `AvatarView` component to handle both string paths and proper `Uri` objects more robustly.
-> - I will add **persistable URI permissions** as a fallback, although the primary solution remains copying the image to internal storage.
-> - I will refine the `ProfileViewModel` logic to ensure the file copy happens successfully before updating the user profile state.
+> When a user selects a mood, the app will:
+> 1.  Display a **personalized greeting** based on that mood.
+> 2.  Immediately **refresh the "Bite of the Day" hero card** with a hand-picked psychology fact that aligns with that mood (e.g., Motivation facts for the "Motivated" mood).
+> 3.  Keep the selected fact stable until the user selects a different mood or the app is restarted.
 
 ## Proposed Changes
 
-### [Avatar View]
+### [Home Logic]
 
-#### [MODIFY] [AvatarView.kt](file:///F:/BrainBites/app/src/main/java/com/example/brainbites/ui/components/AvatarView.kt)
-- Update the `imageData` logic to prioritize local file paths.
-- Ensure `Coil` receives a clean `Uri` object for local files to improve reliability.
-- Add better handling for `content://` URIs that might be passed before the file is fully copied.
+#### [MODIFY] [HomeViewModel.kt](file:///F:/BrainBites/app/src/main/java/com/example/brainbites/ui/home/HomeViewModel.kt)
+- Add a new `moodMessage: StateFlow<String?>` to store the personalized acknowledgement.
+- Update `selectMood(mood: String)` to:
+    - Determine a target `BiteCategory` based on the mood.
+    - Select a random fact from that category and update `_rotatingFactId`.
+    - Generate a friendly message (e.g., "Stay inspired! Here's something for your motivated mind.") and update `_moodMessage`.
 
-### [Profile Screen]
+### [Home UI]
 
-#### [MODIFY] [ProfileScreen.kt](file:///F:/BrainBites/app/src/main/java/com/example/brainbites/ui/profile/ProfileScreen.kt)
-- Update the photo picker result handling.
-- Ensure the selected image URI is passed correctly to the `EditProfileDialog`.
-
-### [Profile Logic]
-
-#### [MODIFY] [ProfileViewModel.kt](file:///F:/BrainBites/app/src/main/java/com/example/brainbites/ui/profile/ProfileViewModel.kt)
-- Refine `saveImageToInternalStorage` to handle potential exceptions more gracefully.
-- Use `context.filesDir.absolutePath` to build a more standard file path string.
-- Ensure the coroutine correctly handles the state update sequence.
+#### [MODIFY] [HomeScreen.kt](file:///F:/BrainBites/app/src/main/java/com/example/brainbites/ui/home/HomeScreen.kt)
+- Collect and display the `moodMessage` directly below the mood selector.
+- Use `AnimatedVisibility` for a smooth entrance of the mood message.
+- Style the message using the primary green color to keep it on-brand.
 
 ## Verification Plan
 
 ### Manual Verification
-1. Open the Profile edit dialog.
-2. Select a photo from the gallery.
-3. Verify the photo appears in the **picker preview** immediately.
-4. Click "Save Changes".
-5. Verify the photo appears in the **Profile header**.
-6. Navigate back to Home and verify the photo appears in the **top bar icon**.
-7. Restart the app and verify the custom photo is still there.
+1.  Open the Home screen.
+2.  Select "💡 Motivated".
+3.  Verify that:
+    -   A message like "Fuel your drive!" appears below the selector.
+    -   The main card at the top changes to a fact from the "Habits & Motivation" category.
+4.  Select a different mood and verify the card and message update again.
+5.  Verify that the auto-rotation of facts is paused or reset when a mood is manually selected.

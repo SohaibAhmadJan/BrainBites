@@ -96,7 +96,7 @@ fun NotificationItem(
     onClick: () -> Unit
 ) {
     val backgroundColor by animateColorAsState(
-        targetValue = if (notification.isRead) MaterialTheme.colorScheme.surface 
+        targetValue = if (notification.isRead) Color.Transparent 
                       else MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.1f),
         label = "bgChange"
     )

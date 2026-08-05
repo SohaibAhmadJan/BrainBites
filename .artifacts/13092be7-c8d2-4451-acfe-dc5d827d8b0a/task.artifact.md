@@ -1,22 +1,8 @@
-- `[x]` Implement Gallery Image Selection for Profile
-    - `[x]` Update `AvatarPicker.kt` with Gallery button
-    - `[x]` Update `ProfileViewModel.kt` with image persistence logic
-    - `[x]` Update `ProfileScreen.kt` with `PickVisualMedia` launcher
-    - `[x]` Update `ProfileHeader` to handle local image URIs
-- `[x]` Refine Profile and Privacy UI
-    - `[x]` Darken input field borders
-    - `[x]` Add borders to Profile section items
-    - `[x]` Unified switch colors for Privacy settings
-- `[x]` Unify Header Colors
-    - `[x]` Update `BrandHeader.kt` colors
-    - `[x]` Update `MainScaffold.kt` icon tints
-- `[x]` Synchronize Profile Avatar in Top Bar
-    - `[x]` Create `AvatarView.kt` component
-    - `[x]` Update `MainScaffold.kt` to use `AvatarView`
-    - `[x]` Update `ProfileScreen.kt` to use `AvatarView`
-- `[x]` Fix Gallery Avatar Display Issues
-    - `[x]` Refine `AvatarView.kt` loading logic
-    - `[x]` Improve `ProfileViewModel.kt` image saving
-    - `[x]` Update `ProfileScreen.kt` picker handling
+- `[x]` Implement Functional Mood Section
+    - `[x]` Update `HomeViewModel.kt` with mood mapping and content filtering
+    - `[x]` Update `HomeScreen.kt` to display personalized mood messages
+    - `[x]` Add animations for mood message transitions
 - `[x]` Verify Functionality
-    - `[x]` Test gallery selection, saving, and persistence
+    - `[x]` Test mood selection updates the hero card
+    - `[x]` Verify personalized message visibility
+    - `[x]` Ensure auto-rotation behaves correctly after manual selection

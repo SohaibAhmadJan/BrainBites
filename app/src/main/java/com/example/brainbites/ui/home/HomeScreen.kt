@@ -69,6 +69,7 @@ fun HomeScreen(
     val recentlyViewed by viewModel.recentlyViewed.collectAsState()
     val achievements by viewModel.achievements.collectAsState()
     val selectedMood by viewModel.selectedMood.collectAsState()
+    val moodMessage by viewModel.moodMessage.collectAsState()
     val dailyTip by viewModel.dailyTip.collectAsState()
     val coroutineScope = rememberCoroutineScope()
     val captureController = rememberComposableCaptureController()
@@ -100,6 +101,7 @@ fun HomeScreen(
             recentlyViewed = recentlyViewed,
             achievements = achievements,
             selectedMood = selectedMood,
+            moodMessage = moodMessage,
             dailyTip = dailyTip,
             onMoodSelected = { viewModel.selectMood(it) },
             onNavigateToCategory = onNavigateToCategory,
@@ -126,6 +128,7 @@ fun HomeScreenContent(
     recentlyViewed: List<BiteItem>,
     achievements: List<Achievement>,
     selectedMood: String?,
+    moodMessage: String?,
     dailyTip: PsychologyTip?,
     onMoodSelected: (String) -> Unit,
     onNavigateToCategory: (String) -> Unit,
@@ -224,7 +227,40 @@ fun HomeScreenContent(
                     // 4. Daily Mood Section (STRICTLY ADDITIVE)
                     item {
                         AnimatedEntrance(index = 3) {
-                            DailyMoodSection(selectedMood = selectedMood, onMoodSelected = onMoodSelected)
+                            Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
+                                DailyMoodSection(selectedMood = selectedMood, onMoodSelected = onMoodSelected)
+                                
+                                AnimatedContent(
+                                    targetState = moodMessage,
+                                    transitionSpec = {
+                                        if (targetState != null) {
+                                            (slideInVertically { height -> -height / 2 } + fadeIn()).togetherWith(
+                                                slideOutVertically { height -> height / 2 } + fadeOut()
+                                            )
+                                        } else {
+                                            fadeIn() togetherWith fadeOut()
+                                        }
+                                    },
+                                    label = "moodMessageAnimation"
+                                ) { msg ->
+                                    if (msg != null) {
+                                        Surface(
+                                            color = MaterialTheme.colorScheme.primary.copy(alpha = 0.1f),
+                                            shape = RoundedCornerShape(12.dp),
+                                            border = BorderStroke(1.dp, MaterialTheme.colorScheme.primary.copy(alpha = 0.2f)),
+                                            modifier = Modifier.fillMaxWidth()
+                                        ) {
+                                            Text(
+                                                text = msg,
+                                                style = MaterialTheme.typography.bodySmall,
+                                                color = MaterialTheme.colorScheme.primary,
+                                                fontWeight = FontWeight.Bold,
+                                                modifier = Modifier.padding(horizontal = 16.dp, vertical = 10.dp)
+                                            )
+                                        }
+                                    }
+                                }
+                            }
                         }
                     }
 
@@ -641,6 +677,7 @@ fun HomeScreenPreview() {
             recentlyViewed = listOf(sampleFact),
             achievements = emptyList(),
             selectedMood = null,
+            moodMessage = null,
             dailyTip = PsychologyTip("Sample Tip", "This is a preview message."),
             onMoodSelected = {},
             onNavigateToCategory = {},

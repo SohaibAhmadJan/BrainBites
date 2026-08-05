@@ -40,6 +40,9 @@ class HomeViewModel(application: Application) : AndroidViewModel(application) {
     private val _selectedMood = MutableStateFlow<String?>(null)
     val selectedMood = _selectedMood.asStateFlow()
 
+    private val _moodMessage = MutableStateFlow<String?>(null)
+    val moodMessage = _moodMessage.asStateFlow()
+
     private val _dailyTip = MutableStateFlow<PsychologyTip?>(null)
     val dailyTip = _dailyTip.asStateFlow()
 
@@ -123,7 +126,30 @@ class HomeViewModel(application: Application) : AndroidViewModel(application) {
     }
 
     fun selectMood(mood: String) {
+        if (_selectedMood.value == mood) {
+            _selectedMood.value = null
+            _moodMessage.value = null
+            return
+        }
+
         _selectedMood.value = mood
+        
+        val (category, message) = when (mood) {
+            "😊 Happy" -> com.example.brainbites.data.BiteCategory.LOVE_ATTRACTION to "Keep spreading the joy! Here's something about connection."
+            "😌 Calm" -> com.example.brainbites.data.BiteCategory.BODY_LANGUAGE to "Peace is power. Discover the language of serenity."
+            "😔 Sad" -> com.example.brainbites.data.BiteCategory.MENTAL_HEALTH to "It's okay to feel. Here's a bite of mental wellness for you."
+            "😤 Stressed" -> com.example.brainbites.data.BiteCategory.MENTAL_HEALTH to "Take a deep breath. Let's look at how the mind handles pressure."
+            "💡 Motivated" -> com.example.brainbites.data.BiteCategory.HABITS_MOTIVATION to "Fuel your fire! Here's a tip on habits and drive."
+            else -> com.example.brainbites.data.BiteCategory.HUMAN_BEHAVIOR to "Curiosity is the best mood! Explore this insight."
+        }
+
+        _moodMessage.value = message
+
+        // Immediately update rotating fact to match mood
+        val matchingFacts = _allFacts.value.filter { it.category == category }
+        if (matchingFacts.isNotEmpty()) {
+            _rotatingFactId.value = matchingFacts.random().id
+        }
     }
 
     fun toggleBookmark(id: String) {
