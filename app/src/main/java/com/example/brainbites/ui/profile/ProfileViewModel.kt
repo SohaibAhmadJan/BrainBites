@@ -17,6 +17,10 @@ import com.example.brainbites.data.HistoryItem
 import com.example.brainbites.data.PreferenceManager
 import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.launch
+import android.net.Uri
+import java.io.File
+import java.io.FileOutputStream
+import java.util.UUID
 
 data class CollectionProgress(val collection: CollectionSet, val progress: Float)
 
@@ -138,10 +142,34 @@ class ProfileViewModel(application: Application) : AndroidViewModel(application)
     }
 
     fun updateProfile(name: String, bio: String, id: String, image: String) {
-        PreferenceManager.setUserName(getApplication(), name)
-        PreferenceManager.setUserBio(getApplication(), bio)
-        PreferenceManager.setUserId(getApplication(), id)
-        PreferenceManager.setUserImage(getApplication(), image)
+        viewModelScope.launch {
+            val finalImage = if (image.startsWith("content://")) {
+                saveImageToInternalStorage(Uri.parse(image)) ?: image
+            } else {
+                image
+            }
+            PreferenceManager.setUserName(getApplication(), name)
+            PreferenceManager.setUserBio(getApplication(), bio)
+            PreferenceManager.setUserId(getApplication(), id)
+            PreferenceManager.setUserImage(getApplication(), finalImage)
+        }
+    }
+
+    private fun saveImageToInternalStorage(uri: Uri): String? {
+        return try {
+            val context = getApplication<Application>()
+            val inputStream = context.contentResolver.openInputStream(uri) ?: return null
+            val fileName = "profile_${UUID.randomUUID()}.jpg"
+            val file = File(context.filesDir, fileName)
+            val outputStream = FileOutputStream(file)
+            inputStream.copyTo(outputStream)
+            inputStream.close()
+            outputStream.close()
+            Uri.fromFile(file).toString()
+        } catch (e: Exception) {
+            e.printStackTrace()
+            null
+        }
     }
 
     fun updatePublicProfile(enabled: Boolean) {

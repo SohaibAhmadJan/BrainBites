@@ -38,6 +38,9 @@ import coil.compose.SubcomposeAsyncImage
 import coil.request.ImageRequest
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.layout.ContentScale
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.PickVisualMediaRequest
+import androidx.activity.result.contract.ActivityResultContracts
 
 @Composable
 fun ProfileScreen(
@@ -193,10 +196,18 @@ fun ProfileHeader(
         ) {
             val initial = userName.firstOrNull()?.toString()?.uppercase() ?: "?"
             
-            if (userImage.isNotEmpty()) {
+            val imageData = if (userImage.startsWith("content://") || userImage.startsWith("file://")) {
+                userImage
+            } else if (userImage.isNotEmpty()) {
+                "https://api.dicebear.com/9.x/personas/png?seed=$userImage"
+            } else {
+                null
+            }
+
+            if (imageData != null) {
                 SubcomposeAsyncImage(
                     model = ImageRequest.Builder(LocalContext.current)
-                        .data("https://api.dicebear.com/9.x/personas/png?seed=$userImage")
+                        .data(imageData)
                         .crossfade(true)
                         .build(),
                     contentDescription = null,
@@ -209,7 +220,6 @@ fun ProfileHeader(
                         )
                     },
                     error = {
-                        // Fallback to professional initial if image fails
                         InitialAvatar(initial = initial)
                     }
                 )
@@ -571,6 +581,20 @@ fun EditProfileDialog(
     var userId by remember { mutableStateOf(currentId) }
     var userImage by remember { mutableStateOf(currentImage) }
 
+    val photoPickerLauncher = rememberLauncherForActivityResult(
+        contract = ActivityResultContracts.PickVisualMedia(),
+        onResult = { uri ->
+            uri?.let { userImage = it.toString() }
+        }
+    )
+
+    val textFieldColors = OutlinedTextFieldDefaults.colors(
+        unfocusedBorderColor = MaterialTheme.colorScheme.onSurfaceVariant,
+        focusedBorderColor = MaterialTheme.colorScheme.primary,
+        unfocusedLabelColor = MaterialTheme.colorScheme.onSurfaceVariant,
+        focusedLabelColor = MaterialTheme.colorScheme.primary
+    )
+
     AlertDialog(
         onDismissRequest = onDismiss,
         title = { Text("Edit Profile", fontWeight = FontWeight.Bold) },
@@ -581,7 +605,12 @@ fun EditProfileDialog(
             ) {
                 AvatarPicker(
                     selectedAvatar = userImage,
-                    onAvatarSelected = { userImage = it }
+                    onAvatarSelected = { userImage = it },
+                    onGalleryClick = {
+                        photoPickerLauncher.launch(
+                            PickVisualMediaRequest(ActivityResultContracts.PickVisualMedia.ImageOnly)
+                        )
+                    }
                 )
 
                 Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
@@ -592,7 +621,8 @@ fun EditProfileDialog(
                         placeholder = { Text("Enter your name") },
                         shape = RoundedCornerShape(12.dp),
                         modifier = Modifier.fillMaxWidth(),
-                        singleLine = true
+                        singleLine = true,
+                        colors = textFieldColors
                     )
                 }
 
@@ -605,7 +635,8 @@ fun EditProfileDialog(
                         leadingIcon = { Text("@", modifier = Modifier.padding(start = 12.dp)) },
                         shape = RoundedCornerShape(12.dp),
                         modifier = Modifier.fillMaxWidth(),
-                        singleLine = true
+                        singleLine = true,
+                        colors = textFieldColors
                     )
                 }
 
@@ -617,7 +648,8 @@ fun EditProfileDialog(
                         placeholder = { Text("Tell us about yourself...") },
                         shape = RoundedCornerShape(12.dp),
                         modifier = Modifier.fillMaxWidth(),
-                        minLines = 3
+                        minLines = 3,
+                        colors = textFieldColors
                     )
                 }
             }
@@ -682,16 +714,39 @@ fun PrivacyToggleItem(
     checked: Boolean,
     onCheckedChange: (Boolean) -> Unit
 ) {
-    Row(
-        modifier = Modifier.fillMaxWidth(),
-        verticalAlignment = Alignment.CenterVertically,
-        horizontalArrangement = Arrangement.SpaceBetween
+    Surface(
+        shape = RoundedCornerShape(12.dp),
+        border = BorderStroke(1.dp, MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.5f)),
+        color = Color.Transparent,
+        modifier = Modifier.fillMaxWidth()
     ) {
-        Column(modifier = Modifier.weight(1f)) {
-            Text(title, fontWeight = FontWeight.Bold, style = MaterialTheme.typography.bodyLarge)
-            Text(description, style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(16.dp),
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.SpaceBetween
+        ) {
+            Column(modifier = Modifier.weight(1f)) {
+                Text(title, fontWeight = FontWeight.Bold, style = MaterialTheme.typography.bodyLarge)
+                Text(
+                    text = description,
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                )
+            }
+            Switch(
+                checked = checked,
+                onCheckedChange = onCheckedChange,
+                colors = SwitchDefaults.colors(
+                    checkedTrackColor = MaterialTheme.colorScheme.primary,
+                    checkedThumbColor = MaterialTheme.colorScheme.onPrimary,
+                    uncheckedTrackColor = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f),
+                    uncheckedThumbColor = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.7f),
+                    uncheckedBorderColor = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.6f)
+                )
+            )
         }
-        Switch(checked = checked, onCheckedChange = onCheckedChange)
     }
 }
 

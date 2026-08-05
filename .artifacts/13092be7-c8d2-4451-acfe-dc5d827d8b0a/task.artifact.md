@@ -1,13 +1,9 @@
-- `[x]` Refine Quiz Screen UI
-    - `[x]` Remove FloatingActionButton from `QuizQuestionView`
-    - `[x]` Add "Next Question" button below the options
-    - `[x]` Improve answer feedback visibility
-- `[x]` Implement Quiz Timer
-    - `[x]` Add timer state to `QuizViewModel.kt`
-    - `[x]` Implement countdown logic in `QuizViewModel.kt`
-    - `[x]` Add `QuizTimer` composable to `QuizScreen.kt`
-    - `[x]` Integrate `QuizTimer` into `QuizQuestionView`
-- `[x]` Verify Timer functionality
-    - `[x]` Reset on next question
-    - `[x]` Stop on answer selection
-    - `[x]` Handle timeout (time reaches 0)
+- `[x]` Implement Gallery Image Selection for Profile
+    - `[x]` Update `AvatarPicker.kt` with Gallery button
+    - `[x]` Update `ProfileViewModel.kt` with image persistence logic
+    - `[x]` Update `ProfileScreen.kt` with `PickVisualMedia` launcher
+    - `[x]` Update `ProfileHeader` to handle local image URIs
+- `[x]` Verify Functionality
+    - `[x]` Test gallery selection and preview
+    - `[x]` Test persistence across app restarts
+    - `[x]` Verify DiceBear avatars still work
