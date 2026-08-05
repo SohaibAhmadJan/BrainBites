@@ -17,6 +17,8 @@ import com.example.brainbites.data.HistoryItem
 import com.example.brainbites.data.PreferenceManager
 import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.withContext
 import android.net.Uri
 import java.io.File
 import java.io.FileOutputStream
@@ -144,10 +146,13 @@ class ProfileViewModel(application: Application) : AndroidViewModel(application)
     fun updateProfile(name: String, bio: String, id: String, image: String) {
         viewModelScope.launch {
             val finalImage = if (image.startsWith("content://")) {
-                saveImageToInternalStorage(Uri.parse(image)) ?: image
+                withContext(Dispatchers.IO) {
+                    saveImageToInternalStorage(Uri.parse(image))
+                } ?: image
             } else {
                 image
             }
+            
             PreferenceManager.setUserName(getApplication(), name)
             PreferenceManager.setUserBio(getApplication(), bio)
             PreferenceManager.setUserId(getApplication(), id)
@@ -158,13 +163,22 @@ class ProfileViewModel(application: Application) : AndroidViewModel(application)
     private fun saveImageToInternalStorage(uri: Uri): String? {
         return try {
             val context = getApplication<Application>()
+            
+            // Open stream from the gallery URI
             val inputStream = context.contentResolver.openInputStream(uri) ?: return null
-            val fileName = "profile_${UUID.randomUUID()}.jpg"
+            
+            // Create a local file in internal storage
+            val fileName = "profile_custom_${System.currentTimeMillis()}.jpg"
             val file = File(context.filesDir, fileName)
-            val outputStream = FileOutputStream(file)
-            inputStream.copyTo(outputStream)
-            inputStream.close()
-            outputStream.close()
+            
+            // Copy data
+            inputStream.use { input ->
+                FileOutputStream(file).use { output ->
+                    input.copyTo(output)
+                }
+            }
+            
+            // Return the absolute path as a file URI string
             Uri.fromFile(file).toString()
         } catch (e: Exception) {
             e.printStackTrace()

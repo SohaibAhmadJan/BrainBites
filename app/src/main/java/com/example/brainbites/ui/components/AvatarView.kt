@@ -15,6 +15,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import coil.compose.SubcomposeAsyncImage
 import coil.request.ImageRequest
+import android.net.Uri
 
 @Composable
 fun AvatarView(
@@ -32,12 +33,18 @@ fun AvatarView(
     ) {
         val initial = userName.firstOrNull()?.toString()?.uppercase() ?: "?"
         
-        val imageData = if (userImage.startsWith("content://") || userImage.startsWith("file://")) {
-            userImage
-        } else if (userImage.isNotEmpty()) {
-            "https://api.dicebear.com/9.x/personas/png?seed=$userImage"
-        } else {
-            null
+        val imageData: Any? = when {
+            userImage.startsWith("content://") || userImage.startsWith("file://") -> {
+                try {
+                    Uri.parse(userImage)
+                } catch (e: Exception) {
+                    userImage
+                }
+            }
+            userImage.isNotEmpty() -> {
+                "https://api.dicebear.com/9.x/personas/png?seed=$userImage"
+            }
+            else -> null
         }
 
         if (imageData != null) {

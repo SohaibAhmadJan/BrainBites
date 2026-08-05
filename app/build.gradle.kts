@@ -13,8 +13,8 @@ android {
         applicationId = "com.example.brainbites"
         minSdk = 24
         targetSdk = 35
-        versionCode = 28
-        versionName = "3.4.8.4"
+        versionCode = 29
+        versionName = "3.4.8.5"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
     }

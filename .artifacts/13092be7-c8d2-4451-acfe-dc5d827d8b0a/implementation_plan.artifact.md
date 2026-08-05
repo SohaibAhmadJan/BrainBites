@@ -1,42 +1,43 @@
-# Synchronize Profile Avatar in Top Bar
+# Fix Profile Avatar Display Issues
 
-This plan addresses the issue where the selected profile avatar is not reflected in the top bar icon on the Home screen (or other screens).
+The user reported that gallery images do not appear correctly in the profile or top bar. This is likely due to URI permission issues or how the image data is being passed to the loading library.
 
 ## User Review Required
 
 > [!IMPORTANT]
-> - I will replace the static "Account" icon in the `MainScaffold` top bar with a dynamic avatar that reflects the user's selected image or initials.
-> - A new shared component `AvatarView` will be created to ensure consistency between the `ProfileScreen` and the `MainScaffold`.
+> - I will improve the `AvatarView` component to handle both string paths and proper `Uri` objects more robustly.
+> - I will add **persistable URI permissions** as a fallback, although the primary solution remains copying the image to internal storage.
+> - I will refine the `ProfileViewModel` logic to ensure the file copy happens successfully before updating the user profile state.
 
 ## Proposed Changes
 
-### [UI Components]
+### [Avatar View]
 
-#### [NEW] [AvatarView.kt](file:///F:/BrainBites/app/src/main/java/com/example/brainbites/ui/components/AvatarView.kt)
-- Create a reusable `AvatarView` component that handles:
-    - Loading gallery images (`content://`, `file://`).
-    - Loading DiceBear avatars (seeds).
-    - Displaying initials as a fallback.
-- This component will be used in both `ProfileScreen` and `MainScaffold`.
-
-### [Main Scaffold]
-
-#### [MODIFY] [MainScaffold.kt](file:///F:/BrainBites/app/src/main/java/com/example/brainbites/ui/main/MainScaffold.kt)
-- Collect `userImage` and `userName` from `PreferenceManager`.
-- Replace the static `IconButton` icon with `AvatarView`.
-- Ensure it's sized correctly for the `TopAppBar`.
+#### [MODIFY] [AvatarView.kt](file:///F:/BrainBites/app/src/main/java/com/example/brainbites/ui/components/AvatarView.kt)
+- Update the `imageData` logic to prioritize local file paths.
+- Ensure `Coil` receives a clean `Uri` object for local files to improve reliability.
+- Add better handling for `content://` URIs that might be passed before the file is fully copied.
 
 ### [Profile Screen]
 
 #### [MODIFY] [ProfileScreen.kt](file:///F:/BrainBites/app/src/main/java/com/example/brainbites/ui/profile/ProfileScreen.kt)
-- Use the new `AvatarView` component in the `ProfileHeader` to reduce code duplication and ensure identical behavior.
+- Update the photo picker result handling.
+- Ensure the selected image URI is passed correctly to the `EditProfileDialog`.
+
+### [Profile Logic]
+
+#### [MODIFY] [ProfileViewModel.kt](file:///F:/BrainBites/app/src/main/java/com/example/brainbites/ui/profile/ProfileViewModel.kt)
+- Refine `saveImageToInternalStorage` to handle potential exceptions more gracefully.
+- Use `context.filesDir.absolutePath` to build a more standard file path string.
+- Ensure the coroutine correctly handles the state update sequence.
 
 ## Verification Plan
 
 ### Manual Verification
-1. Open the app to the Home screen.
-2. Observe the profile icon in the top bar (should show initials or default).
-3. Navigate to the Profile screen and edit the profile.
-4. Select a new avatar or upload a gallery image.
-5. Save changes and navigate back to the Home screen.
-6. Verify that the top bar icon now matches the selected avatar.
+1. Open the Profile edit dialog.
+2. Select a photo from the gallery.
+3. Verify the photo appears in the **picker preview** immediately.
+4. Click "Save Changes".
+5. Verify the photo appears in the **Profile header**.
+6. Navigate back to Home and verify the photo appears in the **top bar icon**.
+7. Restart the app and verify the custom photo is still there.

@@ -14,5 +14,9 @@
     - `[x]` Create `AvatarView.kt` component
     - `[x]` Update `MainScaffold.kt` to use `AvatarView`
     - `[x]` Update `ProfileScreen.kt` to use `AvatarView`
+- `[x]` Fix Gallery Avatar Display Issues
+    - `[x]` Refine `AvatarView.kt` loading logic
+    - `[x]` Improve `ProfileViewModel.kt` image saving
+    - `[x]` Update `ProfileScreen.kt` picker handling
 - `[x]` Verify Functionality
-    - `[x]` Test avatar sync between profile and home screen
+    - `[x]` Test gallery selection, saving, and persistence

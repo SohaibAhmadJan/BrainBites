@@ -21,6 +21,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import coil.compose.SubcomposeAsyncImage
 import coil.request.ImageRequest
+import android.net.Uri
 
 /**
  * A curated set of seeds for DiceBear Personas to provide diverse, professional illustrations.
@@ -86,7 +87,7 @@ fun AvatarPicker(
                                 if (selectedAvatar.startsWith("content://") || selectedAvatar.startsWith("file://")) {
                                     SubcomposeAsyncImage(
                                         model = ImageRequest.Builder(context)
-                                            .data(selectedAvatar)
+                                            .data(Uri.parse(selectedAvatar))
                                             .crossfade(true)
                                             .build(),
                                         contentDescription = null,
