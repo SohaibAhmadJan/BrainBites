@@ -1,12 +1,13 @@
-# Task: Update Version & Deploy to GitHub
-
-- `[/]` Update version information
-    - `[ ]` Update `versionCode` and `versionName` in `app/build.gradle.kts`
-    - `[ ]` Update version string in `SplashScreen.kt`
-- `[ ]` Git Operations
-    - `[ ]` Stage all changes
-    - `[ ]` Commit changes with descriptive message
-    - `[ ]` Push to GitHub repository
-- `[ ]` Verification
-    - `[ ]` Verify successful push in terminal output
-    - `[ ]` Verify new version on Splash Screen
+- `[x]` Refine Quiz Screen UI
+    - `[x]` Remove FloatingActionButton from `QuizQuestionView`
+    - `[x]` Add "Next Question" button below the options
+    - `[x]` Improve answer feedback visibility
+- `[x]` Implement Quiz Timer
+    - `[x]` Add timer state to `QuizViewModel.kt`
+    - `[x]` Implement countdown logic in `QuizViewModel.kt`
+    - `[x]` Add `QuizTimer` composable to `QuizScreen.kt`
+    - `[x]` Integrate `QuizTimer` into `QuizQuestionView`
+- `[x]` Verify Timer functionality
+    - `[x]` Reset on next question
+    - `[x]` Stop on answer selection
+    - `[x]` Handle timeout (time reaches 0)

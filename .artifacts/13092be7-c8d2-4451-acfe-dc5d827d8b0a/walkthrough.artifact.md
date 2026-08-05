@@ -1,27 +1,42 @@
-# Walkthrough - Image Success & Production Stabilization
+# Quiz Screen Refinement Walkthrough
 
-Great news! We have successfully achieved high-quality, distinct visuals for every fact in **BrainBites**. I have now cleaned up the "debugging" code to ensure the app is fast, efficient, and ready for production.
+I have improved the Quiz screen to make it more intuitive and functional. The primary changes focus on the "Next" button visibility and the flow after answering a question.
 
-## Final Solution Overview
+## Changes Made
 
-### 1. Rock-Solid Provider: Picsum Photos
-I switched the image source to **Picsum Photos**. Unlike previous attempts, this provider is extremely stable and fast.
-- **URL**: `https://picsum.photos/seed/{id}/1200/800`
-- **Result**: 100% success rate with no fallback icons.
+### 1. New "Next Question" Button
+- Removed the Floating Action Button (FAB) that was hidden in the corner.
+- Added a full-width **"Next Question"** button directly below the answer options.
+- The button uses `AnimatedVisibility` to appear only after the user has selected an answer or the timer runs out, providing clear guidance on what to do next.
 
-### 2. Guaranteed Variety
-By using the **Seed** parameter tied to each Fact ID, I've ensured that every single one of the 150 facts pulls a completely different photograph. You will no longer see repetitive stock photos.
+### 2. Per-Question Quiz Timer
+- Added a **15-second countdown timer** for each question.
+- The timer is placed at the top of the question area, styled with a pill-shaped background and a clock icon.
+- **Dynamic Styling:** The timer turns red when less than 5 seconds remain, creating a sense of urgency.
+- **Auto-Timeout:** If the timer reaches zero:
+    - Options are disabled.
+    - A "Time's Up!" message appears along with the correct answer.
+    - The "Next Question" button becomes visible.
 
-### 3. Production Stabilization (Cleanup)
-Now that the images are loading correctly, I have removed the "force-reload" logic that was slowing down the app:
-- **Restored Caching**: Images are now saved in the app's memory and on the disk. This means the app uses less data and images appear instantly after the first load.
-- **Optimized Startup**: Removed the aggressive state refresh in [BiteRepository.kt](file:///F:/BrainBites/app/src/main/java/com/example/brainbites/data/BiteRepository.kt). The app will now start up much faster.
-- **Cleaned UI**: Removed debug logging and listeners from the [FactDetailScreen.kt](file:///F:/BrainBites/app/src/main/java/com/example/brainbites/ui/facts/FactDetailScreen.kt).
+### 3. Dynamic Button Text
+- The button text changes to **"Finish Quiz"** when the user reaches the final question.
+
+### 4. Improved Answer Feedback
+- Correct answers are highlighted in green, and incorrect selections in red.
+- If time runs out, the correct answer is revealed automatically.
+
+### 5. Layout Fix for Navigation Bar
+- Increased the bottom spacing in both `QuizQuestionView` and `QuizResultView` to **140.dp**.
+- This ensures that all interactive elements, including the "Next Question" and "Try Another Quiz" buttons, can be scrolled completely above the floating navigation bar.
 
 ## Verification Results
-- **Variety**: Verified that facts now have unique, striking visuals.
-- **Performance**: App startup is snappier, and Detail screen transitions are smooth.
-- **Stability**: Confirmed images load correctly from the cache without network requests after the first time.
 
-> [!TIP]
-> Your app now has a premium, professional feel with high-quality photography that makes every psychological fact more engaging.
+### Manual Verification
+- [x] Timer start: Starts at 15s when a question is shown.
+- [x] Timer stop: Stops immediately when an answer is selected.
+- [x] Timeout: When reaching 0s, options disable and the correct answer is shown.
+- [x] Reset: Advancing to the next question resets the timer to 15s.
+- [x] Final question: The button says "Finish Quiz" and leads to the results screen.
+
+render_diffs(file:///F:/BrainBites/app/src/main/java/com/example/brainbites/ui/quiz/QuizScreen.kt)
+render_diffs(file:///F:/BrainBites/app/src/main/java/com/example/brainbites/ui/quiz/QuizViewModel.kt)

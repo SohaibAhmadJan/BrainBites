@@ -2,14 +2,17 @@ package com.example.brainbites.ui.quiz
 
 import androidx.compose.animation.*
 import androidx.compose.foundation.BorderStroke
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowForward
 import androidx.compose.material.icons.filled.CheckCircle
 import androidx.compose.material.icons.filled.Close
+import androidx.compose.material.icons.filled.Timer
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -24,6 +27,7 @@ import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.brainbites.ui.theme.DarkGreenPrimary
 import com.example.brainbites.ui.theme.BrainBitesTheme
+import com.example.brainbites.ui.theme.AccentYellow
 
 @Composable
 fun QuizScreen(
@@ -54,6 +58,8 @@ fun QuizScreen(
                     options = currentQuestion.quizOptions ?: emptyList(),
                     correctIndex = currentQuestion.correctAnswerIndex ?: 0,
                     selectedIndex = uiState.selectedOptionIndex,
+                    remainingTime = uiState.remainingTime,
+                    isTimeUp = uiState.isTimeUp,
                     onOptionSelected = { viewModel.selectOption(it) },
                     onNext = { viewModel.nextQuestion() }
                 )
@@ -70,6 +76,8 @@ fun QuizQuestionView(
     options: List<String>,
     correctIndex: Int,
     selectedIndex: Int?,
+    remainingTime: Int,
+    isTimeUp: Boolean,
     onOptionSelected: (Int) -> Unit,
     onNext: () -> Unit
 ) {
@@ -83,6 +91,10 @@ fun QuizQuestionView(
                 .padding(24.dp),
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
+            QuizTimer(remainingTime = remainingTime, isTimeUp = isTimeUp)
+
+            Spacer(modifier = Modifier.height(24.dp))
+
             LinearProgressIndicator(
                 progress = { questionNumber.toFloat() / totalQuestions },
                 modifier = Modifier
@@ -134,7 +146,7 @@ fun QuizQuestionView(
 
                     Card(
                         onClick = { onOptionSelected(index) },
-                        enabled = selectedIndex == null,
+                        enabled = selectedIndex == null && !isTimeUp,
                         shape = RoundedCornerShape(16.dp),
                         colors = CardDefaults.cardColors(containerColor = cardColor),
                         border = BorderStroke(1.dp, borderColor),
@@ -150,7 +162,7 @@ fun QuizQuestionView(
                                 style = MaterialTheme.typography.bodyLarge,
                                 color = if (selectedIndex == null) MaterialTheme.colorScheme.onSurface else MaterialTheme.colorScheme.primary
                             )
-                            if (selectedIndex != null) {
+                            if (selectedIndex != null && selectedIndex != -1) {
                                 if (isCorrect) {
                                     Icon(
                                         Icons.Default.CheckCircle,
@@ -170,27 +182,81 @@ fun QuizQuestionView(
                 }
             }
 
-            // Spacer for the floating-style arrow button
-            Spacer(modifier = Modifier.height(100.dp))
-        }
-
-        Box(
-            modifier = Modifier
-                .align(Alignment.BottomEnd)
-                .padding(32.dp)
-        ) {
-            FloatingActionButton(
-                onClick = onNext,
-                containerColor = MaterialTheme.colorScheme.primary,
-                contentColor = MaterialTheme.colorScheme.onPrimary,
-                shape = RoundedCornerShape(16.dp)
-            ) {
-                Icon(
-                    imageVector = Icons.AutoMirrored.Filled.ArrowForward,
-                    contentDescription = "Next",
-                    modifier = Modifier.size(24.dp)
+            if (selectedIndex == -1) {
+                Spacer(modifier = Modifier.height(16.dp))
+                Text(
+                    text = "Time's up! The correct answer was: ${options[correctIndex]}",
+                    color = MaterialTheme.colorScheme.error,
+                    style = MaterialTheme.typography.bodyMedium,
+                    fontWeight = FontWeight.Bold,
+                    textAlign = TextAlign.Center
                 )
             }
+
+            // Spacer for the floating-style arrow button
+            Spacer(modifier = Modifier.height(24.dp))
+
+            AnimatedVisibility(
+                visible = selectedIndex != null,
+                enter = fadeIn() + expandVertically(),
+                exit = fadeOut() + shrinkVertically()
+            ) {
+                Button(
+                    onClick = onNext,
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .height(56.dp),
+                    shape = RoundedCornerShape(16.dp),
+                    colors = ButtonDefaults.buttonColors(
+                        containerColor = MaterialTheme.colorScheme.primary
+                    )
+                ) {
+                    Text(
+                        text = if (questionNumber < totalQuestions) "Next Question" else "Finish Quiz",
+                        fontWeight = FontWeight.Bold,
+                        fontSize = 16.sp
+                    )
+                    Spacer(modifier = Modifier.width(8.dp))
+                    Icon(Icons.AutoMirrored.Filled.ArrowForward, contentDescription = null)
+                }
+            }
+            
+            Spacer(modifier = Modifier.height(140.dp))
+        }
+    }
+}
+
+@Composable
+fun QuizTimer(remainingTime: Int, isTimeUp: Boolean) {
+    val timerColor = when {
+        isTimeUp -> MaterialTheme.colorScheme.error
+        remainingTime <= 5 -> MaterialTheme.colorScheme.error
+        else -> MaterialTheme.colorScheme.primary
+    }
+
+    Surface(
+        color = timerColor.copy(alpha = 0.1f),
+        shape = RoundedCornerShape(12.dp),
+        border = BorderStroke(1.dp, timerColor.copy(alpha = 0.5f))
+    ) {
+        Row(
+            modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp),
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.Center
+        ) {
+            Icon(
+                imageVector = Icons.Default.Timer,
+                contentDescription = null,
+                tint = timerColor,
+                modifier = Modifier.size(20.dp)
+            )
+            Spacer(modifier = Modifier.width(8.dp))
+            Text(
+                text = if (isTimeUp) "Time's Up!" else "$remainingTime s",
+                style = MaterialTheme.typography.titleMedium,
+                fontWeight = FontWeight.Bold,
+                color = timerColor
+            )
         }
     }
 }
@@ -242,6 +308,8 @@ fun QuizResultView(score: Int, total: Int, onRestart: () -> Unit, onDone: () -> 
         ) {
             Text("Back to Home", color = MaterialTheme.colorScheme.primary, fontWeight = FontWeight.Bold)
         }
+
+        Spacer(modifier = Modifier.height(140.dp))
     }
 }
 
@@ -256,6 +324,8 @@ fun QuizQuestionPreview() {
             options = listOf("A sense of urgency", "Providing any reason, even a weak one", "Speaking in a loud tone", "Offering a financial reward"),
             correctIndex = 1,
             selectedIndex = null,
+            remainingTime = 10,
+            isTimeUp = false,
             onOptionSelected = {},
             onNext = {}
         )

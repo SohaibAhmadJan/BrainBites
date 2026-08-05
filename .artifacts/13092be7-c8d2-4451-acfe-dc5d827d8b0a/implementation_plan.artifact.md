@@ -1,39 +1,41 @@
-# Implementation Plan - Version Update & Deploy to GitHub
+# Add Quiz Timer
 
-Update the application version to 3.4.7, commit all recent improvements (including the image engine overhaul), and push the changes to GitHub.
+Add a per-question countdown timer to the Quiz screen, placed between the header and the question progress.
 
 ## User Review Required
 
 > [!IMPORTANT]
-> **Version Increment**: I will update `versionName` to "3.4.7" and increment `versionCode` to 23 in `app/build.gradle.kts`.
+> I will implement a **15-second countdown timer** for each question.
 >
-> **Git Commit**: I will stage all modified files (BiteRepository, FactDetailScreen, HomeScreen, SplashScreen, build.gradle.kts) and commit them.
->
-> **GitHub Push**: I will push the local `master` branch to the remote repository at `https://github.com/SohaibAhmadJan/BrainBites.git`.
+> **Behavior when time runs out:**
+> - The question will be marked as "timed out" (no answer selected).
+> - The "Next Question" button will appear, allowing the user to proceed.
+> - The user will not be able to select an answer once the timer hits zero.
 
 ## Proposed Changes
 
-### [Build Configuration]
+### [Quiz Logic]
 
-#### [MODIFY] [build.gradle.kts](file:///F:/BrainBites/app/build.gradle.kts)
-- Update `versionCode` to `23`.
-- Update `versionName` to `"3.4.7"`.
+#### [MODIFY] [QuizViewModel.kt](file:///F:/BrainBites/app/src/main/java/com/example/brainbites/ui/quiz/QuizViewModel.kt)
+- Add `remainingTime: Int` and `isTimerRunning: Boolean` to `QuizUiState`.
+- Implement a coroutine-based timer that updates `remainingTime` every second.
+- Reset the timer to 15s whenever a new question is shown.
+- Stop the timer when an option is selected or when the quiz finishes.
 
-### [UI Components]
+### [Quiz UI]
 
-#### [MODIFY] [SplashScreen.kt](file:///F:/BrainBites/app/src/main/java/com/example/brainbites/ui/splash/SplashScreen.kt)
-- Update the version string displayed on the splash screen from `"Version 3.4.6"` to `"Version 3.4.7"`.
-
-### [Version Control]
-
-#### [ACTION] Git Operations
-- `git add .` to stage all changes.
-- `git commit -m "Update version to 3.4.7 and finalize visual asset variety improvements"`
-- `git push origin master`
+#### [MODIFY] [QuizScreen.kt](file:///F:/BrainBites/app/src/main/java/com/example/brainbites/ui/quiz/QuizScreen.kt)
+- Create a `QuizTimer` composable that displays the remaining time with a clock icon.
+- Insert this `QuizTimer` at the top of the `Column` in `QuizQuestionView`, before the `LinearProgressIndicator`.
+- Style the timer to be prominent (e.g., using the primary color).
 
 ## Verification Plan
 
 ### Manual Verification
-- Run the app and verify the splash screen shows "Version 3.4.7".
-- Verify the build finishes successfully with the new version code.
-- Check the GitHub repository to confirm the push was successful.
+1. Start a quiz and verify the timer starts at 15s.
+2. Select an answer and verify the timer stops.
+3. Click "Next Question" and verify the timer resets to 15s.
+4. Let the timer run to 0s and verify:
+    - Options become disabled.
+    - "Next Question" button appears.
+    - The score does not increase.
