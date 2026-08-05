@@ -3,7 +3,12 @@
     - `[x]` Update `ProfileViewModel.kt` with image persistence logic
     - `[x]` Update `ProfileScreen.kt` with `PickVisualMedia` launcher
     - `[x]` Update `ProfileHeader` to handle local image URIs
+- `[x]` Refine Profile and Privacy UI
+    - `[x]` Darken input field borders
+    - `[x]` Add borders to Profile section items
+    - `[x]` Unified switch colors for Privacy settings
+- `[x]` Unify Header Colors
+    - `[x]` Update `BrandHeader.kt` colors
+    - `[x]` Update `MainScaffold.kt` icon tints
 - `[x]` Verify Functionality
-    - `[x]` Test gallery selection and preview
-    - `[x]` Test persistence across app restarts
-    - `[x]` Verify DiceBear avatars still work
+    - `[x]` Verify color consistency across screens

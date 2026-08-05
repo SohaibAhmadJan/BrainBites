@@ -37,6 +37,19 @@ I have successfully integrated a "Choose from Gallery" option into the profile e
     - **Account Settings:** Added borders to the "Edit Profile" and "Privacy Settings" action items.
 - All boundaries now use a consistent **GrayGreen** stroke (`onSurfaceVariant`) for a unified, high-quality look.
 
+### 6. Unified Header & Navigation Colors
+- Updated the **BrainBites Logo** and **Heading Title** in the top bar to use the `Primary` green color.
+- Changed the **Profile** and **Notifications** icon tints to use the `Primary` green color as well.
+- Extended this unification to the **Splash Screen**: The logo, "BrainBites" text, and loading progress bar now all use the `Primary` green.
+- This creates a cohesive visual experience from the moment the app starts, matching the "Active" state of the bottom navigation bar.
+
+### 7. Version Synchronization
+- Updated the version display on the **Splash Screen** to **3.4.8.2** to stay in sync with the project's official build version.
+
+### 8. Bite of Advice Styling
+- Reduced the size and weight of the heading in the **Bite of Advice** card (e.g., "Salami Slicing").
+- Changed the font style from `headlineSmall` (24sp) with `ExtraBold` to `titleLarge` (22sp) with `Bold`, making it more balanced and easier to read.
+
 ## Verification Results
 
 ### Manual Verification
