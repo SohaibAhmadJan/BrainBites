@@ -1,6 +1,7 @@
 package com.example.brainbites.ui.notifications
 
 import androidx.compose.animation.animateColorAsState
+import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
@@ -77,7 +78,8 @@ fun NotificationsScreenContent(
         } else {
             LazyColumn(
                 modifier = Modifier.fillMaxSize(),
-                contentPadding = PaddingValues(bottom = 150.dp)
+                contentPadding = PaddingValues(start = 16.dp, top = 8.dp, end = 16.dp, bottom = 150.dp),
+                verticalArrangement = Arrangement.spacedBy(12.dp)
             ) {
                 items(notifications, key = { it.id }) { notification ->
                     NotificationItem(
@@ -104,6 +106,8 @@ fun NotificationItem(
     Surface(
         onClick = onClick,
         color = backgroundColor,
+        shape = RoundedCornerShape(16.dp),
+        border = BorderStroke(1.dp, MaterialTheme.colorScheme.primary.copy(alpha = 0.3f)),
         modifier = Modifier.fillMaxWidth()
     ) {
         Row(
