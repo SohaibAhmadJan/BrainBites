@@ -1,0 +1,11 @@
+{
+  "dependencies": {
+    "firebase-admin": "^14.2.0"
+  },
+  "devDependencies": {
+    "@firebase/app": "^0.16.0",
+    "@firebase/firestore-types": "^3.0.4",
+    "@firebase/rules-unit-testing": "^5.0.1",
+    "firebase-tools": "^15.27.0"
+  }
+}

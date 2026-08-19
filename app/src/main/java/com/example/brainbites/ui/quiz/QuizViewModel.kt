@@ -5,6 +5,8 @@ import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.brainbites.data.BiteItem
 import com.example.brainbites.data.BiteRepository
+import com.example.brainbites.data.AuthRepository
+import com.google.firebase.firestore.FirebaseFirestore
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -70,6 +72,30 @@ class QuizViewModel(application: Application) : AndroidViewModel(application) {
                 selectedOptionIndex = index,
                 score = if (isCorrect) it.score + 1 else it.score
             )
+        }
+
+        // Save result to Firestore
+        saveQuizAttempt(currentQuestion.id, isCorrect, index)
+    }
+
+    private fun saveQuizAttempt(factId: String, isCorrect: Boolean, answerIndex: Int) {
+        val user = AuthRepository.currentUser.value ?: return
+        val db = FirebaseFirestore.getInstance()
+        val attempt = mapOf(
+            "factId" to factId,
+            "isCorrect" to isCorrect,
+            "score" to (if (isCorrect) 1 else 0), // Per-question score
+            "attemptedAt" to System.currentTimeMillis(),
+            "answerIndex" to answerIndex
+        )
+        
+        viewModelScope.launch {
+            try {
+                db.collection("users").document(user.account.uid)
+                    .collection("quizResults").add(attempt)
+            } catch (e: Exception) {
+                // Log and ignore
+            }
         }
     }
 

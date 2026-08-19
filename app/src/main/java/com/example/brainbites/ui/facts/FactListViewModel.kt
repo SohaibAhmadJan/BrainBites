@@ -14,15 +14,29 @@ class FactListViewModel(application: Application) : AndroidViewModel(application
     private val _facts = MutableStateFlow<List<BiteItem>>(emptyList())
     val facts = _facts.asStateFlow()
 
+    private val _isRefreshing = MutableStateFlow(false)
+    val isRefreshing = _isRefreshing.asStateFlow()
+
     fun loadFacts(categoryId: String) {
         viewModelScope.launch {
-            val category = BiteCategory.valueOf(categoryId)
+            val category = try { BiteCategory.valueOf(categoryId) } catch (e: Exception) { BiteCategory.ALL }
             BiteRepository.getAllFacts(getApplication()).collect { allFacts ->
                 _facts.value = if (category == BiteCategory.ALL) {
                     allFacts
                 } else {
                     allFacts.filter { it.category == category }
                 }
+            }
+        }
+    }
+
+    fun refreshFacts(categoryId: String) {
+        viewModelScope.launch {
+            _isRefreshing.value = true
+            try {
+                BiteRepository.refreshData(getApplication(), forceRemote = true)
+            } finally {
+                _isRefreshing.value = false
             }
         }
     }

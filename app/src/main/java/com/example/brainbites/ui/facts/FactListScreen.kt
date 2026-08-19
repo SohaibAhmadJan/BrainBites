@@ -4,6 +4,8 @@ import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material3.*
+import androidx.compose.material3.pulltorefresh.PullToRefreshBox
+import androidx.compose.material3.pulltorefresh.rememberPullToRefreshState
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -25,6 +27,7 @@ fun FactListScreen(
     viewModel: FactListViewModel = viewModel()
 ) {
     val facts by viewModel.facts.collectAsState()
+    val isRefreshing by viewModel.isRefreshing.collectAsState()
     
     LaunchedEffect(categoryId) {
         viewModel.loadFacts(categoryId)
@@ -33,6 +36,8 @@ fun FactListScreen(
     FactListContent(
         categoryId = categoryId,
         facts = facts,
+        isRefreshing = isRefreshing,
+        onRefresh = { viewModel.refreshFacts(categoryId) },
         onFactClick = onFactClick,
         onToggleBookmark = { id -> viewModel.toggleBookmark(id) }
     )
@@ -43,22 +48,30 @@ fun FactListScreen(
 fun FactListContent(
     categoryId: String,
     facts: List<BiteItem>,
+    isRefreshing: Boolean,
+    onRefresh: () -> Unit,
     onFactClick: (String) -> Unit,
     onToggleBookmark: (String) -> Unit
 ) {
     Column(modifier = Modifier.fillMaxSize()) {
-        LazyColumn(
-            modifier = Modifier.fillMaxSize(),
-            contentPadding = PaddingValues(16.dp, 16.dp, 16.dp, 150.dp),
-            verticalArrangement = Arrangement.spacedBy(16.dp)
+        PullToRefreshBox(
+            isRefreshing = isRefreshing,
+            onRefresh = onRefresh,
+            modifier = Modifier.fillMaxSize()
         ) {
-            items(facts, key = { it.id }) { fact ->
-                BiteCard(
-                    bite = fact,
-                    onToggleBookmark = { id -> onToggleBookmark(id) },
-                    onFactClick = onFactClick,
-                    modifier = Modifier.fillMaxWidth()
-                )
+            LazyColumn(
+                modifier = Modifier.fillMaxSize(),
+                contentPadding = PaddingValues(16.dp, 16.dp, 16.dp, 150.dp),
+                verticalArrangement = Arrangement.spacedBy(16.dp)
+            ) {
+                items(facts, key = { it.id }) { fact ->
+                    BiteCard(
+                        bite = fact,
+                        onToggleBookmark = { id -> onToggleBookmark(id) },
+                        onFactClick = onFactClick,
+                        modifier = Modifier.fillMaxWidth()
+                    )
+                }
             }
         }
     }
@@ -76,6 +89,8 @@ fun FactListScreenPreview() {
         FactListContent(
             categoryId = "HUMAN_BEHAVIOR",
             facts = listOf(sampleFact),
+            isRefreshing = false,
+            onRefresh = {},
             onFactClick = {},
             onToggleBookmark = { _ -> }
         )

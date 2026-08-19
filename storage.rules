@@ -1,0 +1,39 @@
+rules_version = \u00272\u0027;
+service firebase.storage {
+  match /b/{bucket}/o {
+
+    function isAuthenticated() {
+      return request.auth != null;
+    }
+
+    function isAdmin() {
+      return isAuthenticated() \u0026\u0026
+        firestore.exists(/databases/(default)/documents/admins/$(request.auth.uid));
+    }
+
+    match /brainbites/{allPaths=**} {
+      // Content images (facts, categories)
+      match /facts/{factId}/{allPaths=**} {
+        allow read: if true;
+        allow write: if isAdmin();
+      }
+
+      match /categories/{categoryId}/{allPaths=**} {
+        allow read: if true;
+        allow write: if isAdmin();
+      }
+
+      // User content
+      match /users/{userId}/{allPaths=**} {
+        allow read: if true;
+        allow write: if request.auth.uid == userId || isAdmin();
+      }
+
+      // App assets
+      match /app/{allPaths=**} {
+        allow read: if true;
+        allow write: if isAdmin();
+      }
+    }
+  }
+}

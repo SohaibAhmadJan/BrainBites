@@ -62,35 +62,25 @@ object PreferenceManager {
         _notifiedAchievements.value = prefs.getStringSet(KEY_NOTIFIED_ACHIEVEMENTS, emptySet()) ?: emptySet()
         _userName.value = prefs.getString(KEY_USER_NAME, "Knowledge Seeker") ?: "Knowledge Seeker"
         _userImage.value = prefs.getString(KEY_USER_IMAGE, "") ?: ""
-        
-        // Comprehensive cleanup to ensure user starts with Initials (Aa)
-        val allSeeds = listOf(
-            "Felix", "Aneka", "Jack", "Avery", "Willow", "Luna", "George", "Oliver", "Jasper", "Leo",
-            "Maya", "Zoe", "Sasha", "Finn", "Toby", "Max", "Milo", "Jade", "Ruby", "Coco",
-            "Bella", "Beau", "Charlie", "Daisy", "Echo", "Faye", "Gus", "Hazel", "Iris", "Jude",
-            "Kai", "Lola", "Nico", "Olive", "Piper", "Quinn", "Remy", "Skye", "Theo", "Vera",
-            "Knowledge", "Explorer", "Sage", "Thinker", "Researcher", "Scholar", "Curious", "Novice", 
-            "Mind", "Logic", "Creative", "Genius", "Focus", "Vision", "Zen", "Alpha", "Beta", "Omega", "Delta", "Sigma"
-        )
-        
-        if (_userImage.value in allSeeds) {
-            prefs.edit().putString(KEY_USER_IMAGE, "").apply()
-            _userImage.value = ""
-        }
-
         _userBio.value = prefs.getString(KEY_USER_BIO, "Curious mind exploring the world of psychology.") ?: "Curious mind exploring the world of psychology."
-        
-        var savedId = prefs.getString(KEY_USER_ID, "") ?: ""
-        if (savedId.isEmpty()) {
-            savedId = "user_${java.util.UUID.randomUUID().toString().take(8)}"
-            prefs.edit().putString(KEY_USER_ID, savedId).apply()
-        }
-        _userId.value = savedId
-
+        _userId.value = prefs.getString(KEY_USER_ID, "") ?: ""
         _isPublicProfile.value = prefs.getBoolean(KEY_PUBLIC_PROFILE, false)
         _isAnalyticsEnabled.value = prefs.getBoolean(KEY_ANALYTICS, true)
         _streakCount.value = prefs.getInt(KEY_STREAK, 0)
         _lastActiveTimestamp.value = prefs.getLong(KEY_LAST_ACTIVE, 0L)
+    }
+
+    fun syncWithServer(user: BrainBitesUser) {
+        _dailyGoal.value = user.preferences.dailyGoal
+        _textScale.value = user.preferences.textScale
+        _hapticsEnabled.value = user.preferences.hapticsEnabled
+        _userName.value = user.profile.displayName
+        _userImage.value = user.profile.photoUrl
+        _userBio.value = user.profile.bio
+        _userId.value = user.account.uid
+        _isPublicProfile.value = user.profile.isPublic
+        _isAnalyticsEnabled.value = user.preferences.analyticsEnabled
+        _streakCount.value = user.stats.streakCount
     }
 
     fun setDailyGoal(context: Context, goal: Int) {

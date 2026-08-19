@@ -6,7 +6,9 @@ data class Notification(
     val message: String,
     val timestamp: Long,
     val isRead: Boolean = false,
-    val type: NotificationType = NotificationType.GENERAL
+    val type: NotificationType = NotificationType.GENERAL,
+    val imageUrl: String? = null,
+    val deepLinkFactId: String? = null
 )
 
 enum class NotificationType {

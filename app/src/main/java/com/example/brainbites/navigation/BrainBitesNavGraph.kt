@@ -38,7 +38,8 @@ import kotlinx.coroutines.launch
 
 @Composable
 fun BrainBitesNavGraph(
-    navController: NavHostController = rememberNavController()
+    navController: NavHostController = rememberNavController(),
+    initialFactId: String? = null
 ) {
     NavHost(
         navController = navController,
@@ -51,6 +52,9 @@ fun BrainBitesNavGraph(
                 onSplashFinished = {
                     navController.navigate("main_root") {
                         popUpTo(Screen.Splash.route) { inclusive = true }
+                    }
+                    if (initialFactId != null) {
+                        navController.navigate(Screen.ExploreDetail.createRoute(initialFactId))
                     }
                 }
             )

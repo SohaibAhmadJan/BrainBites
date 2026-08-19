@@ -7,6 +7,9 @@ import kotlinx.serialization.Serializable
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
 import java.util.Calendar
+import com.google.firebase.firestore.FirebaseFirestore
+import kotlinx.coroutines.tasks.await
+import android.util.Log
 
 @Serializable
 private data class FactsWrapper(val facts: List<BiteItem>)
@@ -51,6 +54,8 @@ object BiteRepository {
     private val favoriteIds = MutableStateFlow<Set<String>>(emptySet())
     private val historyItems = MutableStateFlow<List<HistoryItem>>(emptyList())
     private val _sharesCount = MutableStateFlow(0)
+    
+    private val db = FirebaseFirestore.getInstance()
     
     private const val PREFS_NAME = "brain_bites_prefs"
     private const val FAVORITES_KEY = "favorite_ids"
@@ -256,6 +261,11 @@ object BiteRepository {
     }
 
     suspend fun initializeDatabase(context: Context) {
+        loadLocalSettings(context)
+        refreshData(context, forceRemote = false)
+    }
+
+    private fun loadLocalSettings(context: Context) {
         val prefs = context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
         
         // Load favorites
@@ -272,44 +282,131 @@ object BiteRepository {
 
         // Load Shares
         _sharesCount.value = prefs.getInt(SHARES_KEY, 0)
+    }
 
-        if (_bites.value.isEmpty()) {
+    suspend fun refreshData(context: Context, forceRemote: Boolean = true) {
+        if (_bites.value.isEmpty() || forceRemote) {
             try {
-                // Load Facts
-                val factsString = context.assets.open("facts.json").bufferedReader().use { it.readText() }
-                val factsWrapper = json.decodeFromString<FactsWrapper>(factsString)
+                // Try Firestore
+                val factsSnapshot = db.collection("facts").get().await()
                 
-                // Load Quizzes
-                val quizString = context.assets.open("quiz_data.json").bufferedReader().use { it.readText() }
-                val quizWrapper = json.decodeFromString<QuizWrapper>(quizString)
-                val quizMap = quizWrapper.quizzes.associateBy { it.factId }
+                if (!factsSnapshot.isEmpty) {
+                    val quizzesSnapshot = db.collection("quizzes").get().await()
+                    val quizMap = quizzesSnapshot.documents.mapNotNull { doc ->
+                        try {
+                            val factId = doc.getString("factId") ?: return@mapNotNull null
+                            factId to QuizItem(
+                                factId = factId,
+                                question = doc.getString("question") ?: "",
+                                options = doc.get("options")?.let { if (it is List<*>) it.filterIsInstance<String>() else emptyList() } ?: emptyList(),
+                                correctIndex = doc.getLong("correctAnswerIndex")?.toInt() ?: 0,
+                                teaserType = doc.getString("teaserType") ?: "MYTH_BUSTER"
+                            )
+                        } catch (e: Exception) { null }
+                    }.toMap()
 
-                // Merge Data
-                val mergedBites = factsWrapper.facts.map { bite ->
-                    val quiz = quizMap[bite.id]
+                    val firestoreFacts = factsSnapshot.documents.mapNotNull { doc ->
+                        try {
+                            val id = doc.id
+                            val fact = doc.getString("fact") ?: ""
+                            val categoryStr = doc.getString("category") ?: "Human Behavior"
+                            val category = try {
+                                BiteCategory.values().find { it.displayName == categoryStr || it.name == categoryStr } 
+                                    ?: BiteCategory.HUMAN_BEHAVIOR
+                            } catch (e: Exception) {
+                                BiteCategory.HUMAN_BEHAVIOR
+                            }
+                            
+                            val quiz = quizMap[id]
+                            
+                            BiteItem(
+                                id = id,
+                                fact = fact,
+                                category = category,
+                                title = doc.getString("title"),
+                                snippet = doc.getString("snippet"),
+                                fullFact = doc.getString("fullFact"),
+                                whyItMatters = doc.getString("whyItMatters"),
+                                quizQuestion = quiz?.question,
+                                quizOptions = quiz?.options,
+                                correctAnswerIndex = quiz?.correctIndex,
+                                teaserType = quiz?.teaserType,
+                                imageUrl = doc.getString("imageUrl") ?: buildSecureImageUrl(id),
+                                keywords = doc.getString("keywords") ?: getSearchQuery(id),
+                                readTimeMinutes = doc.getLong("readTimeMinutes")?.toInt() ?: 1
+                            )
+                        } catch (e: Exception) {
+                            Log.e("BiteRepository", "Error mapping fact ${doc.id}", e)
+                            null
+                        }
+                    }
                     
-                    val query = getSearchQuery(bite.id)
-                    // NEW: Switch to Picsum for rock-solid reliability
-                    val imageUrl = buildSecureImageUrl(bite.id)
-
-                    bite.copy(
-                        quizQuestion = quiz?.question,
-                        quizOptions = quiz?.options,
-                        correctAnswerIndex = quiz?.correctIndex,
-                        teaserType = quiz?.teaserType,
-                        imageUrl = imageUrl,
-                        keywords = query
-                    )
+                    if (firestoreFacts.isNotEmpty()) {
+                        _bites.value = firestoreFacts
+                        Log.d("BiteRepository", "Loaded ${firestoreFacts.size} facts from Firestore")
+                        
+                        // Also try to load collections from Firestore
+                        val collectionsSnapshot = db.collection("collections").get().await()
+                        if (!collectionsSnapshot.isEmpty) {
+                            _collections.value = collectionsSnapshot.documents.mapNotNull { doc ->
+                                try {
+                                    CollectionSet(
+                                        id = doc.id,
+                                        title = doc.getString("title") ?: "",
+                                        description = doc.getString("description") ?: "",
+                                        icon = doc.getString("icon") ?: "✨",
+                                        color = doc.getString("color") ?: "#A8DADC",
+                                        factIds = doc.get("factIds")?.let { if (it is List<*>) it.filterIsInstance<String>() else emptyList() } ?: emptyList()
+                                    )
+                                } catch (e: Exception) {
+                                    null
+                                }
+                            }
+                        }
+                        if (forceRemote) return // Done
+                    }
                 }
-                
-                _bites.value = mergedBites
-
-                // Load Collections
-                val collectionsString = context.assets.open("collections.json").bufferedReader().use { it.readText() }
-                val collectionWrapper = json.decodeFromString<CollectionWrapper>(collectionsString)
-                _collections.value = collectionWrapper.collections
             } catch (e: Exception) {
-                e.printStackTrace()
+                Log.e("BiteRepository", "Firestore load failed, falling back to assets", e)
+            }
+
+            // Fallback to Assets (only if bites are still empty)
+            if (_bites.value.isEmpty()) {
+                try {
+                    // Load Facts
+                    val factsString = context.assets.open("facts.json").bufferedReader().use { it.readText() }
+                    val factsWrapper = json.decodeFromString<FactsWrapper>(factsString)
+                    
+                    // Load Quizzes
+                    val quizString = context.assets.open("quiz_data.json").bufferedReader().use { it.readText() }
+                    val quizWrapper = json.decodeFromString<QuizWrapper>(quizString)
+                    val quizMap = quizWrapper.quizzes.associateBy { it.factId }
+
+                    // Merge Data
+                    val mergedBites = factsWrapper.facts.map { bite ->
+                        val quiz = quizMap[bite.id]
+                        val query = getSearchQuery(bite.id)
+                        val imageUrl = buildSecureImageUrl(bite.id)
+
+                        bite.copy(
+                            quizQuestion = quiz?.question,
+                            quizOptions = quiz?.options,
+                            correctAnswerIndex = quiz?.correctIndex,
+                            teaserType = quiz?.teaserType,
+                            imageUrl = imageUrl,
+                            keywords = query
+                        )
+                    }
+                    
+                    _bites.value = mergedBites
+
+                    // Load Collections
+                    val collectionsString = context.assets.open("collections.json").bufferedReader().use { it.readText() }
+                    val collectionWrapper = json.decodeFromString<CollectionWrapper>(collectionsString)
+                    _collections.value = collectionWrapper.collections
+                } catch (e: Exception) {
+                    e.printStackTrace()
+                }
             }
         }
     }
@@ -376,6 +473,13 @@ object BiteRepository {
     suspend fun incrementShares(context: Context) {
         val newVal = _sharesCount.value + 1
         _sharesCount.value = newVal
+        
+        // Sync with Firestore if authenticated
+        AuthRepository.currentUser.value?.let { user ->
+            db.collection("users").document(user.account.uid)
+                .update("stats.sharesCount", newVal)
+        }
+
         val prefs = context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
         prefs.edit { putInt(SHARES_KEY, newVal) }
     }
@@ -389,6 +493,34 @@ object BiteRepository {
 
         // Trigger streak update
         PreferenceManager.updateStreak(context)
+
+        // Sync with Firestore if authenticated
+        AuthRepository.currentUser.value?.let { user ->
+            db.collection("users").document(user.account.uid).collection("history").document(id)
+                .set(mapOf("viewedAt" to System.currentTimeMillis(), "completed" to true))
+            
+            // Limit factsReadCount to the current list size (Sync authoritative count)
+            db.collection("users").document(user.account.uid)
+                .update("stats.factsReadCount", historyItems.value.size)
+
+            // Sync Collection Progress
+            _collections.value.forEach { collection ->
+                if (collection.factIds.contains(id)) {
+                    val readIds = historyItems.value.map { it.factId }.toSet()
+                    val collectionIds = collection.factIds.toSet()
+                    val intersection = collectionIds.intersect(readIds)
+                    val progress = if (collectionIds.isEmpty()) 0f else intersection.size.toFloat() / collectionIds.size.toFloat()
+                    
+                    db.collection("users").document(user.account.uid)
+                        .collection("collectionProgress").document(collection.id)
+                        .set(mapOf(
+                            "progress" to progress,
+                            "lastUpdated" to System.currentTimeMillis(),
+                            "readFactIds" to intersection.toList()
+                        ))
+                }
+            }
+        }
 
         val prefs = context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
         prefs.edit { putString(HISTORY_KEY_V2, json.encodeToString(limited)) }
@@ -407,6 +539,20 @@ object BiteRepository {
         
         // Update the reactive state
         favoriteIds.value = current
+
+        // Sync with Firestore if authenticated
+        AuthRepository.currentUser.value?.let { user ->
+            val favRef = db.collection("users").document(user.account.uid).collection("favorites").document(id)
+            if (current.contains(id)) {
+                favRef.set(mapOf("addedAt" to System.currentTimeMillis()))
+            } else {
+                favRef.delete()
+            }
+            
+            // Also update total favorites count in stats
+            db.collection("users").document(user.account.uid)
+                .update("stats.favoritesCount", current.size)
+        }
     }
     
     fun getFactOfTheDay(allFacts: List<BiteItem>): BiteItem? {

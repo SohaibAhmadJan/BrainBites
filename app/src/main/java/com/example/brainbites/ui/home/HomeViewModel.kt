@@ -9,13 +9,16 @@ import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.brainbites.data.Achievement
 import com.example.brainbites.data.AchievementManager
+import com.example.brainbites.data.AchievementRepository
 import com.example.brainbites.data.AchievementStatus
+import com.example.brainbites.data.AuthRepository
 import com.example.brainbites.data.BiteItem
 import com.example.brainbites.data.BiteRepository
 import com.example.brainbites.data.Notification
 import com.example.brainbites.data.NotificationRepository
 import com.example.brainbites.data.NotificationType
 import com.example.brainbites.data.PreferenceManager
+import com.example.brainbites.data.SettingsRepository
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.launch
@@ -50,7 +53,18 @@ class HomeViewModel(application: Application) : AndroidViewModel(application) {
         loadFacts()
         loadHistory()
         loadAchievements()
-        loadDailyTip()
+        observeSettings()
+    }
+
+    private fun observeSettings() {
+        viewModelScope.launch {
+            SettingsRepository.settings.collect { settings ->
+                _dailyTip.value = PsychologyTip(settings.dailyTipTitle, settings.dailyTipMessage)
+                if (_rotatingFactId.value == null && _allFacts.value.isNotEmpty()) {
+                    _rotatingFactId.value = settings.featuredFactId
+                }
+            }
+        }
     }
 
     private fun loadFacts() {
@@ -100,6 +114,21 @@ class HomeViewModel(application: Application) : AndroidViewModel(application) {
             }.collect { currentAchievements ->
                 _achievements.value = currentAchievements
                 
+                // Sync with Firestore
+                AuthRepository.currentUser.value?.let { user ->
+                    currentAchievements.forEach { achievement ->
+                        if (achievement.status != AchievementStatus.LOCKED) {
+                            viewModelScope.launch {
+                                AchievementRepository.updateProgress(
+                                    user.account.uid, 
+                                    achievement.id, 
+                                    achievement.currentProgress
+                                )
+                            }
+                        }
+                    }
+                }
+
                 // Monitor for newly completed achievements
                 val alreadyNotified = PreferenceManager.notifiedAchievements.value
                 currentAchievements.forEach { achievement ->
@@ -156,30 +185,6 @@ class HomeViewModel(application: Application) : AndroidViewModel(application) {
         viewModelScope.launch {
             BiteRepository.toggleBookmark(getApplication(), id)
         }
-    }
-
-    private fun loadDailyTip() {
-        val tips = listOf(
-            PsychologyTip(
-                "The 2-Minute Rule",
-                "If a task takes less than 2 minutes, do it now. This prevents small things from piling up and causing mental stress."
-            ),
-            PsychologyTip(
-                "Salami Slicing",
-                "Break large, overwhelming goals into tiny, 'edible' slices. Focus only on the next slice to beat procrastination."
-            ),
-            PsychologyTip(
-                "Power Posing",
-                "Standing in a confident stance for just 2 minutes can lower stress hormones and make you feel more in control."
-            ),
-            PsychologyTip(
-                "Active Listening",
-                "Try to repeat back what someone said in your own words. It builds trust and ensures you actually understood them."
-            )
-        )
-        val calendar = java.util.Calendar.getInstance()
-        val index = calendar.get(java.util.Calendar.DAY_OF_YEAR) % tips.size
-        _dailyTip.value = tips[index]
     }
 }
 

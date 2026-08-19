@@ -71,6 +71,8 @@ fun HomeScreen(
     val selectedMood by viewModel.selectedMood.collectAsState()
     val moodMessage by viewModel.moodMessage.collectAsState()
     val dailyTip by viewModel.dailyTip.collectAsState()
+    val settings by com.example.brainbites.data.SettingsRepository.settings.collectAsState()
+    
     val coroutineScope = rememberCoroutineScope()
     val captureController = rememberComposableCaptureController()
     val context = LocalContext.current
@@ -103,6 +105,7 @@ fun HomeScreen(
             selectedMood = selectedMood,
             moodMessage = moodMessage,
             dailyTip = dailyTip,
+            sectionsOrder = settings.homeSectionsOrder,
             onMoodSelected = { viewModel.selectMood(it) },
             onNavigateToCategory = onNavigateToCategory,
             onNavigateToDetail = onNavigateToDetail,
@@ -130,6 +133,7 @@ fun HomeScreenContent(
     selectedMood: String?,
     moodMessage: String?,
     dailyTip: PsychologyTip?,
+    sectionsOrder: List<String>,
     onMoodSelected: (String) -> Unit,
     onNavigateToCategory: (String) -> Unit,
     onNavigateToDetail: (String) -> Unit,
@@ -156,218 +160,123 @@ fun HomeScreenContent(
                     contentPadding = PaddingValues(16.dp, 16.dp, 16.dp, 150.dp),
                     verticalArrangement = Arrangement.spacedBy(20.dp)
                 ) {
-                    // 1. HERO CARD: Fact of the Day
-                    item {
-                        AnimatedEntrance(index = 0) {
-                            factOfTheDay?.let { fact ->
-                                FactOfTheDayCard(
-                                    fact = fact,
-                                    onToggleBookmark = { onToggleBookmark(fact.id) },
-                                    onShare = { onShareFact(fact) },
-                                    onClick = { onNavigateToDetail(fact.id) }
-                                )
-                            }
-                        }
-                    }
-
-                    // 2. Categories Header & Row
-                    item {
-                        AnimatedEntrance(index = 1) {
-                            Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
-                                Text(
-                                    text = "Explore Categories",
-                                    style = MaterialTheme.typography.titleMedium,
-                                    color = MaterialTheme.colorScheme.onBackground, // High Contrast Mint White
-                                    fontWeight = FontWeight.Bold
-                                )
-                                LazyRow(
-                                    horizontalArrangement = Arrangement.spacedBy(10.dp)
-                                ) {
-                                    items(BiteCategory.entries.filter { it != BiteCategory.ALL }) { category ->
-                                        CategoryChip(
-                                            category = category,
-                                            isSelected = false,
-                                            onSelect = { onNavigateToCategory(it.name) }
+                    sectionsOrder.forEachIndexed { index, section ->
+                        when (section) {
+                            "HERO" -> item {
+                                AnimatedEntrance(index = index) {
+                                    factOfTheDay?.let { fact ->
+                                        FactOfTheDayCard(
+                                            fact = fact,
+                                            onToggleBookmark = { onToggleBookmark(fact.id) },
+                                            onShare = { onShareFact(fact) },
+                                            onClick = { onNavigateToDetail(fact.id) }
                                         )
                                     }
                                 }
                             }
-                        }
-                    }
-
-                    // 3. New Quick Actions (Quiz & Teaser)
-                    item {
-                        AnimatedEntrance(index = 2) {
-                            Row(
-                                modifier = Modifier.fillMaxWidth(),
-                                horizontalArrangement = Arrangement.spacedBy(16.dp)
-                            ) {
-                                QuickActionCard(
-                                    title = "Quiz Mode",
-                                    description = "Test your knowledge",
-                                    icon = Icons.Default.Extension,
-                                    containerColor = MaterialTheme.colorScheme.primaryContainer,
-                                    contentColor = MaterialTheme.colorScheme.onPrimaryContainer,
-                                    onClick = onNavigateToQuiz,
-                                    modifier = Modifier.weight(1f)
-                                )
-                                QuickActionCard(
-                                    title = "Daily Teaser",
-                                    description = "Quick mental puzzle",
-                                    icon = Icons.Default.Lightbulb,
-                                    containerColor = MaterialTheme.colorScheme.secondaryContainer,
-                                    contentColor = MaterialTheme.colorScheme.onSecondaryContainer,
-                                    onClick = onNavigateToTeaser,
-                                    modifier = Modifier.weight(1f)
-                                )
-                            }
-                        }
-                    }
-
-                    // 4. Daily Mood Section (STRICTLY ADDITIVE)
-                    item {
-                        AnimatedEntrance(index = 3) {
-                            Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
-                                DailyMoodSection(selectedMood = selectedMood, onMoodSelected = onMoodSelected)
-                                
-                                AnimatedContent(
-                                    targetState = moodMessage,
-                                    transitionSpec = {
-                                        if (targetState != null) {
-                                            (slideInVertically { height -> -height / 2 } + fadeIn()).togetherWith(
-                                                slideOutVertically { height -> height / 2 } + fadeOut()
-                                            )
-                                        } else {
-                                            fadeIn() togetherWith fadeOut()
-                                        }
-                                    },
-                                    label = "moodMessageAnimation"
-                                ) { msg ->
-                                    if (msg != null) {
-                                        Surface(
-                                            color = MaterialTheme.colorScheme.primary.copy(alpha = 0.1f),
-                                            shape = RoundedCornerShape(12.dp),
-                                            border = BorderStroke(1.dp, MaterialTheme.colorScheme.primary.copy(alpha = 0.2f)),
-                                            modifier = Modifier.fillMaxWidth()
-                                        ) {
-                                            Text(
-                                                text = msg,
-                                                style = MaterialTheme.typography.bodySmall,
-                                                color = MaterialTheme.colorScheme.primary,
-                                                fontWeight = FontWeight.Bold,
-                                                modifier = Modifier.padding(horizontal = 16.dp, vertical = 10.dp)
-                                            )
-                                        }
-                                    }
-                                }
-                            }
-                        }
-                    }
-
-                    // 5. Recently Viewed Section
-                    if (recentlyViewed.isNotEmpty()) {
-                        item {
-                            AnimatedEntrance(index = 4) {
-                                Column {
-                                    Row(
-                                        modifier = Modifier.fillMaxWidth(),
-                                        horizontalArrangement = Arrangement.SpaceBetween,
-                                        verticalAlignment = Alignment.CenterVertically
-                                    ) {
+                            "CATEGORIES" -> item {
+                                AnimatedEntrance(index = index) {
+                                    Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
                                         Text(
-                                            text = "Recently Viewed",
+                                            text = "Explore Categories",
                                             style = MaterialTheme.typography.titleMedium,
                                             color = MaterialTheme.colorScheme.onBackground,
                                             fontWeight = FontWeight.Bold
                                         )
-                                        Box(
-                                            modifier = Modifier
-                                                .clip(RoundedCornerShape(8.dp))
-                                                .premiumClickable(
-                                                    glowColor = MaterialTheme.colorScheme.secondary,
-                                                    onClick = onNavigateToHistory
+                                        LazyRow(horizontalArrangement = Arrangement.spacedBy(10.dp)) {
+                                            items(BiteCategory.entries.filter { it != BiteCategory.ALL }) { category ->
+                                                CategoryChip(
+                                                    category = category,
+                                                    isSelected = false,
+                                                    onSelect = { onNavigateToCategory(it.name) }
                                                 )
-                                                .padding(horizontal = 8.dp, vertical = 4.dp)
-                                        ) {
-                                            Text(
-                                                text = "Show all", 
-                                                color = MaterialTheme.colorScheme.onBackground, 
-                                                fontWeight = FontWeight.Bold,
-                                                style = MaterialTheme.typography.labelLarge
-                                            )
+                                            }
                                         }
                                     }
-                                    Spacer(modifier = Modifier.height(8.dp))
-                                    Column(verticalArrangement = Arrangement.spacedBy(16.dp)) {
+                                }
+                            }
+                            "QUICK_ACTIONS" -> item {
+                                AnimatedEntrance(index = index) {
+                                    Row(
+                                        modifier = Modifier.fillMaxWidth(),
+                                        horizontalArrangement = Arrangement.spacedBy(16.dp)
+                                    ) {
+                                        QuickActionCard(
+                                            title = "Quiz Mode",
+                                            description = "Test your knowledge",
+                                            icon = Icons.Default.Extension,
+                                            containerColor = MaterialTheme.colorScheme.primaryContainer,
+                                            contentColor = MaterialTheme.colorScheme.onPrimaryContainer,
+                                            onClick = onNavigateToQuiz,
+                                            modifier = Modifier.weight(1f)
+                                        )
+                                        QuickActionCard(
+                                            title = "Daily Teaser",
+                                            description = "Quick mental puzzle",
+                                            icon = Icons.Default.Lightbulb,
+                                            containerColor = MaterialTheme.colorScheme.secondaryContainer,
+                                            contentColor = MaterialTheme.colorScheme.onSecondaryContainer,
+                                            onClick = onNavigateToTeaser,
+                                            modifier = Modifier.weight(1f)
+                                        )
+                                    }
+                                }
+                            }
+                            "MOOD" -> item {
+                                AnimatedEntrance(index = index) {
+                                    Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
+                                        DailyMoodSection(selectedMood = selectedMood, onMoodSelected = onMoodSelected)
+                                        AnimatedContent(targetState = moodMessage, label = "moodMsg") { msg ->
+                                            if (msg != null) {
+                                                Surface(
+                                                    color = MaterialTheme.colorScheme.primary.copy(alpha = 0.1f),
+                                                    shape = RoundedCornerShape(12.dp),
+                                                    modifier = Modifier.fillMaxWidth().padding(vertical = 8.dp)
+                                                ) {
+                                                    Text(text = msg, modifier = Modifier.padding(16.dp))
+                                                }
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                            "RECENT" -> if (recentlyViewed.isNotEmpty()) item {
+                                AnimatedEntrance(index = index) {
+                                    Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                                        Text("Recently Viewed", style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold)
                                         recentlyViewed.forEach { fact ->
-                                            BiteCard(
-                                                bite = fact,
-                                                onToggleBookmark = { id -> onToggleBookmark(id) },
-                                                onFactClick = onNavigateToDetail,
-                                                modifier = Modifier.fillMaxWidth()
-                                            )
+                                            BiteCard(bite = fact, onToggleBookmark = onToggleBookmark, onFactClick = onNavigateToDetail)
                                         }
                                     }
                                 }
                             }
-                        }
-                    }
-
-                    // 6. Next Fact Quick Action (Discover Something New)
-                    item {
-                        AnimatedEntrance(index = 5) {
-                            Surface(
-                                modifier = Modifier
-                                    .fillMaxWidth()
-                                    .height(56.dp)
-                                    .premiumClickable(
-                                        glowColor = MaterialTheme.colorScheme.onPrimary,
-                                        onClick = {
-                                            val randomId = allFacts.randomOrNull()?.id ?: ""
-                                            if (randomId.isNotEmpty()) onNavigateToDetail(randomId)
-                                        }
-                                    ),
-                                shape = RoundedCornerShape(16.dp),
-                                border = BorderStroke(1.5.dp, MaterialTheme.colorScheme.primary),
-                                color = MaterialTheme.colorScheme.secondary,
-                                contentColor = MaterialTheme.colorScheme.onPrimary
-                            ) {
-                                Row(
-                                    modifier = Modifier.fillMaxSize(),
-                                    verticalAlignment = Alignment.CenterVertically,
-                                    horizontalArrangement = Arrangement.Center
-                                ) {
-                                    Text("Discover Something New", fontWeight = FontWeight.Bold)
-                                    Spacer(modifier = Modifier.width(8.dp))
-                                    Icon(Icons.AutoMirrored.Filled.ArrowForward, contentDescription = null)
+                            "DISCOVER" -> item {
+                                AnimatedEntrance(index = index) {
+                                    Button(
+                                        onClick = { allFacts.randomOrNull()?.let { onNavigateToDetail(it.id) } },
+                                        modifier = Modifier.fillMaxWidth()
+                                    ) { Text("Discover Something New") }
+                                }
+                            }
+                            "ACHIEVEMENTS" -> item {
+                                AnimatedEntrance(index = index) {
+                                    AchievementsSection(achievements = achievements)
+                                }
+                            }
+                            "TIP" -> item {
+                                dailyTip?.let { tip ->
+                                    AnimatedEntrance(index = index) {
+                                        DailyTipCard(tip = tip)
+                                    }
+                                }
+                            }
+                            "TRENDING" -> item {
+                                AnimatedEntrance(index = index) {
+                                    TrendingQuotesSection(allFacts = allFacts, onNavigateToDetail = onNavigateToDetail)
                                 }
                             }
                         }
                     }
-
-                    // 7. Achievements Section (STRICTLY ADDITIVE & AT BOTTOM)
-                    item {
-                        AnimatedEntrance(index = 6) {
-                            AchievementsSection(achievements = achievements)
-                        }
-                    }
-
-                    // 8. Daily Psychology Tip (NEW)
-                    item {
-                        dailyTip?.let { tip ->
-                            AnimatedEntrance(index = 7) {
-                                DailyTipCard(tip = tip)
-                            }
-                        }
-                    }
-
-                    // 9. Trending Quotes Section (STRICTLY ADDITIVE & AT BOTTOM)
-                    item {
-                        AnimatedEntrance(index = 8) {
-                            TrendingQuotesSection(allFacts = allFacts, onNavigateToDetail = onNavigateToDetail)
-                        }
-                    }
-
                     item { Spacer(modifier = Modifier.height(20.dp)) }
                 }
             } else {
@@ -679,6 +588,7 @@ fun HomeScreenPreview() {
             selectedMood = null,
             moodMessage = null,
             dailyTip = PsychologyTip("Sample Tip", "This is a preview message."),
+            sectionsOrder = listOf("HERO", "CATEGORIES", "QUICK_ACTIONS", "MOOD", "RECENT", "DISCOVER", "ACHIEVEMENTS", "TIP", "TRENDING"),
             onMoodSelected = {},
             onNavigateToCategory = {},
             onNavigateToDetail = {},
