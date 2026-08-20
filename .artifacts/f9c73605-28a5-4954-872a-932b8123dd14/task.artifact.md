@@ -1,11 +1,12 @@
-- `[x]` **Phase 31: Visual Vector Library Integration**
-    - `[x]` Expand `IconMap` with a comprehensive set of registered `lucide-react` symbols
-    - `[x]` Implement `IconSelectorMatrix` with **strict 2-line upward scroll** fix
-    - `[x]` Add "Live Search" filter logic to the icon matrix
-    - `[x]` Connect selector selection to `formData.vectorIcon` and "Live Card Preview"
-- `[x]` **Phase 30: Version 1.0.7 Finalization**
-- `[x]` **Phase 29: Final UI Cleanup & Noise Removal**
-- `[x]` **Phase 28: Interaction & Immersion Refinements**
-- `[x]` **Phase 27: "Pristine Sage" Light Theme Optimization**
-- `[x]` **Phase 26: "Living Emerald" Color Harmonization**
-- `[x]` **Phase 25: Elimination of Technical Noise**
+# Task: Dashboard - Quick Dispatch Node Implementation
+
+- `[ ]` **Phase 1: Component & Logic Integration**
+    - `[ ]` Add `quickMessage` state to `DashboardPage.tsx`
+    - `[ ]` Implement `handleQuickDispatch` function
+    - `[ ]` Create `QuickDispatchNode` JSX block
+- `[ ]` **Phase 2: Layout Refinement**
+    - `[ ]` Adjust bottom grid to `lg:grid-cols-3`
+    - `[ ]` Assign `lg:col-span-1` to Security Pulse and `lg:col-span-2` to Quick Dispatch
+- `[ ]` **Phase 3: Verification**
+    - `[ ]` Test empty message validation
+    - `[ ]` Verify successful broadcast via Toast and API

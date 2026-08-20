@@ -1,35 +1,42 @@
-# Implementation Plan - Visual Vector Library Integration
+# Implementation Plan - Dashboard: Quick Dispatch Node
 
-This plan addresses the need for a selectable list of icons for the "Vector ID" field in the Category Editor, replacing manual text entry with a high-fidelity visual selector.
+This plan introduces a **Quick Dispatch Node** to the dashboard, allowing administrators to broadcast "Flash Notifications" to all users instantly without navigating to the full notification hub.
+
+## User Review Required
+
+> [!IMPORTANT]
+> The Quick Dispatch tool is designed for high-velocity, text-only broadcasts. For notifications requiring images or deep links, the full **Broadcast Hub** should still be used.
 
 ## Proposed Changes
 
-### [MODIFY] [CategoriesPage.tsx](file:///F:/webBasedAdminPanel/src/pages/categories/CategoriesPage.tsx)
+### 1. Quick Dispatch Component
+Add a new glassmorphic widget to the dashboard.
+- **Component**: `QuickDispatchNode`
+- **UI Elements**:
+    - **Single Headline Input**: "Message Headline"
+    - **Dispatch Button**: Emerald button with a "Send" icon and spring-physics interaction.
+- **Styling**: Standard glassmorphism with emerald glow effects to match the `SecurityPulse`.
 
-#### 1. Comprehensive Icon Registry
-- **Expanded IconMap**: Import and register a wide variety of `lucide-react` icons suitable for psychological categories (e.g., `Target`, `Shield`, `Zap`, `Star`, `Compass`, `Atom`, `Biohazard`, `Dna`, etc.).
-- **Vector Library Constant**: Create an array of available icon keys for the selector to map over.
+### 2. Logic Integration
+#### [MODIFY] [DashboardPage.tsx](file:///F:/webBasedAdminPanel/src/pages/dashboard/DashboardPage.tsx)
+- **Implement `handleQuickDispatch`**:
+    - Validate that the input is not empty.
+    - Generate a standard `AppNotification` object with `type: 'GENERAL'`.
+    - Invoke `sendGlobalNotification` from the `adminApi`.
+    - Provide an "Atomic Dispatch Success" toast.
 
-#### 2. Vector Icon Matrix Selector
-- **Interactive Trigger**: Convert the "Vector ID" text input into a "Selection Trigger" that opens a visual grid.
-- **Glass Popover UI**:
-    - Implement a floating glass-themed grid that appears when the field is clicked.
-    - **Search Functionality**: Add a small, high-speed filter bar to find icons by name.
-    - **Visual Grid**: Display a grid of icons (e.g., 6 columns) where each item shows the icon and its ID on hover.
-    - **Selection Logic**: Clicking an icon automatically updates the `formData.vectorIcon` and provides immediate feedback through the "Live Preview".
-
-#### 3. UX & Animation
-- **Proximity Placement**: Anchor the selector grid directly below the Vector ID field.
-- **Micro-Animations**: Use Framer Motion to animate the entry and exit of the selector (scale-up/fade-in).
-- **Clearance**: Ensure the selector stays within the 16px absolute boundary and doesn't trigger scrollbars.
+### 3. Layout Update
+#### [MODIFY] [DashboardPage.tsx](file:///F:/webBasedAdminPanel/src/pages/dashboard/DashboardPage.tsx)
+- Reorganize the bottom row grid.
+- **Security Pulse** will occupy 1/3 of the width.
+- **Quick Dispatch Node** will occupy 2/3 of the width on large screens.
 
 ## Verification Plan
 
 ### Manual Verification
-1. **Interactive Trigger Test**: Click the "Vector ID" field and verify that the visual icon matrix opens immediately.
-2. **Search Efficiency**: Type "Brain" or "Users" in the selector's filter and verify that only relevant icons are shown.
-3. **Selection Success**: Select a new icon (e.g., `Zap`) and verify that:
-    - The `formData.vectorIcon` string updates correctly.
-    - The "Live Card Preview" icon changes instantly.
-    - The selector closes automatically (or via clicking outside).
-4. **Visual Alignment Check**: Confirm that the selector doesn't break the "sequential alignment" of Section 1.
+1. **Empty State Test**: Click "Dispatch" without entering text and confirm the validation error toast appears.
+2. **Success Flow**:
+    - Enter a message like "Protocol Update: New insights synced."
+    - Click "Dispatch".
+    - Confirm the button shows a loading state and then a success toast.
+3. **Registry Check**: Verify the notification appears in the full `NotificationsPage` log.
