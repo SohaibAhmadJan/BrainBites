@@ -17,3 +17,12 @@
 *-firebase-adminsdk-*.json
 brainbites-*.json
 serviceAccountKey.json
+
+# Private Keys and Config
+google-services.json
+*.jks
+*.keystore
+
+# Local Logs
+hs_err_pid*.log
+replay_pid*.log

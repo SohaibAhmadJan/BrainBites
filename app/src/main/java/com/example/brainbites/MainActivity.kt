@@ -42,17 +42,20 @@ class MainActivity : ComponentActivity() {
     }
 
     override fun onCreate(savedInstanceState: Bundle?) {
+        Log.d("BRAIN_BITES", "MainActivity: onCreate TRIGGERED")
+        android.widget.Toast.makeText(this, "BrainBites Starting...", android.widget.Toast.LENGTH_SHORT).show()
         super.onCreate(savedInstanceState)
         
         checkNotificationPermission()
         ThemeManager.initialize(this)
         PreferenceManager.initialize(this)
+        AnalyticsRepository.initializeInstallation(this)
         SettingsRepository.startListening()
         NotificationRepository.startGlobalListener(this) // Start heartbeat immediately
         AnalyticsRepository.logAppOpen()
 
         lifecycleScope.launch {
-            AuthRepository.syncUser()
+            AuthRepository.syncUser(this@MainActivity)
             AuthRepository.updateLastActive()
         }
 
