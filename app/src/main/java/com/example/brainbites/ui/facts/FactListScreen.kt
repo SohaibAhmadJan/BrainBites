@@ -14,7 +14,7 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
-import com.example.brainbites.data.BiteCategory
+import com.example.brainbites.data.AnalyticsRepository
 import com.example.brainbites.data.BiteItem
 import com.example.brainbites.ui.components.BiteCard
 import com.example.brainbites.ui.components.BrandHeader
@@ -31,6 +31,9 @@ fun FactListScreen(
     
     LaunchedEffect(categoryId) {
         viewModel.loadFacts(categoryId)
+        if (categoryId != "ALL") {
+            AnalyticsRepository.logCategoryView(categoryId)
+        }
     }
 
     FactListContent(
@@ -84,7 +87,7 @@ fun FactListScreenPreview() {
         val sampleFact = BiteItem(
             id = "1",
             fact = "Humans tend to mimic the body language of people they're comfortable with.",
-            category = BiteCategory.HUMAN_BEHAVIOR
+            category = "Human Behavior"
         )
         FactListContent(
             categoryId = "HUMAN_BEHAVIOR",

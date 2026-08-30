@@ -3,15 +3,16 @@ package com.example.brainbites.ui.categories
 import android.app.Application
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
-import com.example.brainbites.data.BiteCategory
 import com.example.brainbites.data.BiteItem
 import com.example.brainbites.data.BiteRepository
+import com.example.brainbites.data.Category
 import com.example.brainbites.data.CollectionSet
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.launch
 
-data class CategoryInfo(val category: BiteCategory, val count: Int)
+data class CategoryInfo(val category: Category, val count: Int)
 
 class CategoriesViewModel(application: Application) : AndroidViewModel(application) {
     private val _categories = MutableStateFlow<List<CategoryInfo>>(emptyList())
@@ -30,6 +31,7 @@ class CategoriesViewModel(application: Application) : AndroidViewModel(applicati
     val searchResults = _searchResults.asStateFlow()
 
     private var allFactsCache: List<BiteItem> = emptyList()
+    private var allCategoriesCache: List<Category> = emptyList()
 
     init {
         loadInitialData()
@@ -37,22 +39,32 @@ class CategoriesViewModel(application: Application) : AndroidViewModel(applicati
 
     private fun loadInitialData() {
         viewModelScope.launch {
-            BiteRepository.getAllFacts(getApplication()).collect { facts ->
+            combine(
+                BiteRepository.getAllFacts(getApplication()),
+                BiteRepository.getAllCategories()
+            ) { facts, categories ->
                 allFactsCache = facts
+                allCategoriesCache = categories
                 
-                // Categories
-                val list = BiteCategory.entries.filter { it != BiteCategory.ALL }.map { cat ->
-                    CategoryInfo(cat, facts.count { it.category == cat })
+                // Map Categories to Info with counts (Case-insensitive)
+                categories.map { cat ->
+                    CategoryInfo(cat, facts.count { 
+                        it.category.equals(cat.name, ignoreCase = true) || 
+                        it.category.equals(cat.id, ignoreCase = true) 
+                    })
                 }
+            }.collect { list ->
                 _categories.value = list
-
-                // Featured Insights (Selecting one fact from each of 5 different categories for diversity)
-                val diverseFacts = facts.groupBy { it.category }
-                    .values
-                    .map { it.shuffled().first() }
-                    .shuffled()
-                    .take(5)
-                _featuredFacts.value = diverseFacts
+                
+                // Update Featured Insights based on available categories
+                if (allFactsCache.isNotEmpty()) {
+                    val diverseFacts = allFactsCache.groupBy { it.category }
+                        .values
+                        .map { it.shuffled().first() }
+                        .shuffled()
+                        .take(5)
+                    _featuredFacts.value = diverseFacts
+                }
             }
         }
 
@@ -72,7 +84,7 @@ class CategoriesViewModel(application: Application) : AndroidViewModel(applicati
             _searchResults.value = allFactsCache.filter { item ->
                 tokens.all { token ->
                     item.fact.contains(token, ignoreCase = true) ||
-                    item.category.displayName.contains(token, ignoreCase = true) ||
+                    item.category.contains(token, ignoreCase = true) ||
                     (item.keywords?.contains(token, ignoreCase = true) ?: false)
                 }
             }

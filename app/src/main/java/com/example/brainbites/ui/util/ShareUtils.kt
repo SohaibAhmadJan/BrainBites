@@ -6,6 +6,7 @@ import android.graphics.Bitmap
 import android.net.Uri
 import android.util.Log
 import androidx.core.content.FileProvider
+import com.example.brainbites.data.AnalyticsRepository
 import com.example.brainbites.data.BiteRepository
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -17,7 +18,7 @@ import java.io.FileOutputStream
 object ShareUtils {
     private const val TAG = "SmartSharing"
 
-    fun shareFact(context: Context, factText: String) {
+    fun shareFact(context: Context, factId: String, factText: String) {
         val sendIntent: Intent = Intent().apply {
             action = Intent.ACTION_SEND
             putExtra(Intent.EXTRA_TEXT, "Did you know? \n\n$factText\n\nShared from BrainBites 🧠")
@@ -29,10 +30,11 @@ object ShareUtils {
         
         CoroutineScope(Dispatchers.IO).launch {
             BiteRepository.incrementShares(context)
+            AnalyticsRepository.logShare(factId)
         }
     }
 
-    fun shareFactAsImage(context: Context, bitmap: Bitmap, factText: String) {
+    fun shareFactAsImage(context: Context, factId: String, bitmap: Bitmap, factText: String) {
         CoroutineScope(Dispatchers.IO).launch {
             try {
                 Log.d(TAG, "Starting image generation for sharing...")
@@ -68,6 +70,7 @@ object ShareUtils {
                 }
                 
                 BiteRepository.incrementShares(context)
+                AnalyticsRepository.logShare(factId)
             } catch (e: Exception) {
                 Log.e(TAG, "Error in Smart Sharing", e)
                 e.printStackTrace()

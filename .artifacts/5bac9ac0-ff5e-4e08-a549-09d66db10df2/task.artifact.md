@@ -1,0 +1,9 @@
+- [ ] **Admin Drawer UI Overhaul**
+    - [ ] Replace Role dropdown with Card Grid
+    - [ ] Replace Status toggle with Mode Switch
+    - [ ] Align spacing/fonts with Fact Editor
+- [ ] **Code Hygiene**
+    - [ ] Remove redundant/unused components
+- [ ] **Verification**
+    - [ ] Visual audit of the new Matrix layout
+    - [ ] Test form submission

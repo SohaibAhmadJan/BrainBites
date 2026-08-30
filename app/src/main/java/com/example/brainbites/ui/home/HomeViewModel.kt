@@ -1,10 +1,6 @@
 package com.example.brainbites.ui.home
 
 import android.app.Application
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.filled.MenuBook
-import androidx.compose.material.icons.filled.EmojiEvents
-import androidx.compose.material.icons.filled.Psychology
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.brainbites.data.Achievement
@@ -14,6 +10,7 @@ import com.example.brainbites.data.AchievementStatus
 import com.example.brainbites.data.AuthRepository
 import com.example.brainbites.data.BiteItem
 import com.example.brainbites.data.BiteRepository
+import com.example.brainbites.data.Category
 import com.example.brainbites.data.Notification
 import com.example.brainbites.data.NotificationRepository
 import com.example.brainbites.data.NotificationType
@@ -26,6 +23,9 @@ import kotlinx.coroutines.launch
 class HomeViewModel(application: Application) : AndroidViewModel(application) {
     private val _allFacts = MutableStateFlow<List<BiteItem>>(emptyList())
     val allFacts = _allFacts.asStateFlow()
+
+    private val _categories = MutableStateFlow<List<Category>>(emptyList())
+    val categories = _categories.asStateFlow()
 
     private val _rotatingFactId = MutableStateFlow<String?>(null)
     
@@ -51,6 +51,7 @@ class HomeViewModel(application: Application) : AndroidViewModel(application) {
 
     init {
         loadFacts()
+        loadCategories()
         loadHistory()
         loadAchievements()
         observeSettings()
@@ -89,6 +90,14 @@ class HomeViewModel(application: Application) : AndroidViewModel(application) {
         }
     }
 
+    private fun loadCategories() {
+        viewModelScope.launch {
+            BiteRepository.getAllCategories().collect { list ->
+                _categories.value = list
+            }
+        }
+    }
+
     private fun loadHistory() {
         viewModelScope.launch {
             BiteRepository.getHistoryFacts(getApplication()).collect { history ->
@@ -103,13 +112,15 @@ class HomeViewModel(application: Application) : AndroidViewModel(application) {
                 BiteRepository.getHistoryItems(),
                 BiteRepository.getFavoriteFacts(getApplication()),
                 BiteRepository.getSharesCount(),
-                BiteRepository.getAllFacts(getApplication())
-            ) { history, favorites, shares, allFacts ->
+                BiteRepository.getAllFacts(getApplication()),
+                AchievementRepository.definitions
+            ) { history, favorites, shares, allFacts, definitions ->
                 AchievementManager.calculateAchievements(
                     historyItems = history,
                     favoritesCount = favorites.size,
                     sharesCount = shares,
-                    allFacts = allFacts
+                    allFacts = allFacts,
+                    definitions = definitions
                 )
             }.collect { currentAchievements ->
                 _achievements.value = currentAchievements
@@ -163,19 +174,19 @@ class HomeViewModel(application: Application) : AndroidViewModel(application) {
 
         _selectedMood.value = mood
         
-        val (category, message) = when (mood) {
-            "😊 Happy" -> com.example.brainbites.data.BiteCategory.LOVE_ATTRACTION to "Keep spreading the joy! Here's something about connection."
-            "😌 Calm" -> com.example.brainbites.data.BiteCategory.BODY_LANGUAGE to "Peace is power. Discover the language of serenity."
-            "😔 Sad" -> com.example.brainbites.data.BiteCategory.MENTAL_HEALTH to "It's okay to feel. Here's a bite of mental wellness for you."
-            "😤 Stressed" -> com.example.brainbites.data.BiteCategory.MENTAL_HEALTH to "Take a deep breath. Let's look at how the mind handles pressure."
-            "💡 Motivated" -> com.example.brainbites.data.BiteCategory.HABITS_MOTIVATION to "Fuel your fire! Here's a tip on habits and drive."
-            else -> com.example.brainbites.data.BiteCategory.HUMAN_BEHAVIOR to "Curiosity is the best mood! Explore this insight."
+        val (categoryName, message) = when (mood) {
+            "😊 Happy" -> "Love & Attraction" to "Keep spreading the joy! Here's something about connection."
+            "😌 Calm" -> "Body Language" to "Peace is power. Discover the language of serenity."
+            "😔 Sad" -> "Mental Health" to "It's okay to feel. Here's a bite of mental wellness for you."
+            "😤 Stressed" -> "Mental Health" to "Take a deep breath. Let's look at how the mind handles pressure."
+            "💡 Motivated" -> "Habits & Motivation" to "Fuel your fire! Here's a tip on habits and drive."
+            else -> "Human Behavior" to "Curiosity is the best mood! Explore this insight."
         }
 
         _moodMessage.value = message
 
         // Immediately update rotating fact to match mood
-        val matchingFacts = _allFacts.value.filter { it.category == category }
+        val matchingFacts = _allFacts.value.filter { it.category == categoryName }
         if (matchingFacts.isNotEmpty()) {
             _rotatingFactId.value = matchingFacts.random().id
         }

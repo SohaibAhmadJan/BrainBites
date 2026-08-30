@@ -20,14 +20,35 @@ object AnalyticsRepository {
     }
 
     fun logFactView(factId: String) {
-        logEvent("fact_view", mapOf("factId" to factId))
+        logEvent("read_fact", mapOf("item_id" to factId))
     }
 
-    fun logQuizAttempt(factId: String, isCorrect: Boolean) {
-        logEvent("quiz_attempt", mapOf("factId" to factId, "isCorrect" to isCorrect))
+    fun logCategoryView(categoryId: String) {
+        logEvent("category_view", mapOf("category_id" to categoryId))
     }
 
     fun logShare(factId: String) {
-        logEvent("fact_share", mapOf("factId" to factId))
+        logEvent("fact_share", mapOf("item_id" to factId))
+    }
+
+    fun logSearch(query: String, resultCount: Int) {
+        logEvent("content_search", mapOf(
+            "query" to query.lowercase(),
+            "results" to resultCount
+        ))
+    }
+
+    fun logAchievement(achievementId: String) {
+        logEvent("achievement_unlocked", mapOf("achievement_id" to achievementId))
+    }
+
+    fun logAppOpen() {
+        logEvent("app_open")
+    }
+
+    fun logAppInstall(context: android.content.Context) {
+        val prefs = context.getSharedPreferences("brain_bites_device", android.content.Context.MODE_PRIVATE)
+        val deviceId = prefs.getString("device_id", "unknown_device")
+        logEvent("app_install", mapOf("device_id" to (deviceId ?: "unknown_device")))
     }
 }

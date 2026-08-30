@@ -15,18 +15,23 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.dp
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
-import com.example.brainbites.data.BiteCategory
+import com.example.brainbites.data.Category
 import com.example.brainbites.ui.util.getIconDrawable
 import com.example.brainbites.ui.util.premiumClickable
 
 @Composable
 fun CategoryChip(
-    category: BiteCategory,
+    category: Category,
     isSelected: Boolean,
-    onSelect: (BiteCategory) -> Unit,
+    onSelect: (Category) -> Unit,
     modifier: Modifier = Modifier
 ) {
-    val categoryColor = Color(android.graphics.Color.parseColor(category.colorHex))
+    val categoryColor = try {
+        Color(android.graphics.Color.parseColor(category.color))
+    } catch (e: Exception) {
+        MaterialTheme.colorScheme.primary
+    }
+    
     val backgroundColor = if (isSelected) categoryColor else MaterialTheme.colorScheme.surface
     val textColor = if (isSelected) MaterialTheme.colorScheme.onPrimary else MaterialTheme.colorScheme.onSurface
 
@@ -57,7 +62,7 @@ fun CategoryChip(
         }
         Spacer(modifier = Modifier.width(8.dp))
         Text(
-            text = category.displayName,
+            text = category.name,
             color = textColor,
             style = MaterialTheme.typography.labelLarge,
             fontWeight = if (isSelected) FontWeight.Bold else FontWeight.Medium

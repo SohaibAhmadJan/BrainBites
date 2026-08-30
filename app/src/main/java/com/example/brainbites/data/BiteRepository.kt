@@ -33,7 +33,8 @@ data class CollectionSet(
     val description: String,
     val icon: String,
     val color: String,
-    val factIds: List<String>
+    val factIds: List<String>,
+    val isPublished: Boolean = true
 )
 
 @Serializable
@@ -51,6 +52,7 @@ object BiteRepository {
 
     private val _bites = MutableStateFlow<List<BiteItem>>(emptyList())
     private val _collections = MutableStateFlow<List<CollectionSet>>(emptyList())
+    private val _categories = MutableStateFlow<List<Category>>(emptyList())
     private val favoriteIds = MutableStateFlow<Set<String>>(emptySet())
     private val historyItems = MutableStateFlow<List<HistoryItem>>(emptyList())
     private val _sharesCount = MutableStateFlow(0)
@@ -238,22 +240,6 @@ object BiteRepository {
         }
     }
 
-    private fun getBackupQuery(category: BiteCategory): String {
-        return when (category) {
-            BiteCategory.HUMAN_BEHAVIOR -> "people,social"
-            BiteCategory.MENTAL_HEALTH -> "nature,peace"
-            BiteCategory.BRAIN_SCIENCE -> "science,brain"
-            BiteCategory.LOVE_ATTRACTION -> "love,couple"
-            BiteCategory.PERSONALITY -> "face,portrait"
-            BiteCategory.BODY_LANGUAGE -> "gesture,pose"
-            BiteCategory.SUBCONSCIOUS -> "dream,mysterious"
-            BiteCategory.SOCIAL_PSYCHOLOGY -> "society,crowd"
-            BiteCategory.HABITS_MOTIVATION -> "goal,success"
-            BiteCategory.MEMORY_LEARNING -> "study,books"
-            else -> "educational,fact"
-        }
-    }
-
     private fun buildSecureImageUrl(id: String): String {
         // Switch to Picsum Photos for maximum reliability and 100% success rate
         // Using seed forces a unique image per ID while being extremely stable
@@ -287,7 +273,42 @@ object BiteRepository {
     suspend fun refreshData(context: Context, forceRemote: Boolean = true) {
         if (_bites.value.isEmpty() || forceRemote) {
             try {
-                // Try Firestore
+                // 1. Load Dynamic Categories first
+                val categoriesSnapshot = db.collection("categories").get().await()
+                val dynamicCategories = categoriesSnapshot.documents.mapNotNull { doc ->
+                    try {
+                        Category(
+                            id = doc.id,
+                            name = doc.getString("name") ?: "",
+                            icon = doc.getString("icon") ?: "🧠",
+                            vectorIcon = doc.getString("vectorIcon") ?: "Brain",
+                            color = doc.getString("color") ?: "#2D6A4F",
+                            description = doc.getString("description") ?: "",
+                            sortOrder = doc.getLong("sortOrder")?.toInt() ?: 0,
+                            isPublished = doc.getBoolean("isPublished") ?: doc.getBoolean("isActive") ?: true
+                        )
+                    } catch (e: Exception) { null }
+                }
+                
+                // Merge with default categories if needed (ensure UI consistency)
+                val defaultCategories = BiteCategory.values().filter { it != BiteCategory.ALL }.map { 
+                    Category(it.name, it.displayName, it.iconRes, it.iconRes, it.colorHex, "", 0, true) 
+                }
+                
+                // Robust de-duplication: By ID and by Name (case-insensitive)
+                // We build a map where the key is the normalized name, and Firestore entries overwrite defaults
+                val categoryMap = mutableMapOf<String, Category>()
+                
+                // 1. Load Defaults
+                defaultCategories.forEach { categoryMap[it.name.lowercase()] = it }
+                
+                // 2. Overwrite with Dynamic (Firestore versions win)
+                dynamicCategories.forEach { categoryMap[it.name.lowercase()] = it }
+                
+                // Filter for Active categories only in the user app
+                _categories.value = categoryMap.values.filter { it.isPublished }.sortedBy { it.sortOrder }
+
+                // 2. Load Facts
                 val factsSnapshot = db.collection("facts").get().await()
                 
                 if (!factsSnapshot.isEmpty) {
@@ -310,19 +331,12 @@ object BiteRepository {
                             val id = doc.id
                             val fact = doc.getString("fact") ?: ""
                             val categoryStr = doc.getString("category") ?: "Human Behavior"
-                            val category = try {
-                                BiteCategory.values().find { it.displayName == categoryStr || it.name == categoryStr } 
-                                    ?: BiteCategory.HUMAN_BEHAVIOR
-                            } catch (e: Exception) {
-                                BiteCategory.HUMAN_BEHAVIOR
-                            }
-                            
                             val quiz = quizMap[id]
                             
                             BiteItem(
                                 id = id,
                                 fact = fact,
-                                category = category,
+                                category = categoryStr,
                                 title = doc.getString("title"),
                                 snippet = doc.getString("snippet"),
                                 fullFact = doc.getString("fullFact"),
@@ -333,7 +347,8 @@ object BiteRepository {
                                 teaserType = quiz?.teaserType,
                                 imageUrl = doc.getString("imageUrl") ?: buildSecureImageUrl(id),
                                 keywords = doc.getString("keywords") ?: getSearchQuery(id),
-                                readTimeMinutes = doc.getLong("readTimeMinutes")?.toInt() ?: 1
+                                readTimeMinutes = doc.getLong("readTimeMinutes")?.toInt() ?: 1,
+                                isPublished = doc.getBoolean("isPublished") ?: true
                             )
                         } catch (e: Exception) {
                             Log.e("BiteRepository", "Error mapping fact ${doc.id}", e)
@@ -342,13 +357,14 @@ object BiteRepository {
                     }
                     
                     if (firestoreFacts.isNotEmpty()) {
-                        _bites.value = firestoreFacts
+                        // Filter for Published only in the user app
+                        _bites.value = firestoreFacts.filter { it.isPublished }
                         Log.d("BiteRepository", "Loaded ${firestoreFacts.size} facts from Firestore")
                         
                         // Also try to load collections from Firestore
                         val collectionsSnapshot = db.collection("collections").get().await()
                         if (!collectionsSnapshot.isEmpty) {
-                            _collections.value = collectionsSnapshot.documents.mapNotNull { doc ->
+                            val allCols = collectionsSnapshot.documents.mapNotNull { doc ->
                                 try {
                                     CollectionSet(
                                         id = doc.id,
@@ -356,13 +372,17 @@ object BiteRepository {
                                         description = doc.getString("description") ?: "",
                                         icon = doc.getString("icon") ?: "✨",
                                         color = doc.getString("color") ?: "#A8DADC",
-                                        factIds = doc.get("factIds")?.let { if (it is List<*>) it.filterIsInstance<String>() else emptyList() } ?: emptyList()
+                                        factIds = doc.get("factIds")?.let { if (it is List<*>) it.filterIsInstance<String>() else emptyList() } ?: emptyList(),
+                                        isPublished = doc.getBoolean("isPublished") ?: true
                                     )
                                 } catch (e: Exception) {
                                     null
                                 }
                             }
+                            // Filter for Published only in the user app
+                            _collections.value = allCols.filter { it.isPublished }
                         }
+
                         if (forceRemote) return // Done
                     }
                 }
@@ -375,6 +395,9 @@ object BiteRepository {
                 try {
                     // Load Facts
                     val factsString = context.assets.open("facts.json").bufferedReader().use { it.readText() }
+                    
+                    // Since BiteItem now has category: String, we need a custom deserializer or just adjust the JSON.
+                    // But if the JSON already has category names as strings, it might just work.
                     val factsWrapper = json.decodeFromString<FactsWrapper>(factsString)
                     
                     // Load Quizzes
@@ -412,6 +435,24 @@ object BiteRepository {
     }
 
     fun getAllCollections(): Flow<List<CollectionSet>> = _collections.asStateFlow()
+    fun getAllCategories(): Flow<List<Category>> = _categories.asStateFlow()
+
+    fun resolveCategory(categoryName: String): Category {
+        val dynamic = _categories.value.find { 
+            it.name.equals(categoryName, ignoreCase = true) || it.id.equals(categoryName, ignoreCase = true) 
+        }
+        if (dynamic != null) return dynamic
+        
+        // Fallback to BiteCategory enum (Case-insensitive)
+        val default = BiteCategory.values().find { 
+            it.displayName.equals(categoryName, ignoreCase = true) || it.name.equals(categoryName, ignoreCase = true) 
+        }
+        return if (default != null) {
+            Category(default.name, default.displayName, default.iconRes, default.iconRes, default.colorHex, "", 0)
+        } else {
+            Category("unknown", categoryName)
+        }
+    }
 
     fun getCollection(id: String): CollectionSet? = _collections.value.find { it.id == id }
 

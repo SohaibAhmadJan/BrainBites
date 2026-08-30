@@ -27,7 +27,6 @@ object SettingsRepository {
                             latestVersion = snapshot.getString("latestVersion") ?: "3.4.8.7",
                             minVersion = snapshot.getString("minVersion") ?: "1.0.0",
                             supportEmail = snapshot.getString("supportEmail") ?: "support@brainbites.com",
-                            quizzesEnabled = flags?.get("quizzesEnabled") as? Boolean ?: true,
                             achievementsEnabled = flags?.get("achievementsEnabled") as? Boolean ?: true,
                             dailyFactEnabled = flags?.get("dailyFactEnabled") as? Boolean ?: true,
                             featuredFactId = snapshot.getString("featuredFactId") ?: "1",

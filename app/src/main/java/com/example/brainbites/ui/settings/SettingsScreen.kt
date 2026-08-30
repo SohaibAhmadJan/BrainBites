@@ -24,10 +24,13 @@ import com.example.brainbites.ui.util.ExportUtils
 import com.example.brainbites.ui.theme.BrainBitesTheme
 import com.example.brainbites.ui.theme.ThemeMode
 import com.example.brainbites.data.BiteRepository
+import com.example.brainbites.data.AuthRepository
+import kotlinx.coroutines.launch
 
 @Composable
 fun SettingsScreen() {
     val context = LocalContext.current
+    val scope = rememberCoroutineScope()
     val currentTheme by ThemeManager.themeMode.collectAsState()
     val dailyGoal by PreferenceManager.dailyGoal.collectAsState()
     val textScale by PreferenceManager.textScale.collectAsState()
@@ -100,7 +103,10 @@ fun SettingsScreen() {
                     subtitle = "Receive a new psychology fact every day",
                     icon = Icons.Default.Notifications,
                     checked = notificationsEnabled,
-                    onCheckedChange = { notificationsEnabled = it }
+                    onCheckedChange = { 
+                        notificationsEnabled = it
+                        scope.launch { AuthRepository.updateUserPreferences(notifications = it) }
+                    }
                 )
             }
         }
@@ -128,7 +134,10 @@ fun SettingsScreen() {
             AnimatedEntrance(index = 4) {
                 GoalSelector(
                     selectedGoal = dailyGoal,
-                    onGoalSelected = { PreferenceManager.setDailyGoal(context, it) }
+                    onGoalSelected = { 
+                        PreferenceManager.setDailyGoal(context, it)
+                        scope.launch { AuthRepository.updateUserPreferences(dailyGoal = it) }
+                    }
                 )
             }
         }
@@ -154,7 +163,10 @@ fun SettingsScreen() {
             AnimatedEntrance(index = 7) {
                 TextScaleSelector(
                     currentScale = textScale,
-                    onScaleChanged = { PreferenceManager.setTextScale(context, it) }
+                    onScaleChanged = { 
+                        PreferenceManager.setTextScale(context, it)
+                        scope.launch { AuthRepository.updateUserPreferences(textScale = it) }
+                    }
                 )
             }
         }
@@ -166,7 +178,10 @@ fun SettingsScreen() {
                     subtitle = "Subtle vibrations during interactions",
                     icon = Icons.Default.Vibration,
                     checked = hapticsEnabled,
-                    onCheckedChange = { PreferenceManager.setHapticsEnabled(context, it) }
+                    onCheckedChange = { 
+                        PreferenceManager.setHapticsEnabled(context, it)
+                        scope.launch { AuthRepository.updateUserPreferences(haptics = it) }
+                    }
                 )
             }
         }

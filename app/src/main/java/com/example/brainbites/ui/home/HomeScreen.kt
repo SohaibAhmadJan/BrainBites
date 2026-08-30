@@ -41,8 +41,9 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.brainbites.data.Achievement
-import com.example.brainbites.data.BiteCategory
 import com.example.brainbites.data.BiteItem
+import com.example.brainbites.data.BiteRepository
+import com.example.brainbites.data.Category
 import com.example.brainbites.ui.home.components.DailyTipCard
 import com.example.brainbites.ui.components.AnimatedEntrance
 import com.example.brainbites.ui.components.*
@@ -59,12 +60,12 @@ import kotlinx.coroutines.launch
 fun HomeScreen(
     onNavigateToCategory: (String) -> Unit,
     onNavigateToDetail: (String) -> Unit,
-    onNavigateToQuiz: () -> Unit,
     onNavigateToTeaser: () -> Unit,
     onNavigateToHistory: () -> Unit,
     viewModel: HomeViewModel = viewModel()
 ) {
     val allFacts by viewModel.allFacts.collectAsState()
+    val categories by viewModel.categories.collectAsState()
     val rotatingFact by viewModel.rotatingFact.collectAsState()
     val recentlyViewed by viewModel.recentlyViewed.collectAsState()
     val achievements by viewModel.achievements.collectAsState()
@@ -99,6 +100,7 @@ fun HomeScreen(
 
         HomeScreenContent(
             allFacts = allFacts,
+            categories = categories,
             factOfTheDay = currentRotatingFact,
             recentlyViewed = recentlyViewed,
             achievements = achievements,
@@ -109,14 +111,13 @@ fun HomeScreen(
             onMoodSelected = { viewModel.selectMood(it) },
             onNavigateToCategory = onNavigateToCategory,
             onNavigateToDetail = onNavigateToDetail,
-            onNavigateToQuiz = onNavigateToQuiz,
             onNavigateToTeaser = onNavigateToTeaser,
             onNavigateToHistory = onNavigateToHistory,
             onToggleBookmark = { id -> viewModel.toggleBookmark(id) },
             onShareFact = { fact ->
                 coroutineScope.launch {
                     val bitmap = captureController.captureToBitmap()
-                    ShareUtils.shareFactAsImage(context, bitmap, fact.fact)
+                    ShareUtils.shareFactAsImage(context, fact.id, bitmap, fact.fact)
                 }
             }
         )
@@ -127,6 +128,7 @@ fun HomeScreen(
 @Composable
 fun HomeScreenContent(
     allFacts: List<BiteItem>,
+    categories: List<Category>,
     factOfTheDay: BiteItem?,
     recentlyViewed: List<BiteItem>,
     achievements: List<Achievement>,
@@ -137,7 +139,6 @@ fun HomeScreenContent(
     onMoodSelected: (String) -> Unit,
     onNavigateToCategory: (String) -> Unit,
     onNavigateToDetail: (String) -> Unit,
-    onNavigateToQuiz: () -> Unit,
     onNavigateToTeaser: () -> Unit,
     onNavigateToHistory: () -> Unit,
     onToggleBookmark: (String) -> Unit,
@@ -184,7 +185,7 @@ fun HomeScreenContent(
                                             fontWeight = FontWeight.Bold
                                         )
                                         LazyRow(horizontalArrangement = Arrangement.spacedBy(10.dp)) {
-                                            items(BiteCategory.entries.filter { it != BiteCategory.ALL }) { category ->
+                                            items(categories) { category ->
                                                 CategoryChip(
                                                     category = category,
                                                     isSelected = false,
@@ -197,29 +198,15 @@ fun HomeScreenContent(
                             }
                             "QUICK_ACTIONS" -> item {
                                 AnimatedEntrance(index = index) {
-                                    Row(
-                                        modifier = Modifier.fillMaxWidth(),
-                                        horizontalArrangement = Arrangement.spacedBy(16.dp)
-                                    ) {
-                                        QuickActionCard(
-                                            title = "Quiz Mode",
-                                            description = "Test your knowledge",
-                                            icon = Icons.Default.Extension,
-                                            containerColor = MaterialTheme.colorScheme.primaryContainer,
-                                            contentColor = MaterialTheme.colorScheme.onPrimaryContainer,
-                                            onClick = onNavigateToQuiz,
-                                            modifier = Modifier.weight(1f)
-                                        )
-                                        QuickActionCard(
-                                            title = "Daily Teaser",
-                                            description = "Quick mental puzzle",
-                                            icon = Icons.Default.Lightbulb,
-                                            containerColor = MaterialTheme.colorScheme.secondaryContainer,
-                                            contentColor = MaterialTheme.colorScheme.onSecondaryContainer,
-                                            onClick = onNavigateToTeaser,
-                                            modifier = Modifier.weight(1f)
-                                        )
-                                    }
+                                    QuickActionCard(
+                                        title = "Daily Teaser",
+                                        description = "Quick mental puzzle and mystery insight",
+                                        icon = Icons.Default.Lightbulb,
+                                        containerColor = MaterialTheme.colorScheme.secondaryContainer,
+                                        contentColor = MaterialTheme.colorScheme.onSecondaryContainer,
+                                        onClick = onNavigateToTeaser,
+                                        modifier = Modifier.fillMaxWidth()
+                                    )
                                 }
                             }
                             "MOOD" -> item {
@@ -384,6 +371,10 @@ fun TrendingQuotesSection(allFacts: List<BiteItem>, onNavigateToDetail: (String)
 @Composable
 fun FactOfTheDayCard(fact: BiteItem, onToggleBookmark: (String) -> Unit, onShare: () -> Unit, onClick: () -> Unit) {
     val context = LocalContext.current
+    
+    val categoryInfo = remember(fact.category) {
+        BiteRepository.resolveCategory(fact.category)
+    }
 
     Card(
         modifier = Modifier
@@ -418,28 +409,28 @@ fun FactOfTheDayCard(fact: BiteItem, onToggleBookmark: (String) -> Unit, onShare
                 ) {
                     // Animated text only inside static category card
                     AnimatedContent(
-                        targetState = fact.category,
+                        targetState = categoryInfo,
                         transitionSpec = {
                             fadeIn(animationSpec = tween(400)) togetherWith
                                     fadeOut(animationSpec = tween(400))
                         },
                         label = "categoryTextRotation",
                         modifier = Modifier.fillMaxWidth()
-                    ) { category ->
+                    ) { cat ->
                         Row(
                             modifier = Modifier.fillMaxWidth().padding(vertical = 4.dp),
                             verticalAlignment = Alignment.CenterVertically,
                             horizontalArrangement = Arrangement.Center
                         ) {
                                 Icon(
-                                    painter = painterResource(id = category.getIconDrawable()),
+                                    painter = painterResource(id = cat.getIconDrawable()),
                                     contentDescription = null,
                                     modifier = Modifier.size(14.dp),
                                     tint = MaterialTheme.colorScheme.onBackground
                                 )
                                 Spacer(modifier = Modifier.width(6.dp))
                                 Text(
-                                    text = category.displayName.uppercase(),
+                                    text = cat.name.uppercase(),
                                     style = MaterialTheme.typography.labelSmall,
                                     fontWeight = FontWeight.Black,
                                     color = MaterialTheme.colorScheme.onBackground,
@@ -577,11 +568,12 @@ fun HomeScreenPreview() {
         val sampleFact = BiteItem(
             id = "1",
             fact = "Humans tend to mimic the body language of people they're comfortable with.",
-            category = BiteCategory.HUMAN_BEHAVIOR,
+            category = "Human Behavior",
             title = "The Chameleon Effect"
         )
         HomeScreenContent(
             allFacts = listOf(sampleFact),
+            categories = emptyList(),
             factOfTheDay = sampleFact,
             recentlyViewed = listOf(sampleFact),
             achievements = emptyList(),
@@ -592,7 +584,6 @@ fun HomeScreenPreview() {
             onMoodSelected = {},
             onNavigateToCategory = {},
             onNavigateToDetail = {},
-            onNavigateToQuiz = {},
             onNavigateToTeaser = {},
             onNavigateToHistory = {},
             onToggleBookmark = { _ -> },

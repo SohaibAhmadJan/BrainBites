@@ -12,4 +12,8 @@
 /captures
 .externalNativeBuild
 .cxx
-local.properties
+
+# Firebase Service Account Keys
+*-firebase-adminsdk-*.json
+brainbites-*.json
+serviceAccountKey.json

@@ -60,12 +60,14 @@ object MigrationManager {
         factsWrapper.facts.forEach { bite ->
             val factRef = factsCollection.document(bite.id)
             val quiz = quizMap[bite.id]
+            
+            // Resolve category display name for backward compatibility in Firestore strings
+            val categoryName = bite.category
 
             val factData = mapOf(
                 "fact" to bite.fact,
                 "title" to (bite.title ?: "Psychology Insight"),
-                "category" to bite.category.displayName,
-                "categoryId" to bite.category.name,
+                "category" to categoryName,
                 "snippet" to bite.snippet,
                 "fullFact" to bite.fullFact,
                 "whyItMatters" to bite.whyItMatters,
@@ -132,7 +134,8 @@ object MigrationManager {
             val data = mapOf(
                 "name" to category.displayName,
                 "icon" to category.iconRes,
-                "colorHex" to category.colorHex,
+                "color" to category.colorHex,
+                "vectorIcon" to category.name, // Use name as vector ID
                 "isActive" to true,
                 "sortOrder" to category.ordinal
             )
@@ -175,7 +178,6 @@ object MigrationManager {
             "maintenanceMode" to false,
             "minVersion" to "1.0.0",
             "latestVersion" to "3.4.8.7",
-            "quizzesEnabled" to true,
             "achievementsEnabled" to true,
             "dailyFactId" to "1",
             "updatedAt" to System.currentTimeMillis()

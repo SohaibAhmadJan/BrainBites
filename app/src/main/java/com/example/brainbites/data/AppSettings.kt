@@ -9,7 +9,6 @@ data class AppSettings(
     val latestVersion: String = "3.4.8.7",
     val minVersion: String = "1.0.0",
     val supportEmail: String = "support@brainbites.com",
-    val quizzesEnabled: Boolean = true,
     val achievementsEnabled: Boolean = true,
     val dailyFactEnabled: Boolean = true,
     val featuredFactId: String = "1",

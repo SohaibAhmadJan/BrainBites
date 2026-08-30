@@ -24,6 +24,7 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import com.example.brainbites.data.BiteItem
+import com.example.brainbites.data.BiteRepository
 import com.example.brainbites.data.PreferenceManager
 import com.example.brainbites.ui.util.ShareUtils
 import com.example.brainbites.ui.util.getIconDrawable
@@ -42,6 +43,11 @@ fun BiteCard(
 
     var expanded by remember { mutableStateOf(false) }
     val hasDetail = bite.fullFact != null || bite.whyItMatters != null
+    
+    // Resolve category metadata dynamically
+    val categoryInfo = remember(bite.category) {
+        BiteRepository.resolveCategory(bite.category)
+    }
 
     Card(
         shape = RoundedCornerShape(16.dp),
@@ -65,8 +71,14 @@ fun BiteCard(
                 horizontalArrangement = Arrangement.SpaceBetween,
                 modifier = Modifier.fillMaxWidth()
             ) {
+                val categoryColor = try {
+                    Color(android.graphics.Color.parseColor(categoryInfo.color))
+                } catch (e: Exception) {
+                    MaterialTheme.colorScheme.primary
+                }
+
                 Surface(
-                    color = Color(android.graphics.Color.parseColor(bite.category.colorHex)).copy(alpha = 0.15f),
+                    color = categoryColor.copy(alpha = 0.15f),
                     shape = RoundedCornerShape(12.dp)
                 ) {
                     Row(
@@ -74,15 +86,15 @@ fun BiteCard(
                         modifier = Modifier.padding(horizontal = 10.dp, vertical = 4.dp)
                     ) {
                         Icon(
-                            painter = painterResource(id = bite.category.getIconDrawable()),
+                            painter = painterResource(id = categoryInfo.getIconDrawable()),
                             contentDescription = null,
                             modifier = Modifier.size(14.dp),
-                            tint = MaterialTheme.colorScheme.primary
+                            tint = categoryColor
                         )
                         Spacer(modifier = Modifier.width(6.dp))
                         Text(
-                            text = bite.category.displayName,
-                            color = MaterialTheme.colorScheme.primary,
+                            text = categoryInfo.name,
+                            color = categoryColor,
                             style = MaterialTheme.typography.labelMedium,
                             fontWeight = FontWeight.Bold
                         )
@@ -91,7 +103,7 @@ fun BiteCard(
                             Icon(
                                 imageVector = Icons.Default.CheckCircle,
                                 contentDescription = "Completed",
-                                tint = MaterialTheme.colorScheme.primary,
+                                tint = categoryColor,
                                 modifier = Modifier.size(16.dp)
                             )
                         }
@@ -100,7 +112,7 @@ fun BiteCard(
 
                 Row(verticalAlignment = Alignment.CenterVertically) {
                     IconButton(
-                        onClick = { ShareUtils.shareFact(context, bite.fact) },
+                        onClick = { ShareUtils.shareFact(context, bite.id, bite.fact) },
                         modifier = Modifier.size(28.dp)
                     ) {
                         Icon(
@@ -137,7 +149,7 @@ fun BiteCard(
             Spacer(modifier = Modifier.height(12.dp))
 
             // Main Content
-            if (bite.title != null) {
+            if (!bite.title.isNullOrBlank()) {
                 Text(
                     text = bite.title,
                     style = MaterialTheme.typography.titleMedium,
@@ -148,10 +160,10 @@ fun BiteCard(
             }
 
             Text(
-                text = if (bite.title != null) bite.snippet ?: "" else bite.fact,
+                text = bite.snippet?.takeIf { it.isNotBlank() } ?: bite.fact,
                 style = MaterialTheme.typography.bodyMedium,
-                color = if (bite.title != null) MaterialTheme.colorScheme.onSurface.copy(alpha = 0.8f) else MaterialTheme.colorScheme.onSurface,
-                fontWeight = if (bite.title != null) FontWeight.Normal else FontWeight.Medium
+                color = if (!bite.title.isNullOrBlank()) MaterialTheme.colorScheme.onSurface.copy(alpha = 0.8f) else MaterialTheme.colorScheme.onSurface,
+                fontWeight = if (!bite.title.isNullOrBlank()) FontWeight.Normal else FontWeight.Medium
             )
 
             if (hasDetail) {
@@ -160,7 +172,7 @@ fun BiteCard(
                         HorizontalDivider(color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.1f))
                         Spacer(modifier = Modifier.height(10.dp))
 
-                        bite.fullFact?.let {
+                        bite.fullFact?.takeIf { it.isNotBlank() }?.let {
                             Text(
                                 text = it,
                                 style = MaterialTheme.typography.bodyMedium,
@@ -169,7 +181,7 @@ fun BiteCard(
                             Spacer(modifier = Modifier.height(10.dp))
                         }
 
-                        bite.whyItMatters?.let {
+                        bite.whyItMatters?.takeIf { it.isNotBlank() }?.let {
                             Surface(
                                 color = MaterialTheme.colorScheme.secondary.copy(alpha = 0.08f),
                                 shape = RoundedCornerShape(8.dp),
@@ -194,31 +206,35 @@ fun BiteCard(
                     }
                 }
 
-                Spacer(modifier = Modifier.height(12.dp))
+                val hasActualExpansionContent = !bite.fullFact.isNullOrBlank() || !bite.whyItMatters.isNullOrBlank()
 
-                Row(
-                    verticalAlignment = Alignment.CenterVertically,
-                    horizontalArrangement = Arrangement.Center,
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .clip(RoundedCornerShape(8.dp))
-                        .premiumClickable(
-                            glowColor = MaterialTheme.colorScheme.secondary,
-                            onClick = { expanded = !expanded }
+                if (hasActualExpansionContent) {
+                    Spacer(modifier = Modifier.height(12.dp))
+
+                    Row(
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.Center,
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .clip(RoundedCornerShape(8.dp))
+                            .premiumClickable(
+                                glowColor = MaterialTheme.colorScheme.secondary,
+                                onClick = { expanded = !expanded }
+                            )
+                            .padding(vertical = 4.dp)
+                    ) {
+                        Text(
+                            text = if (expanded) "Show Less" else "Read Full Bite",
+                            color = MaterialTheme.colorScheme.secondary,
+                            style = MaterialTheme.typography.labelLarge,
+                            fontWeight = FontWeight.Bold
                         )
-                        .padding(vertical = 4.dp)
-                ) {
-                    Text(
-                        text = if (expanded) "Show Less" else "Read Full Bite",
-                        color = MaterialTheme.colorScheme.secondary,
-                        style = MaterialTheme.typography.labelLarge,
-                        fontWeight = FontWeight.Bold
-                    )
-                    Icon(
-                        imageVector = if (expanded) Icons.Default.KeyboardArrowUp else Icons.Default.KeyboardArrowDown,
-                        contentDescription = null,
-                        tint = MaterialTheme.colorScheme.secondary
-                    )
+                        Icon(
+                            imageVector = if (expanded) Icons.Default.KeyboardArrowUp else Icons.Default.KeyboardArrowDown,
+                            contentDescription = null,
+                            tint = MaterialTheme.colorScheme.secondary
+                        )
+                    }
                 }
             }
         }

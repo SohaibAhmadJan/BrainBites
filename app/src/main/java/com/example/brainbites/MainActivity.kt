@@ -8,6 +8,7 @@ import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import com.example.brainbites.data.AnalyticsRepository
 import com.example.brainbites.data.PreferenceManager
 import com.example.brainbites.data.SettingsRepository
 import com.example.brainbites.data.AuthRepository
@@ -22,30 +23,48 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import androidx.lifecycle.lifecycleScope
 import kotlinx.coroutines.launch
+import android.Manifest
+import android.content.pm.PackageManager
+import androidx.activity.result.contract.ActivityResultContracts
+import androidx.core.content.ContextCompat
 
 class MainActivity : ComponentActivity() {
     private var initialFactId by mutableStateOf<String?>(null)
 
+    private val requestPermissionLauncher = registerForActivityResult(
+        ActivityResultContracts.RequestPermission()
+    ) { isGranted: Boolean ->
+        if (isGranted) {
+            Log.d("MainActivity", "Notification permission granted")
+        } else {
+            Log.e("MainActivity", "Notification permission denied")
+        }
+    }
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         
+        checkNotificationPermission()
         ThemeManager.initialize(this)
         PreferenceManager.initialize(this)
         SettingsRepository.startListening()
-        
+        NotificationRepository.startGlobalListener(this) // Start heartbeat immediately
+        AnalyticsRepository.logAppOpen()
+
         lifecycleScope.launch {
-            AuthRepository.signInAnonymously()
+            AuthRepository.syncUser()
             AuthRepository.updateLastActive()
-            BiteRepository.initializeDatabase(this@MainActivity)
-            AchievementRepository.fetchDefinitions()
-            
+        }
+
+        // Parallel Launch: Sync user data and personal notifications
+        lifecycleScope.launch {
             AuthRepository.currentUser.collect { user ->
                 user?.let { 
                     PreferenceManager.syncWithServer(it)
-                    NotificationRepository.startListening()
+                    NotificationRepository.startUserListener(this@MainActivity, it.account.uid)
                     AchievementRepository.syncUserAchievements(it.account.uid)
                     
-                    // Trigger token sync
+                    // Trigger token sync and topic subscription
                     com.google.firebase.messaging.FirebaseMessaging.getInstance().token.addOnCompleteListener { task ->
                         if (task.isSuccessful) {
                             lifecycleScope.launch {
@@ -53,8 +72,21 @@ class MainActivity : ComponentActivity() {
                             }
                         }
                     }
+                    com.google.firebase.messaging.FirebaseMessaging.getInstance().subscribeToTopic("global_broadcasts")
+                        .addOnCompleteListener { task ->
+                            if (task.isSuccessful) {
+                                Log.d("MainActivity", "Subscribed to global_broadcasts topic")
+                            } else {
+                                Log.e("MainActivity", "Topic subscription failed")
+                            }
+                        }
                 }
             }
+        }
+
+        lifecycleScope.launch {
+            BiteRepository.initializeDatabase(this@MainActivity)
+            AchievementRepository.fetchDefinitions()
         }
         handleIntent(intent)
         enableEdgeToEdge()
@@ -82,6 +114,18 @@ class MainActivity : ComponentActivity() {
         if (factId != null) {
             initialFactId = factId
             Log.d("MainActivity", "Launched with deep link for Fact: $factId")
+        }
+    }
+
+    private fun checkNotificationPermission() {
+        if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.TIRAMISU) {
+            if (ContextCompat.checkSelfPermission(
+                    this,
+                    Manifest.permission.POST_NOTIFICATIONS
+                ) != PackageManager.PERMISSION_GRANTED
+            ) {
+                requestPermissionLauncher.launch(Manifest.permission.POST_NOTIFICATIONS)
+            }
         }
     }
 }

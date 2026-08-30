@@ -33,7 +33,7 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import coil.compose.SubcomposeAsyncImage
 import coil.request.CachePolicy
 import coil.request.ImageRequest
-import com.example.brainbites.data.BiteCategory
+import com.example.brainbites.data.AnalyticsRepository
 import com.example.brainbites.data.BiteItem
 import com.example.brainbites.data.BiteRepository
 import com.example.brainbites.ui.components.QuoteCard
@@ -62,6 +62,7 @@ fun FactDetailScreen(
     
     LaunchedEffect(initialFactId) {
         BiteRepository.addToHistory(context, initialFactId)
+        AnalyticsRepository.logFactView(initialFactId)
     }
 
     val selectedFact = remember(facts, initialFactId) {
@@ -93,7 +94,7 @@ fun FactDetailScreen(
             onShare = { fact ->
                 coroutineScope.launch {
                     val bitmap = captureController.captureToBitmap()
-                    ShareUtils.shareFactAsImage(context, bitmap, fact.fact)
+                    ShareUtils.shareFactAsImage(context, fact.id, bitmap, fact.fact)
                 }
             }
         )
@@ -128,7 +129,14 @@ fun FactDetailContent(
 @Composable
 fun FactPage(fact: BiteItem, onToggleBookmark: () -> Unit, onShare: () -> Unit) {
     val context = LocalContext.current
-    val categoryColor = Color(android.graphics.Color.parseColor(fact.category.colorHex))
+    val categoryInfo = remember(fact.category) {
+        BiteRepository.resolveCategory(fact.category)
+    }
+    val categoryColor = try {
+        Color(android.graphics.Color.parseColor(categoryInfo.color))
+    } catch (e: Exception) {
+        MaterialTheme.colorScheme.primary
+    }
     
     Box(modifier = Modifier.fillMaxSize()) {
         // --- CONTENT LAYER ---
@@ -170,7 +178,7 @@ fun FactPage(fact: BiteItem, onToggleBookmark: () -> Unit, onShare: () -> Unit) 
                             ) {
                                 // Fallback to Vector Icon
                                 Icon(
-                                    painter = painterResource(id = fact.category.getIconDrawable()),
+                                    painter = painterResource(id = categoryInfo.getIconDrawable()),
                                     contentDescription = null,
                                     modifier = Modifier.size(64.dp),
                                     tint = categoryColor
@@ -200,7 +208,7 @@ fun FactPage(fact: BiteItem, onToggleBookmark: () -> Unit, onShare: () -> Unit) 
                             .padding(16.dp)
                     ) {
                         Text(
-                            text = fact.category.displayName.uppercase(),
+                            text = categoryInfo.name.uppercase(),
                             color = MaterialTheme.colorScheme.onPrimary,
                             style = MaterialTheme.typography.labelSmall,
                             fontWeight = FontWeight.Black,
@@ -307,7 +315,7 @@ fun FactDetailScreenPreview() {
         val sampleFact = BiteItem(
             id = "1",
             fact = "Humans tend to mimic the body language of people they're comfortable with.",
-            category = BiteCategory.HUMAN_BEHAVIOR
+            category = "Human Behavior"
         )
         FactDetailContent(
             fact = sampleFact,

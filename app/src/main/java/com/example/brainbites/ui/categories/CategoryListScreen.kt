@@ -36,9 +36,9 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
-import com.example.brainbites.data.BiteCategory
 import com.example.brainbites.data.BiteItem
 import com.example.brainbites.data.BiteRepository
+import com.example.brainbites.data.Category
 import com.example.brainbites.ui.components.AnimatedEntrance
 import com.example.brainbites.ui.theme.BrainBitesTheme
 import com.example.brainbites.ui.util.getIconDrawable
@@ -166,9 +166,12 @@ fun ExploreScreenContent(
                             modifier = Modifier.fillMaxWidth()
                         ) { page ->
                             val fact = featuredFacts[page]
+                            val catInfo = categoryList.find { it.category.name == fact.category || it.category.id == fact.category }
+                            
                             AnimatedEntrance(index = page + 2, delayMultiplier = 80L) {
                                 FeaturedFactCard(
                                     fact = fact, 
+                                    category = catInfo?.category,
                                     onClick = { onFactClick(fact.id) },
                                     modifier = Modifier.fillMaxWidth()
                                 )
@@ -318,10 +321,15 @@ fun SurpriseMeCard(onClick: () -> Unit) {
 @Composable
 fun FeaturedFactCard(
     fact: BiteItem, 
+    category: Category?,
     onClick: () -> Unit,
     modifier: Modifier = Modifier
 ) {
-    val categoryColor = Color(android.graphics.Color.parseColor(fact.category.colorHex))
+    val categoryColor = try {
+        Color(android.graphics.Color.parseColor(category?.color ?: "#2D6A4F"))
+    } catch (e: Exception) {
+        MaterialTheme.colorScheme.primary
+    }
     val endColor = MaterialTheme.colorScheme.surfaceVariant
     
     Surface(
@@ -363,13 +371,13 @@ fun FeaturedFactCard(
                 Spacer(modifier = Modifier.height(12.dp))
                 
                 Surface(
-                    color = MaterialTheme.colorScheme.primary.copy(alpha = 0.15f),
+                    color = categoryColor.copy(alpha = 0.15f),
                     shape = RoundedCornerShape(8.dp)
                 ) {
                     Text(
-                        text = fact.category.displayName.uppercase(),
+                        text = fact.category.uppercase(),
                         style = MaterialTheme.typography.labelSmall,
-                        color = MaterialTheme.colorScheme.primary,
+                        color = categoryColor,
                         fontWeight = FontWeight.Black,
                         modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp)
                     )
@@ -381,7 +389,11 @@ fun FeaturedFactCard(
 
 @Composable
 fun CategoryGridItem(info: CategoryInfo, onClick: () -> Unit) {
-    val categoryColor = Color(android.graphics.Color.parseColor(info.category.colorHex))
+    val categoryColor = try {
+        Color(android.graphics.Color.parseColor(info.category.color))
+    } catch (e: Exception) {
+        MaterialTheme.colorScheme.primary
+    }
     val surfaceColor = MaterialTheme.colorScheme.surfaceVariant
 
     Surface(
@@ -407,7 +419,7 @@ fun CategoryGridItem(info: CategoryInfo, onClick: () -> Unit) {
             contentAlignment = Alignment.Center
         ) {
             Text(
-                text = info.category.iconRes,
+                text = info.category.icon,
                 style = MaterialTheme.typography.displayLarge,
                 modifier = Modifier
                     .align(Alignment.BottomEnd)
@@ -422,7 +434,7 @@ fun CategoryGridItem(info: CategoryInfo, onClick: () -> Unit) {
                 verticalArrangement = Arrangement.Center
             ) {
                 Surface(
-                    color = MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.5f),
+                    color = categoryColor.copy(alpha = 0.1f),
                     shape = RoundedCornerShape(12.dp),
                     modifier = Modifier.size(56.dp)
                 ) {
@@ -431,7 +443,7 @@ fun CategoryGridItem(info: CategoryInfo, onClick: () -> Unit) {
                             painter = painterResource(id = info.category.getIconDrawable()),
                             contentDescription = null,
                             modifier = Modifier.size(28.dp),
-                            tint = MaterialTheme.colorScheme.primary
+                            tint = categoryColor
                         )
                     }
                 }
@@ -439,10 +451,10 @@ fun CategoryGridItem(info: CategoryInfo, onClick: () -> Unit) {
                 Spacer(modifier = Modifier.height(12.dp))
 
                 Text(
-                    text = info.category.displayName,
+                    text = info.category.name,
                     style = MaterialTheme.typography.titleSmall,
                     fontWeight = FontWeight.Bold,
-                    color = MaterialTheme.colorScheme.primary,
+                    color = MaterialTheme.colorScheme.onSurface,
                     textAlign = TextAlign.Center,
                     maxLines = 2,
                     modifier = Modifier.padding(horizontal = 12.dp)
@@ -451,14 +463,14 @@ fun CategoryGridItem(info: CategoryInfo, onClick: () -> Unit) {
                 Spacer(modifier = Modifier.height(4.dp))
 
                 Surface(
-                    color = MaterialTheme.colorScheme.primary.copy(alpha = 0.1f),
+                    color = categoryColor.copy(alpha = 0.1f),
                     shape = RoundedCornerShape(8.dp)
                 ) {
                     Text(
                         text = "${info.count} Facts",
                         style = MaterialTheme.typography.labelSmall,
                         fontWeight = FontWeight.SemiBold,
-                        color = MaterialTheme.colorScheme.primary,
+                        color = categoryColor,
                         modifier = Modifier.padding(horizontal = 8.dp, vertical = 2.dp)
                     )
                 }
@@ -540,6 +552,13 @@ fun CollectionCard(
 ) {
     val progress by BiteRepository.getCollectionProgress(collection.id).collectAsState(initial = 0f)
     val readCount = (progress * collection.factIds.size).toInt()
+    
+    val themeColor = try {
+        Color(android.graphics.Color.parseColor(collection.color))
+    } catch (e: Exception) {
+        MaterialTheme.colorScheme.primary
+    }
+    
     val surfaceColor = MaterialTheme.colorScheme.surfaceVariant
     val icon = getCollectionIcon(collection.id)
     
@@ -549,15 +568,24 @@ fun CollectionCard(
             .height(160.dp),
         shape = RoundedCornerShape(24.dp),
         color = surfaceColor,
-        border = BorderStroke(1.dp, MaterialTheme.colorScheme.outline.copy(alpha = 0.3f))
+        border = BorderStroke(1.dp, themeColor.copy(alpha = 0.2f))
     ) {
         Box(
-            modifier = Modifier.fillMaxSize()
+            modifier = Modifier
+                .fillMaxSize()
+                .background(
+                    brush = Brush.verticalGradient(
+                        colors = listOf(
+                            themeColor.copy(alpha = 0.05f),
+                            surfaceColor
+                        )
+                    )
+                )
         ) {
             Icon(
                 imageVector = icon,
                 contentDescription = null,
-                tint = MaterialTheme.colorScheme.primary.copy(alpha = 0.08f),
+                tint = themeColor.copy(alpha = 0.08f),
                 modifier = Modifier
                     .size(100.dp)
                     .align(Alignment.BottomEnd)
@@ -577,14 +605,14 @@ fun CollectionCard(
                     verticalAlignment = Alignment.Top
                 ) {
                     Surface(
-                        color = MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.5f),
+                        color = themeColor.copy(alpha = 0.1f),
                         shape = RoundedCornerShape(10.dp)
                     ) {
                         Icon(
                             imageVector = icon,
                             contentDescription = null,
                             modifier = Modifier.padding(8.dp).size(20.dp),
-                            tint = MaterialTheme.colorScheme.primary
+                            tint = themeColor
                         )
                     }
                     
@@ -592,7 +620,7 @@ fun CollectionCard(
                         Icon(
                             imageVector = Icons.Default.CheckCircle,
                             contentDescription = "Mastered",
-                            tint = MaterialTheme.colorScheme.primary,
+                            tint = themeColor,
                             modifier = Modifier.size(20.dp)
                         )
                     }
@@ -623,7 +651,7 @@ fun CollectionCard(
                         Text(
                             text = "${(progress * 100).toInt()}%",
                             style = MaterialTheme.typography.labelSmall,
-                            color = MaterialTheme.colorScheme.primary,
+                            color = themeColor,
                             fontWeight = FontWeight.Black
                         )
                     }
@@ -634,8 +662,8 @@ fun CollectionCard(
                             .fillMaxWidth()
                             .height(6.dp)
                             .clip(RoundedCornerShape(3.dp)),
-                        color = if (progress >= 1f) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.primary.copy(alpha = 0.4f),
-                        trackColor = MaterialTheme.colorScheme.primary.copy(alpha = 0.1f)
+                        color = themeColor,
+                        trackColor = themeColor.copy(alpha = 0.1f)
                     )
                 }
             }
@@ -648,9 +676,9 @@ fun CollectionCard(
 fun CategoryListScreenPreview() {
     BrainBitesTheme {
         val sampleCategories = listOf(
-            CategoryInfo(BiteCategory.HUMAN_BEHAVIOR, 15),
-            CategoryInfo(BiteCategory.MENTAL_HEALTH, 12),
-            CategoryInfo(BiteCategory.BRAIN_SCIENCE, 10)
+            CategoryInfo(Category("1", "Human Behavior"), 15),
+            CategoryInfo(Category("2", "Mental Health"), 12),
+            CategoryInfo(Category("3", "Brain Science"), 10)
         )
         ExploreScreenContent(
             categoryList = sampleCategories,

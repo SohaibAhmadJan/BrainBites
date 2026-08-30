@@ -11,6 +11,7 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.KeyboardArrowRight
+import androidx.compose.material.icons.automirrored.filled.Logout
 import androidx.compose.material.icons.filled.*
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
@@ -59,6 +60,7 @@ fun ProfileScreen(
 
     var showEditDialog by remember { mutableStateOf(false) }
     var showPrivacyDialog by remember { mutableStateOf(false) }
+    var showLogoutDialog by remember { mutableStateOf(false) }
 
     if (showEditDialog) {
         EditProfileDialog(
@@ -84,6 +86,16 @@ fun ProfileScreen(
         )
     }
 
+    if (showLogoutDialog) {
+        LogoutConfirmationDialog(
+            onDismiss = { showLogoutDialog = false },
+            onConfirm = {
+                viewModel.signOut()
+                showLogoutDialog = false
+            }
+        )
+    }
+
     ProfileScreenContent(
         stats = stats,
         achievements = achievements,
@@ -93,6 +105,7 @@ fun ProfileScreen(
         userImage = userImage,
         onEditClick = { showEditDialog = true },
         onPrivacyClick = { showPrivacyDialog = true },
+        onLogoutClick = { showLogoutDialog = true },
         onCollectionClick = onCollectionClick
     )
 }
@@ -107,6 +120,7 @@ fun ProfileScreenContent(
     userImage: String,
     onEditClick: () -> Unit,
     onPrivacyClick: () -> Unit,
+    onLogoutClick: () -> Unit,
     onCollectionClick: (String) -> Unit
 ) {
     LazyColumn(
@@ -166,7 +180,8 @@ fun ProfileScreenContent(
             AnimatedEntrance(index = 4) {
                 ProfileActionSection(
                     onEditClick = onEditClick,
-                    onPrivacyClick = onPrivacyClick
+                    onPrivacyClick = onPrivacyClick,
+                    onLogoutClick = onLogoutClick
                 )
             }
         }
@@ -475,7 +490,8 @@ fun AchievementsSection(achievements: List<com.example.brainbites.data.Achieveme
 @Composable
 fun ProfileActionSection(
     onEditClick: () -> Unit,
-    onPrivacyClick: () -> Unit
+    onPrivacyClick: () -> Unit,
+    onLogoutClick: () -> Unit
 ) {
     Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
         Text(
@@ -486,11 +502,25 @@ fun ProfileActionSection(
         
         ProfileActionItem(title = "Edit Profile", icon = Icons.Default.Edit, onClick = onEditClick)
         ProfileActionItem(title = "Privacy Settings", icon = Icons.Default.Settings, onClick = onPrivacyClick)
+        
+        Spacer(modifier = Modifier.height(8.dp))
+        
+        ProfileActionItem(
+            title = "Sign Out", 
+            icon = Icons.AutoMirrored.Filled.Logout, 
+            onClick = onLogoutClick,
+            contentColor = MaterialTheme.colorScheme.error
+        )
     }
 }
 
 @Composable
-fun ProfileActionItem(title: String, icon: ImageVector, onClick: () -> Unit) {
+fun ProfileActionItem(
+    title: String, 
+    icon: ImageVector, 
+    onClick: () -> Unit,
+    contentColor: Color = MaterialTheme.colorScheme.onSurface
+) {
     Surface(
         onClick = onClick,
         shape = RoundedCornerShape(12.dp),
@@ -503,9 +533,14 @@ fun ProfileActionItem(title: String, icon: ImageVector, onClick: () -> Unit) {
                 .padding(16.dp),
             verticalAlignment = Alignment.CenterVertically
         ) {
-            Icon(icon, contentDescription = null, tint = MaterialTheme.colorScheme.primary)
+            Icon(icon, contentDescription = null, tint = if (contentColor == MaterialTheme.colorScheme.error) contentColor else MaterialTheme.colorScheme.primary)
             Spacer(modifier = Modifier.width(16.dp))
-            Text(title, style = MaterialTheme.typography.titleSmall, fontWeight = FontWeight.Bold)
+            Text(
+                text = title, 
+                style = MaterialTheme.typography.titleSmall, 
+                fontWeight = FontWeight.Bold,
+                color = contentColor
+            )
             Spacer(modifier = Modifier.weight(1f))
             Icon(
                 imageVector = Icons.Default.ChevronRight,
@@ -514,6 +549,44 @@ fun ProfileActionItem(title: String, icon: ImageVector, onClick: () -> Unit) {
             )
         }
     }
+}
+
+@Composable
+fun LogoutConfirmationDialog(
+    onDismiss: () -> Unit,
+    onConfirm: () -> Unit
+) {
+    AlertDialog(
+        onDismissRequest = onDismiss,
+        icon = {
+            Icon(
+                imageVector = Icons.AutoMirrored.Filled.Logout,
+                contentDescription = null,
+                tint = MaterialTheme.colorScheme.error
+            )
+        },
+        title = { Text("Sign Out", fontWeight = FontWeight.Bold) },
+        text = {
+            Text(
+                "Are you sure you want to sign out? You'll need to log in again to access your saved insights.",
+                style = MaterialTheme.typography.bodyMedium
+            )
+        },
+        confirmButton = {
+            Button(
+                onClick = onConfirm,
+                colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.error)
+            ) {
+                Text("Sign Out")
+            }
+        },
+        dismissButton = {
+            TextButton(onClick = onDismiss) {
+                Text("Cancel")
+            }
+        },
+        shape = RoundedCornerShape(28.dp)
+    )
 }
 
 @Composable
@@ -721,6 +794,7 @@ fun ProfileScreenPreview() {
             userImage = "🧠",
             onEditClick = {},
             onPrivacyClick = {},
+            onLogoutClick = {},
             onCollectionClick = {}
         )
     }

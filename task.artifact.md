@@ -1,0 +1,9 @@
+- [ ] **Admin Drawer UI Overhaul**
+    - [/] Replace Role dropdown with Card Grid in `AdminEditorDrawer.tsx`
+    - [ ] Replace Status toggle with Mode Switch in `AdminEditorDrawer.tsx`
+    - [ ] Align spacing/fonts with Fact Editor
+- [ ] **Code Hygiene**
+    - [ ] Remove redundant/unused components in `AdminsPage.tsx`
+- [ ] **Verification**
+    - [ ] Visual audit of the new Matrix layout
+    - [ ] Test form submission

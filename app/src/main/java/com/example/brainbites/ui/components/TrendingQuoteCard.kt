@@ -8,6 +8,7 @@ import androidx.compose.material.icons.filled.FavoriteBorder
 import androidx.compose.material.icons.filled.Share
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -15,6 +16,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import com.example.brainbites.data.BiteItem
+import com.example.brainbites.data.BiteRepository
 import com.example.brainbites.ui.util.premiumClickable
 
 @Composable
@@ -23,6 +25,10 @@ fun TrendingQuoteCard(
     modifier: Modifier = Modifier,
     onClick: () -> Unit
 ) {
+    val categoryInfo = remember(fact.category) {
+        BiteRepository.resolveCategory(fact.category)
+    }
+
     Card(
         modifier = modifier
             .fillMaxWidth()
@@ -42,7 +48,7 @@ fun TrendingQuoteCard(
                 shape = RoundedCornerShape(4.dp)
             ) {
                 Text(
-                    text = fact.category.displayName,
+                    text = categoryInfo.name,
                     modifier = Modifier.padding(horizontal = 6.dp, vertical = 2.dp),
                     style = MaterialTheme.typography.labelSmall
                 )

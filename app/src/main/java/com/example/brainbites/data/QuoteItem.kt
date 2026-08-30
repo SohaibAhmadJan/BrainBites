@@ -7,7 +7,7 @@ data class QuoteItem(
     val id: String = "",
     val text: String = "",
     val author: String = "",
-    val category: BiteCategory = BiteCategory.HUMAN_BEHAVIOR,
+    val category: String = "Human Behavior",
     val isActive: Boolean = true,
     val createdAt: String = ""
 )

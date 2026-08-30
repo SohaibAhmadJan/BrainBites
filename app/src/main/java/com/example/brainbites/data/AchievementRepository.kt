@@ -13,7 +13,7 @@ data class AchievementDefinition(
     val maxProgress: Int,
     val iconName: String,
     val requirementType: String,
-    val isActive: Boolean = true
+    val isPublished: Boolean = true
 )
 
 object AchievementRepository {
@@ -26,19 +26,22 @@ object AchievementRepository {
 
     suspend fun fetchDefinitions() {
         try {
-            val snapshot = db.collection("achievements").whereEqualTo("isActive", true).get().await()
-            _definitions.value = snapshot.documents.mapNotNull { doc ->
+            val snapshot = db.collection("achievements").get().await()
+            val allDefs = snapshot.documents.mapNotNull { doc ->
                 try {
                     AchievementDefinition(
                         id = doc.id,
                         title = doc.getString("title") ?: "",
                         description = doc.getString("description") ?: "",
                         maxProgress = doc.getLong("maxProgress")?.toInt() ?: 1,
-                        iconName = doc.getString("iconName") ?: "Star",
-                        requirementType = doc.getString("requirementType") ?: "READ_COUNT"
+                        iconName = doc.getString("iconName") ?: "🏆",
+                        requirementType = doc.getString("requirementType") ?: "READ_COUNT",
+                        isPublished = doc.getBoolean("isPublished") ?: doc.getBoolean("isActive") ?: true
                     )
                 } catch (e: Exception) { null }
             }
+            // Only expose published milestones to the user
+            _definitions.value = allDefs.filter { it.isPublished }
         } catch (e: Exception) {
             Log.e("AchievementRepository", "Error fetching definitions", e)
         }

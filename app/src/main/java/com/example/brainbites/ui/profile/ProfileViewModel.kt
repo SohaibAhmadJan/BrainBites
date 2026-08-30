@@ -9,7 +9,9 @@ import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.brainbites.data.Achievement
 import com.example.brainbites.data.AchievementManager
+import com.example.brainbites.data.AchievementRepository
 import com.example.brainbites.data.AchievementStatus
+import com.example.brainbites.data.AuthRepository
 import com.example.brainbites.data.BiteItem
 import com.example.brainbites.data.BiteRepository
 import com.example.brainbites.data.CollectionSet
@@ -63,7 +65,8 @@ class ProfileViewModel(application: Application) : AndroidViewModel(application)
                 BiteRepository.getSharesCount(),
                 BiteRepository.getAllFacts(getApplication()),
                 BiteRepository.getAllCollections(),
-                PreferenceManager.streakCount
+                PreferenceManager.streakCount,
+                AchievementRepository.definitions
             ) { args: Array<Any> ->
                 val history = args[0] as List<com.example.brainbites.data.HistoryItem>
                 val favorites = args[1] as List<BiteItem>
@@ -71,12 +74,14 @@ class ProfileViewModel(application: Application) : AndroidViewModel(application)
                 val allFacts = args[3] as List<BiteItem>
                 val collections = args[4] as List<CollectionSet>
                 val streak = args[5] as Int
+                val definitions = args[6] as List<com.example.brainbites.data.AchievementDefinition>
 
                 val currentAchievements = AchievementManager.calculateAchievements(
                     historyItems = history,
                     favoritesCount = favorites.size,
                     sharesCount = shares,
-                    allFacts = allFacts
+                    allFacts = allFacts,
+                    definitions = definitions
                 )
                 
                 val factsRead = history.size
@@ -125,13 +130,15 @@ class ProfileViewModel(application: Application) : AndroidViewModel(application)
                 BiteRepository.getHistoryItems(),
                 BiteRepository.getFavoriteFacts(getApplication()),
                 BiteRepository.getSharesCount(),
-                BiteRepository.getAllFacts(getApplication())
-            ) { history, favorites, shares, allFacts ->
+                BiteRepository.getAllFacts(getApplication()),
+                AchievementRepository.definitions
+            ) { history, favorites, shares, allFacts, definitions ->
                 AchievementManager.calculateAchievements(
                     historyItems = history,
                     favoritesCount = favorites.size,
                     sharesCount = shares,
-                    allFacts = allFacts
+                    allFacts = allFacts,
+                    definitions = definitions
                 ).filter { it.status == AchievementStatus.COMPLETED }
             }.collect {
                 _achievements.value = it
@@ -153,6 +160,10 @@ class ProfileViewModel(application: Application) : AndroidViewModel(application)
                 image
             }
             
+            // 1. Update Firestore (The "truth")
+            AuthRepository.updateUserProfile(name, bio, finalImage)
+            
+            // 2. Update local preferences (Immediate UI feedback)
             PreferenceManager.setUserName(getApplication(), name)
             PreferenceManager.setUserBio(getApplication(), bio)
             PreferenceManager.setUserId(getApplication(), id)
@@ -192,5 +203,9 @@ class ProfileViewModel(application: Application) : AndroidViewModel(application)
 
     fun updateAnalyticsEnabled(enabled: Boolean) {
         PreferenceManager.setAnalyticsEnabled(getApplication(), enabled)
+    }
+
+    fun signOut() {
+        AuthRepository.signOut()
     }
 }

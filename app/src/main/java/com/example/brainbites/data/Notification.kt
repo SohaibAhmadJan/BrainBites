@@ -8,7 +8,8 @@ data class Notification(
     val isRead: Boolean = false,
     val type: NotificationType = NotificationType.GENERAL,
     val imageUrl: String? = null,
-    val deepLinkFactId: String? = null
+    val deepLinkFactId: String? = null,
+    val scheduledAt: Long? = null // Added for scheduling
 )
 
 enum class NotificationType {

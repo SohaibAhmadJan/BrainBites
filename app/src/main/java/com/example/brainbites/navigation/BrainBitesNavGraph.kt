@@ -2,7 +2,6 @@ package com.example.brainbites.navigation
 
 import androidx.compose.foundation.pager.HorizontalPager
 import androidx.compose.foundation.pager.rememberPagerState
-import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.animation.*
 import androidx.compose.animation.core.tween
 import androidx.compose.runtime.*
@@ -24,7 +23,6 @@ import com.example.brainbites.ui.facts.FactListScreen
 import com.example.brainbites.ui.facts.FactDetailScreen
 import com.example.brainbites.ui.favorites.FavoritesScreen
 import com.example.brainbites.ui.settings.SettingsScreen
-import com.example.brainbites.ui.quiz.QuizScreen
 import com.example.brainbites.ui.teaser.DailyTeaserScreen
 import com.example.brainbites.ui.history.HistoryScreen
 import com.example.brainbites.ui.profile.ProfileScreen
@@ -32,6 +30,9 @@ import com.example.brainbites.ui.notifications.NotificationsScreen
 import com.example.brainbites.ui.main.MainScaffold
 import com.example.brainbites.ui.collections.CollectionDetailScreen
 import com.example.brainbites.ui.theme.SoftBackground
+import com.example.brainbites.ui.auth.LoginScreen
+import com.example.brainbites.ui.auth.SignUpScreen
+import com.example.brainbites.data.AuthRepository
 import androidx.compose.material3.Surface
 import androidx.compose.material3.MaterialTheme
 import kotlinx.coroutines.launch
@@ -41,6 +42,22 @@ fun BrainBitesNavGraph(
     navController: NavHostController = rememberNavController(),
     initialFactId: String? = null
 ) {
+    val currentUser by AuthRepository.currentUser.collectAsState()
+
+    // Global Logout Redirection
+    LaunchedEffect(currentUser) {
+        if (currentUser == null) {
+            val currentRoute = navController.currentDestination?.route
+            if (currentRoute != Screen.Login.route && 
+                currentRoute != Screen.SignUp.route && 
+                currentRoute != Screen.Splash.route) {
+                navController.navigate(Screen.Login.route) {
+                    popUpTo(0) { inclusive = true }
+                }
+            }
+        }
+    }
+
     NavHost(
         navController = navController,
         startDestination = Screen.Splash.route,
@@ -50,12 +67,39 @@ fun BrainBitesNavGraph(
         composable(route = Screen.Splash.route) {
             SplashScreen(
                 onSplashFinished = {
-                    navController.navigate("main_root") {
+                    val startRoute = if (currentUser != null) "main_root" else Screen.Login.route
+                    navController.navigate(startRoute) {
                         popUpTo(Screen.Splash.route) { inclusive = true }
                     }
-                    if (initialFactId != null) {
+                    if (initialFactId != null && currentUser != null) {
                         navController.navigate(Screen.ExploreDetail.createRoute(initialFactId))
                     }
+                }
+            )
+        }
+
+        composable(route = Screen.Login.route) {
+            LoginScreen(
+                onLoginSuccess = {
+                    navController.navigate("main_root") {
+                        popUpTo(Screen.Login.route) { inclusive = true }
+                    }
+                },
+                onNavigateToSignUp = {
+                    navController.navigate(Screen.SignUp.route)
+                }
+            )
+        }
+
+        composable(route = Screen.SignUp.route) {
+            SignUpScreen(
+                onSignUpSuccess = {
+                    navController.navigate("main_root") {
+                        popUpTo(Screen.SignUp.route) { inclusive = true }
+                    }
+                },
+                onNavigateToLogin = {
+                    navController.navigate(Screen.Login.route)
                 }
             )
         }
@@ -89,7 +133,6 @@ fun MainContent() {
     val routeToIndex = mapOf(
         Screen.HomeHub.route to 0,
         Screen.Home.route to 0,
-        Screen.Quiz.route to 0,
         Screen.Teaser.route to 0,
         Screen.History.route to 0,
         Screen.HomeDetail.route to 0,
@@ -173,9 +216,6 @@ fun MainContent() {
                                     onNavigateToDetail = { id -> 
                                         nestedNavController.navigate(Screen.HomeDetail.createRoute(id))
                                     },
-                                    onNavigateToQuiz = {
-                                        nestedNavController.navigate(Screen.Quiz.route)
-                                    },
                                     onNavigateToTeaser = {
                                         nestedNavController.navigate(Screen.Teaser.route)
                                     },
@@ -205,9 +245,6 @@ fun MainContent() {
                     }
 
                     // Deep Screens
-                    composable(route = Screen.Quiz.route) {
-                        QuizScreen(onBack = { nestedNavController.popBackStack() })
-                    }
                     composable(route = Screen.Teaser.route) {
                         DailyTeaserScreen(onBack = { nestedNavController.popBackStack() })
                     }

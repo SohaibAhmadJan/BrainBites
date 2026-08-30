@@ -20,23 +20,82 @@ object AuthRepository {
     private val _isAccountDisabled = MutableStateFlow(false)
     val isAccountDisabled = _isAccountDisabled.asStateFlow()
 
-    suspend fun signInAnonymously() {
-        if (auth.currentUser == null) {
-            try {
+    suspend fun signInAnonymously(context: Context): Result<Unit> {
+        return try {
+            if (auth.currentUser == null) {
                 auth.signInAnonymously().await()
                 Log.d("AuthRepository", "Signed in anonymously: ${auth.currentUser?.uid}")
-            } catch (e: Exception) {
-                Log.e("AuthRepository", "Anonymous sign in failed", e)
             }
+            syncUser(context)
+            Result.success(Unit)
+        } catch (e: Exception) {
+            Log.e("AuthRepository", "Anonymous sign in failed", e)
+            Result.failure(e)
         }
-        syncUser()
     }
 
-    fun syncUser() {
+    suspend fun signInWithGoogle(context: Context, idToken: String): Result<Unit> {
+        return try {
+            val credential = com.google.firebase.auth.GoogleAuthProvider.getCredential(idToken, null)
+            auth.signInWithCredential(credential).await()
+            syncUser(context)
+            Result.success(Unit)
+        } catch (e: Exception) {
+            Result.failure(e)
+        }
+    }
+
+    suspend fun signIn(context: Context, email: String, password: String): Result<Unit> {
+        return try {
+            auth.signInWithEmailAndPassword(email, password).await()
+            syncUser(context)
+            Result.success(Unit)
+        } catch (e: Exception) {
+            Result.failure(e)
+        }
+    }
+
+    suspend fun signUp(context: android.content.Context, email: String, password: String, name: String): Result<Unit> {
+        return try {
+            val result = auth.createUserWithEmailAndPassword(email, password).await()
+            val uid = result.user?.uid ?: throw Exception("User creation failed")
+            
+            val now = System.currentTimeMillis()
+            val newUser = BrainBitesUser(
+                account = UserAccount(
+                    uid = uid,
+                    createdAt = now,
+                    updatedAt = now,
+                    lastLoginAt = now,
+                    status = "ACTIVE"
+                ),
+                profile = UserProfile(
+                    displayName = name,
+                    email = email
+                )
+            )
+            saveUser(newUser)
+            AnalyticsRepository.logAppInstall(context)
+            Result.success(Unit)
+        } catch (e: Exception) {
+            Result.failure(e)
+        }
+    }
+
+    suspend fun sendPasswordResetEmail(email: String): Result<Unit> {
+        return try {
+            auth.sendPasswordResetEmail(email).await()
+            Result.success(Unit)
+        } catch (e: Exception) {
+            Result.failure(e)
+        }
+    }
+
+    fun syncUser(context: Context) {
         val firebaseUser = auth.currentUser ?: return
         val uid = firebaseUser.uid
 
-        // Start real-time listener for user document (Account status \u0026 Profile)
+        // Start real-time listener for user document (Account status & Profile)
         db.collection("users").document(uid)
             .addSnapshotListener { snapshot, e ->
                 if (e != null) {
@@ -60,9 +119,9 @@ object AuthRepository {
                                 status = account?.get("status") as? String ?: "ACTIVE"
                             ),
                             profile = UserProfile(
-                                displayName = profile?.get("displayName") as? String ?: "Knowledge Seeker",
-                                email = firebaseUser.email ?: "",
-                                photoUrl = firebaseUser.photoUrl?.toString() ?: "",
+                                displayName = profile?.get("displayName") as? String ?: firebaseUser.displayName ?: "Knowledge Seeker",
+                                email = profile?.get("email") as? String ?: firebaseUser.email ?: "",
+                                photoUrl = profile?.get("photoUrl") as? String ?: firebaseUser.photoUrl?.toString() ?: "",
                                 bio = profile?.get("bio") as? String ?: "",
                                 isPublic = profile?.get("isPublic") as? Boolean ?: false
                             ),
@@ -81,13 +140,31 @@ object AuthRepository {
                                 notificationsEnabled = prefs?.get("notificationsEnabled") as? Boolean ?: true
                             )
                         )
+
+                        // Smart Sync: Backfill missing email if it exists in Firebase Auth
+                        val existingEmail = profile?.get("email") as? String
+                        if (existingEmail.isNullOrEmpty() && !firebaseUser.email.isNullOrEmpty()) {
+                            MainScope().launch {
+                                db.collection("users").document(uid)
+                                    .update("profile.email", firebaseUser.email)
+                                    .await()
+                                Log.d("AuthRepository", "Smart Sync: Backfilled email for $uid")
+                            }
+                        }
+
                         _currentUser.value = brainBitesUser
                         _isAccountDisabled.value = brainBitesUser.account.status == "DISABLED"
+
+                        // Device Hardening: Ensure current device record is active and up to date
+                        MainScope().launch {
+                            val instanceId = com.google.firebase.installations.FirebaseInstallations.getInstance().id.await()
+                            syncDeviceToken(context, instanceId)
+                        }
                     } catch (ex: Exception) {
                         Log.e("AuthRepository", "Error mapping user data", ex)
                     }
                 } else {
-                    // Create new user record if it doesn\u0027t exist
+                    // Create new user record if it doesn't exist
                     val now = System.currentTimeMillis()
                     val newUser = BrainBitesUser(
                         account = UserAccount(
@@ -96,10 +173,17 @@ object AuthRepository {
                             updatedAt = now,
                             lastLoginAt = now,
                             status = "ACTIVE"
+                        ),
+                        profile = UserProfile(
+                            displayName = firebaseUser.displayName ?: "Knowledge Seeker",
+                            email = firebaseUser.email ?: ""
                         )
                     )
                     MainScope().launch {
                         saveUser(newUser)
+                        AnalyticsRepository.logAppInstall(context)
+                        val instanceId = com.google.firebase.installations.FirebaseInstallations.getInstance().id.await()
+                        syncDeviceToken(context, instanceId)
                     }
                 }
             }
@@ -136,6 +220,70 @@ object AuthRepository {
     fun signOut() {
         auth.signOut()
         _currentUser.value = null
+    }
+
+    suspend fun updateUserProfile(name: String, bio: String, image: String) {
+        val uid = auth.currentUser?.uid ?: return
+        try {
+            db.collection("users").document(uid).update(
+                mapOf(
+                    "profile.displayName" to name,
+                    "profile.bio" to bio,
+                    "profile.photoUrl" to image,
+                    "updatedAt" to System.currentTimeMillis()
+                )
+            ).await()
+            Log.d("AuthRepository", "Profile updated in Firestore")
+        } catch (e: Exception) {
+            Log.e("AuthRepository", "Error updating profile in Firestore", e)
+        }
+    }
+
+    suspend fun updateUserPreferences(dailyGoal: Int? = null, textScale: Float? = null, haptics: Boolean? = null, analytics: Boolean? = null, notifications: Boolean? = null) {
+        val uid = auth.currentUser?.uid ?: return
+        val updates = mutableMapOf<String, Any>()
+        dailyGoal?.let { updates["preferences.dailyGoal"] = it }
+        textScale?.let { updates["preferences.textScale"] = it }
+        haptics?.let { updates["preferences.hapticsEnabled"] = it }
+        analytics?.let { updates["preferences.analyticsEnabled"] = it }
+        notifications?.let { updates["preferences.notificationsEnabled"] = it }
+        
+        if (updates.isEmpty()) return
+        
+        updates["updatedAt"] = System.currentTimeMillis()
+        
+        try {
+            db.collection("users").document(uid).update(updates).await()
+            Log.d("AuthRepository", "Preferences updated in Firestore")
+        } catch (e: Exception) {
+            Log.e("AuthRepository", "Error updating preferences in Firestore", e)
+        }
+    }
+
+    suspend fun pushUserDataToServer(context: Context) {
+        val uid = auth.currentUser?.uid ?: return
+        val current = _currentUser.value ?: return
+        
+        try {
+            db.collection("users").document(uid).set(
+                mapOf(
+                    "account" to current.account.copy(updatedAt = System.currentTimeMillis()),
+                    "profile" to current.profile,
+                    "stats" to current.stats,
+                    "preferences" to current.preferences,
+                    "updatedAt" to System.currentTimeMillis()
+                ),
+                com.google.firebase.firestore.SetOptions.merge()
+            ).await()
+            
+            // Ensure device is synced during data push
+            val token = com.google.firebase.installations.FirebaseInstallations.getInstance().id.await()
+            syncDeviceToken(context, token)
+            
+            Log.d("AuthRepository", "User data and device pushed to server successfully")
+        } catch (e: Exception) {
+            Log.e("AuthRepository", "Error pushing user data to server", e)
+        }
     }
 
     suspend fun syncDeviceToken(context: Context, token: String) {

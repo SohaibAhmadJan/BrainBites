@@ -4,6 +4,7 @@ import android.content.Context
 import android.content.Intent
 import android.widget.Toast
 import com.example.brainbites.data.BiteItem
+import com.example.brainbites.data.BiteRepository
 import java.text.SimpleDateFormat
 import java.util.*
 
@@ -23,8 +24,9 @@ object ExportUtils {
         sb.append("==========================================\n\n")
 
         favorites.forEachIndexed { index, item ->
+            val catInfo = BiteRepository.resolveCategory(item.category)
             sb.append("${index + 1}. ${item.title ?: "Psychology Insight"}\n")
-            sb.append("Category: ${item.category.displayName}\n")
+            sb.append("Category: ${catInfo.name}\n")
             sb.append("Insight: ${item.fact}\n")
             if (item.fullFact != null) {
                 sb.append("Details: ${item.fullFact}\n")

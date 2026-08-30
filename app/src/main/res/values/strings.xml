@@ -1,3 +1,5 @@
 <resources>
     <string name="app_name">BrainBites</string>
+    <!-- Replace with your actual Web Client ID from Firebase Console > Authentication > Sign-in method > Google -->
+    <string name="default_web_client_id">728212393989-rtvhmnapfbpfj79qa6pn3v12pemulopq.apps.googleusercontent.com</string>
 </resources>

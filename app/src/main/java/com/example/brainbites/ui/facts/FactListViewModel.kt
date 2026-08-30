@@ -3,7 +3,6 @@ package com.example.brainbites.ui.facts
 import android.app.Application
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
-import com.example.brainbites.data.BiteCategory
 import com.example.brainbites.data.BiteItem
 import com.example.brainbites.data.BiteRepository
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -19,12 +18,12 @@ class FactListViewModel(application: Application) : AndroidViewModel(application
 
     fun loadFacts(categoryId: String) {
         viewModelScope.launch {
-            val category = try { BiteCategory.valueOf(categoryId) } catch (e: Exception) { BiteCategory.ALL }
             BiteRepository.getAllFacts(getApplication()).collect { allFacts ->
-                _facts.value = if (category == BiteCategory.ALL) {
+                _facts.value = if (categoryId == "ALL") {
                     allFacts
                 } else {
-                    allFacts.filter { it.category == category }
+                    // Filter by category name or ID (which matches what we use in onCategoryClick)
+                    allFacts.filter { it.category == categoryId }
                 }
             }
         }

@@ -17,6 +17,7 @@ data class Achievement(
     val currentProgress: Int,
     val maxProgress: Int,
     val status: AchievementStatus,
+    val iconName: String = "🏆",
     val icon: ImageVector = Icons.Default.Star
 ) {
     val progressFraction: Float

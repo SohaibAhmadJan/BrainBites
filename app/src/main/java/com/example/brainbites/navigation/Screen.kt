@@ -12,6 +12,8 @@ sealed class Screen(
     val outlinedIcon: ImageVector? = null
 ) {
     object Splash : Screen("splash_screen")
+    object Login : Screen("login_screen")
+    object SignUp : Screen("signup_screen")
     
     // Hubs (Parents)
     object HomeHub : Screen("home_hub", "Home", Icons.Default.Home, Icons.Outlined.Home)
@@ -24,7 +26,6 @@ sealed class Screen(
     object Categories : Screen("categories_screen")
     object Favorites : Screen("favorites_screen")
     object Settings : Screen("settings_screen")
-    object Quiz : Screen("quiz_screen")
     object Teaser : Screen("teaser_screen")
     object History : Screen("history_screen")
     object Profile : Screen("profile_screen")

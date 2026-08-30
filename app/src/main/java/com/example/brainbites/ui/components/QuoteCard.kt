@@ -5,6 +5,7 @@ import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Brush
@@ -14,8 +15,8 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import com.example.brainbites.data.BiteCategory
 import com.example.brainbites.data.BiteItem
+import com.example.brainbites.data.BiteRepository
 import com.example.brainbites.ui.theme.*
 
 @Composable
@@ -23,6 +24,10 @@ fun QuoteCard(
     fact: BiteItem,
     modifier: Modifier = Modifier
 ) {
+    val categoryInfo = remember(fact.category) {
+        BiteRepository.resolveCategory(fact.category)
+    }
+
     Box(
         modifier = modifier
             .size(1080.dp, 1080.dp) // Standard Square Social Media Size
@@ -82,7 +87,7 @@ fun QuoteCard(
                 shape = RoundedCornerShape(12.dp)
             ) {
                 Text(
-                    text = fact.category.displayName.uppercase(),
+                    text = categoryInfo.name.uppercase(),
                     color = MaterialTheme.colorScheme.onPrimary,
                     style = MaterialTheme.typography.labelLarge,
                     fontWeight = FontWeight.Black,
@@ -109,7 +114,7 @@ fun QuoteCardPreview() {
         val sampleFact = BiteItem(
             id = "1",
             fact = "Humans tend to mimic the body language of people they're comfortable with.",
-            category = BiteCategory.HUMAN_BEHAVIOR
+            category = "Human Behavior"
         )
         QuoteCard(fact = sampleFact)
     }

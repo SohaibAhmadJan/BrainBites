@@ -1,12 +1,12 @@
-# Task: Dashboard - Quick Dispatch Node Implementation
+# Tasks: Automated Firebase Provisioning
 
-- `[ ]` **Phase 1: Component & Logic Integration**
-    - `[ ]` Add `quickMessage` state to `DashboardPage.tsx`
-    - `[ ]` Implement `handleQuickDispatch` function
-    - `[ ]` Create `QuickDispatchNode` JSX block
-- `[ ]` **Phase 2: Layout Refinement**
-    - `[ ]` Adjust bottom grid to `lg:grid-cols-3`
-    - `[ ]` Assign `lg:col-span-1` to Security Pulse and `lg:col-span-2` to Quick Dispatch
-- `[ ]` **Phase 3: Verification**
-    - `[ ]` Test empty message validation
-    - `[ ]` Verify successful broadcast via Toast and API
+- `[/]` Environment Preparation
+    - `[x]` Verify `serviceAccountKey.json` presence
+    - `[x]` Verify `firebase-admin` installation
+- `[/]` Provisioning Execution
+    - `[ ]` Create `provision_firebase.js` script
+    - `[ ]` Execute script via Node.js
+    - `[ ]` Remove temporary script after completion
+- `[ ]` Verification
+    - `[ ]` Confirm user existence in registry
+    - `[ ]` Test Admin Panel login with new credentials

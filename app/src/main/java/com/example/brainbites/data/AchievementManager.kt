@@ -11,7 +11,8 @@ object AchievementManager {
         historyItems: List<HistoryItem>,
         favoritesCount: Int,
         sharesCount: Int,
-        allFacts: List<BiteItem>
+        allFacts: List<BiteItem>,
+        definitions: List<AchievementDefinition>
     ): List<Achievement> {
         val historyIds = historyItems.map { it.factId }.toSet()
         val uniqueFactsCount = historyIds.size
@@ -22,114 +23,46 @@ object AchievementManager {
             .distinct()
             .size
 
-        // Calculate Timing Achievements
+        // Calculate Timing
         val calendar = Calendar.getInstance()
         val hasNightOwl = historyItems.any { 
             calendar.timeInMillis = it.timestamp
             val hour = calendar.get(Calendar.HOUR_OF_DAY)
-            hour >= 22 || hour < 4 // After 10 PM or before 4 AM
+            hour >= 22 || hour < 4
         }
         val hasEarlyBird = historyItems.any {
             calendar.timeInMillis = it.timestamp
             val hour = calendar.get(Calendar.HOUR_OF_DAY)
-            hour >= 5 && hour < 8 // 5 AM to 8 AM
+            hour >= 5 && hour < 8
         }
 
-        return listOf(
+        return definitions.map { def ->
+            val progress = when (def.requirementType) {
+                "READ_COUNT" -> uniqueFactsCount
+                "FAVORITE_COUNT" -> favoritesCount
+                "SHARE_COUNT" -> sharesCount
+                "CATEGORY_COUNT" -> categoriesExplored
+                "STREAK_DAYS" -> PreferenceManager.streakCount.value
+                "NIGHT_OWL" -> if (hasNightOwl) 1 else 0
+                "EARLY_BIRD" -> if (hasEarlyBird) 1 else 0
+                else -> 0
+            }
+
             Achievement(
-                id = "first_step",
-                title = "First Step",
-                description = "Read your very first psychology fact.",
-                icon = Icons.AutoMirrored.Filled.DirectionsRun,
-                currentProgress = if (uniqueFactsCount > 0) 1 else 0,
-                maxProgress = 1,
-                status = getStatus(if (uniqueFactsCount > 0) 1 else 0, 1)
-            ),
-            Achievement(
-                id = "scholar",
-                title = "The Scholar",
-                description = "Read 10 unique psychology facts.",
-                icon = Icons.AutoMirrored.Filled.MenuBook,
-                currentProgress = uniqueFactsCount,
-                maxProgress = 10,
-                status = getStatus(uniqueFactsCount, 10)
-            ),
-            Achievement(
-                id = "curator",
-                title = "The Curator",
-                description = "Save 5 facts to your favorites.",
-                icon = Icons.Default.Favorite,
-                currentProgress = favoritesCount,
-                maxProgress = 5,
-                status = getStatus(favoritesCount, 5)
-            ),
-            Achievement(
-                id = "explorer",
-                title = "The Explorer",
-                description = "Discover facts from 5 different categories.",
-                icon = Icons.Default.Explore,
-                currentProgress = categoriesExplored,
-                maxProgress = 5,
-                status = getStatus(categoriesExplored, 5)
-            ),
-            Achievement(
-                id = "night_owl",
-                title = "Night Owl",
-                description = "Read a fact late at night (after 10 PM).",
-                icon = Icons.Default.NightsStay,
-                currentProgress = if (hasNightOwl) 1 else 0,
-                maxProgress = 1,
-                status = getStatus(if (hasNightOwl) 1 else 0, 1)
-            ),
-            Achievement(
-                id = "early_bird",
-                title = "Early Bird",
-                description = "Start your day with a fact (before 8 AM).",
-                icon = Icons.Default.WbSunny,
-                currentProgress = if (hasEarlyBird) 1 else 0,
-                maxProgress = 1,
-                status = getStatus(if (hasEarlyBird) 1 else 0, 1)
-            ),
-            Achievement(
-                id = "thinker",
-                title = "The Thinker",
-                description = "Read 50 unique facts.",
-                icon = Icons.Default.Psychology,
-                currentProgress = uniqueFactsCount,
-                maxProgress = 50,
-                status = getStatus(uniqueFactsCount, 50)
-            ),
-            Achievement(
-                id = "socialite",
-                title = "Socialite",
-                description = "Share 3 facts with friends.",
-                icon = Icons.Default.Share,
-                currentProgress = sharesCount,
-                maxProgress = 3,
-                status = getStatus(sharesCount, 3)
-            ),
-            Achievement(
-                id = "librarian",
-                title = "Librarian",
-                description = "Build a collection of 20 favorites.",
-                icon = Icons.Default.LocalLibrary,
-                currentProgress = favoritesCount,
-                maxProgress = 20,
-                status = getStatus(favoritesCount, 20)
-            ),
-            Achievement(
-                id = "master",
-                title = "Master of Mind",
-                description = "Read 100 total facts.",
-                icon = Icons.Default.AutoAwesome,
-                currentProgress = uniqueFactsCount,
-                maxProgress = 100,
-                status = getStatus(uniqueFactsCount, 100)
+                id = def.id,
+                title = def.title,
+                description = def.description,
+                currentProgress = progress,
+                maxProgress = def.maxProgress,
+                status = getStatus(progress, def.maxProgress),
+                iconName = def.iconName,
+                icon = Icons.Default.EmojiEvents 
             )
-        )
+        }
     }
 
     private fun getStatus(current: Int, max: Int): AchievementStatus {
+        if (max <= 0) return AchievementStatus.COMPLETED
         return when {
             current >= max -> AchievementStatus.COMPLETED
             current > 0 -> AchievementStatus.IN_PROGRESS

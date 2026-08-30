@@ -49,45 +49,17 @@ class BrainBitesMessagingService : FirebaseMessagingService() {
         // Add to local repository
         NotificationRepository.addNotification(notification)
 
+        val notificationId = remoteMessage.data["notificationId"] ?: UUID.randomUUID().toString()
+
         // Show system notification
-        sendNotification(title, body, imageUrl, deepLinkFactId)
-    }
-
-    private fun sendNotification(title: String, messageBody: String, imageUrl: String? = null, factId: String? = null) {
-        val intent = Intent(this, MainActivity::class.java)
-        intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP)
-        
-        if (factId != null) {
-            intent.putExtra("factId", factId)
-        }
-
-        val pendingIntent = PendingIntent.getActivity(
-            this, 0, intent,
-            PendingIntent.FLAG_IMMUTABLE or PendingIntent.FLAG_UPDATE_CURRENT
+        NotificationHelper.showNotification(
+            context = this,
+            notificationId = notificationId,
+            title = title,
+            message = body,
+            factId = deepLinkFactId,
+            imageUrl = imageUrl
         )
-
-        val channelId = "brain_bites_notifications"
-        val notificationBuilder = NotificationCompat.Builder(this, channelId)
-            .setSmallIcon(android.R.drawable.ic_dialog_info)
-            .setContentTitle(title)
-            .setContentText(messageBody)
-            .setAutoCancel(true)
-            .setContentIntent(pendingIntent)
-            .setPriority(NotificationCompat.PRIORITY_HIGH)
-
-
-        val notificationManager = getSystemService(NOTIFICATION_SERVICE) as NotificationManager
-
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-            val channel = NotificationChannel(
-                channelId,
-                "BrainBites Notifications",
-                NotificationManager.IMPORTANCE_HIGH
-            )
-            notificationManager.createNotificationChannel(channel)
-        }
-
-        notificationManager.notify(0, notificationBuilder.build())
     }
 
     override fun onNewToken(token: String) {

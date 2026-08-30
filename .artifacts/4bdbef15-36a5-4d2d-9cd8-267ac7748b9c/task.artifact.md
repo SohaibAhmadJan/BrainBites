@@ -1,0 +1,16 @@
+- [x] Multi-Logic Analytics (Activity vs. Inventory):
+    - [x] Update `AnalyticsRepository.kt` to include `device_id` in install events
+    - [x] Update `firestoreService.ts` with device inventory fetching
+    - [x] Implement `metricView` toggle in `AnalyticsHub.tsx`
+    - [x] Update KPI logic for Option 1 (Activity) and Option 2 (Device)
+    - [x] Verify reactive switching between views
+- [x] Refine Analytics Hub Content:
+    - [x] Implement Tabbed Navigation (Overview, Engagement, Intelligence, Content)
+    - [x] Add Daily Activity Bar Chart to Engagement Module
+    - [x] Implement Content Module (Pie Chart + Top Facts Table)
+    - [x] Standardize PremiumCard styling and chart colors
+    - [x] Verify tab switching and data responsiveness
+- [x] Registered User Integrity
+- [x] Correct User Page Accuracy (Admin Filtering)
+- [x] Fix Google Sign-In Data Capture
+- [x] Activate Intelligence Section Functionality

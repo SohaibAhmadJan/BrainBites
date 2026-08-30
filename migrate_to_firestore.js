@@ -4,7 +4,7 @@ const fs = require('fs');
 const path = require('path');
 
 // The JSON file you downloaded
-const serviceAccount = require('./brainbites-24332456-firebase-adminsdk-fbsvc-c254c826d4.json');
+const serviceAccount = require('./serviceAccountKey.json');
 
 console.log('Initializing Firebase Admin...');
 try {

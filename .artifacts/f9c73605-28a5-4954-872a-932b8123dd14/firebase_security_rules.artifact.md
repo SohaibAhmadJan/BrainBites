@@ -1,6 +1,6 @@
 # BrainBites Production Security Rules
 
-Copy and paste these rules into your **Firebase Console** to secure your production data.
+Copy and paste these rules into your **Firebase Console** to secure your production data and enable admin management.
 
 ## 1. Firestore Security Rules
 Go to **Firestore Database** -> **Rules** and paste this:
@@ -13,7 +13,10 @@ service cloud.firestore {
 
     // Check if the request is from a logged-in admin
     function isAdmin() {
-      return request.auth != null && request.auth.token.email == "sohaibahmedjan930@gmail.com";
+      return request.auth != null && (
+        request.auth.token.email == "sohaibahmedjan930@gmail.com" ||
+        request.auth.token.email == "sohaibahmedjan7@gmail.com"
+      );
     }
 
     // Facts and Collections: Public read, Admin write
@@ -23,6 +26,23 @@ service cloud.firestore {
     }
 
     match /collections/{colId} {
+      allow read: if true;
+      allow write: if isAdmin();
+    }
+
+    // Admins Registry: Admin only
+    match /admins/{adminId} {
+      allow read, write: if isAdmin();
+    }
+
+    // Categories: Public read, Admin write
+    match /categories/{catId} {
+      allow read: if true;
+      allow write: if isAdmin();
+    }
+
+    // Quizzes: Public read, Admin write
+    match /quizzes/{quizId} {
       allow read: if true;
       allow write: if isAdmin();
     }
@@ -66,7 +86,10 @@ service firebase.storage {
   match /b/{bucket}/o {
 
     function isAdmin() {
-      return request.auth != null && request.auth.token.email == "sohaibahmedjan930@gmail.com";
+      return request.auth != null && (
+        request.auth.token.email == "sohaibahmedjan930@gmail.com" ||
+        request.auth.token.email == "sohaibahmedjan7@gmail.com"
+      );
     }
 
     // Media folder: Public read, Admin write
@@ -84,4 +107,4 @@ service firebase.storage {
 ```
 
 > [!CAUTION]
-> **Warning**: These rules strictly limit write access to your specific email address. Ensure your email is correct in the `isAdmin()` function before publishing!
+> **Warning**: These rules strictly limit write access to your specific email addresses. Ensure your email is correct in the `isAdmin()` function before publishing!

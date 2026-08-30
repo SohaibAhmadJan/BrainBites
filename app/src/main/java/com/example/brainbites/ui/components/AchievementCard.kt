@@ -18,6 +18,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import com.example.brainbites.data.Achievement
 import com.example.brainbites.data.AchievementManager
 import com.example.brainbites.data.AchievementStatus
@@ -38,11 +39,15 @@ fun AchievementCard(
             onDismissRequest = { showDetail = false },
             title = {
                 Row(verticalAlignment = Alignment.CenterVertically) {
-                    Icon(
-                        imageVector = achievement.icon,
-                        contentDescription = null,
-                        tint = if (isCompleted) MaterialTheme.colorScheme.tertiary else MaterialTheme.colorScheme.primary
-                    )
+                    if (achievement.iconName.length <= 2) {
+                        Text(text = achievement.iconName, fontSize = 24.sp)
+                    } else {
+                        Icon(
+                            imageVector = achievement.icon,
+                            contentDescription = null,
+                            tint = if (isCompleted) MaterialTheme.colorScheme.tertiary else MaterialTheme.colorScheme.primary
+                        )
+                    }
                     Spacer(modifier = Modifier.width(12.dp))
                     Text(text = achievement.title, fontWeight = FontWeight.Bold)
                 }
@@ -131,12 +136,16 @@ fun AchievementCard(
                         .background(iconBackgroundColor),
                     contentAlignment = Alignment.Center
                 ) {
-                    Icon(
-                        imageVector = achievement.icon,
-                        contentDescription = achievement.title,
-                        tint = iconTint,
-                        modifier = Modifier.size(24.dp)
-                    )
+                    if (achievement.iconName.length <= 2) {
+                        Text(text = achievement.iconName, fontSize = 20.sp)
+                    } else {
+                        Icon(
+                            imageVector = achievement.icon,
+                            contentDescription = achievement.title,
+                            tint = iconTint,
+                            modifier = Modifier.size(24.dp)
+                        )
+                    }
                 }
 
                 Spacer(modifier = Modifier.width(12.dp))

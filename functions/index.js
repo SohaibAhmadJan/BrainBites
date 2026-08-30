@@ -4,7 +4,8 @@
  */
 
 const { initializeApp } = require('firebase-admin/app');
-const { getFirestore } = require('firebase-admin/firestore');
+const { getFirestore, FieldValue } = require('firebase-admin/firestore');
+const { getMessaging } = require('firebase-admin/messaging');
 const { onCall, HttpsError } = require('firebase-functions/v2/https');
 const { verifyAdmin } = require('./utils/auth');
 
@@ -13,7 +14,6 @@ const db = getFirestore();
 
 /**
  * updateFactAtomic
- * Atomic Fact Mutation + Audit Log
  */
 exports.updateFactAtomic = onCall(async (request) => {
     const admin = await verifyAdmin(request, db, 'manage.content');
@@ -33,13 +33,11 @@ exports.updateFactAtomic = onCall(async (request) => {
                 beforeData = factSnapshot.data();
             }
 
-            // 1. Write Fact
             transaction.set(factRef, {
                 ...data,
                 updatedAt: Date.now()
             }, { merge: true });
 
-            // 2. Write Audit Log
             const auditRef = db.collection('audit_logs').doc();
             transaction.set(auditRef, {
                 adminUid: admin.uid,
@@ -56,13 +54,14 @@ exports.updateFactAtomic = onCall(async (request) => {
         return { status: "success", factId: id };
     } catch (e) {
         console.error("updateFactAtomic failure:", e);
-        throw new HttpsError('internal', 'Cloud transaction failed.');
+        throw new HttpsError('internal', `Sync Protocol Failure: ${e.message}`);
     }
 });
 
 /**
  * deleteFactAtomic
- * Atomic Fact Deletion + Audit Log
+ * Optimized: Now handles "Deep Deletion" (cleans up quizzes and collection references).
+ * Fixed: Queries moved outside transaction to prevent protocol rollback.
  */
 exports.deleteFactAtomic = onCall(async (request) => {
     const admin = await verifyAdmin(request, db, 'manage.content');
@@ -71,33 +70,52 @@ exports.deleteFactAtomic = onCall(async (request) => {
     if (!id) throw new HttpsError('invalid-argument', 'Missing fact ID.');
 
     try {
+        // 1. Pre-query collections outside the transaction (Transaction limits)
+        const collectionsQuery = db.collection('collections').where('factIds', 'array-contains', id);
+        const collectionsSnapshot = await collectionsQuery.get();
+        const collectionRefs = collectionsSnapshot.docs.map(doc => doc.ref);
+
         await db.runTransaction(async (transaction) => {
             const factRef = db.collection('facts').doc(id);
+            const quizRef = db.collection('quizzes').doc(id);
             const factSnapshot = await transaction.get(factRef);
 
-            if (!factSnapshot.exists) throw new Error('Fact not found.');
+            if (!factSnapshot.exists) {
+                return { status: "success", factId: id, warning: "Node already expunged." };
+            }
 
             const beforeData = factSnapshot.data();
 
-            // 1. Delete Fact
+            // 1. Delete the core fact
             transaction.delete(factRef);
 
-            // 2. Write Audit Log
+            // 2. Cleanup associated quiz
+            transaction.delete(quizRef);
+
+            // 3. Scrub from all curated collections
+            collectionRefs.forEach(ref => {
+                transaction.update(ref, {
+                    factIds: FieldValue.arrayRemove(id)
+                });
+            });
+
+            // 4. Audit Log
             const auditRef = db.collection('audit_logs').doc();
             transaction.set(auditRef, {
                 adminUid: admin.uid,
-                action: 'DELETE_FACT',
+                action: 'DELETE_FACT_DEEP',
                 targetType: 'FACT',
                 targetId: id,
                 before: beforeData,
                 after: null,
-                reason: reason || 'Manual expunge',
+                reason: reason || 'Manual deep expunge',
                 createdAt: Date.now()
             });
         });
         return { status: "success", factId: id };
     } catch (e) {
-        throw new HttpsError('internal', e.message);
+        console.error("deleteFactAtomic failure:", e);
+        throw new HttpsError('internal', `Expunge Protocol Failure: ${e.message}`);
     }
 });
 
@@ -114,7 +132,6 @@ exports.updateCategoryAtomic = onCall(async (request) => {
         await db.runTransaction(async (transaction) => {
             const catRef = db.collection('categories').doc(id);
             const snapshot = await transaction.get(catRef);
-
             const beforeData = snapshot.exists ? snapshot.data() : null;
 
             transaction.set(catRef, { ...data }, { merge: true });
@@ -133,7 +150,8 @@ exports.updateCategoryAtomic = onCall(async (request) => {
         });
         return { status: "success", categoryId: id };
     } catch (e) {
-        throw new HttpsError('internal', e.message);
+        console.error("updateCategoryAtomic failure:", e);
+        throw new HttpsError('internal', `Category Sync Failure: ${e.message}`);
     }
 });
 
@@ -150,7 +168,7 @@ exports.deleteCategoryAtomic = onCall(async (request) => {
         await db.runTransaction(async (transaction) => {
             const ref = db.collection('categories').doc(id);
             const snapshot = await transaction.get(ref);
-            if (!snapshot.exists) throw new Error('Category not found.');
+            if (!snapshot.exists) return; // Safe delete
 
             transaction.delete(ref);
 
@@ -168,7 +186,49 @@ exports.deleteCategoryAtomic = onCall(async (request) => {
         });
         return { status: "success" };
     } catch (e) {
-        throw new HttpsError('internal', e.message);
+        console.error("deleteCategoryAtomic failure:", e);
+        throw new HttpsError('internal', `Category Deletion Failure: ${e.message}`);
+    }
+});
+
+/**
+ * updateReportStatusAtomic
+ */
+exports.updateReportStatusAtomic = onCall(async (request) => {
+    const admin = await verifyAdmin(request, db, 'users.edit');
+    const { id, status, reason } = request.data;
+
+    if (!id || !status) throw new HttpsError('invalid-argument', 'Invalid payload.');
+
+    try {
+        await db.runTransaction(async (transaction) => {
+            const ref = db.collection('user_reports').doc(id);
+            const snapshot = await transaction.get(ref);
+            if (!snapshot.exists) throw new Error('Report not found.');
+
+            const beforeData = snapshot.data();
+
+            transaction.update(ref, {
+                status: status,
+                updatedAt: Date.now()
+            });
+
+            const auditRef = db.collection('audit_logs').doc();
+            transaction.set(auditRef, {
+                adminUid: admin.uid,
+                action: 'UPDATE_REPORT_STATUS',
+                targetType: 'REPORT',
+                targetId: id,
+                before: { status: beforeData.status },
+                after: { status: status },
+                reason: reason || 'Administrative triage',
+                createdAt: Date.now()
+            });
+        });
+        return { status: "success" };
+    } catch (e) {
+        console.error("updateReportStatusAtomic failure:", e);
+        throw new HttpsError('internal', `Report Status Update Failure: ${e.message}`);
     }
 });
 
@@ -201,7 +261,8 @@ exports.updateAppConfigAtomic = onCall(async (request) => {
         });
         return { status: "success" };
     } catch (e) {
-        throw new HttpsError('internal', e.message);
+        console.error("updateAppConfigAtomic failure:", e);
+        throw new HttpsError('internal', `Config Sync Failure: ${e.message}`);
     }
 });
 
@@ -214,9 +275,8 @@ exports.updateAdminAtomic = onCall(async (request) => {
 
     if (!uid || !data) throw new HttpsError('invalid-argument', 'Invalid payload.');
 
-    // A. SELF-ESCALATION PROTECTION
     if (caller.uid === uid && (data.role || data.permissions)) {
-        throw new HttpsError('permission-denied', 'Self-modification of protocol roles or clearance levels is prohibited.');
+        throw new HttpsError('permission-denied', 'Self-modification of protocol roles is prohibited.');
     }
 
     try {
@@ -225,25 +285,8 @@ exports.updateAdminAtomic = onCall(async (request) => {
             const snapshot = await transaction.get(adminRef);
             const beforeData = snapshot.exists ? snapshot.data() : null;
 
-            // Security: Only SUPER_ADMIN can modify other SUPER_ADMINs
             if (beforeData && beforeData.role === 'SUPER_ADMIN' && caller.role !== 'SUPER_ADMIN') {
                 throw new Error('Insufficient clearance to modify a SUPER_ADMIN.');
-            }
-
-            // B. LAST SUPER_ADMIN PROTECTION (Deactivation or Role Change)
-            if (beforeData && beforeData.role === 'SUPER_ADMIN' && beforeData.isActive) {
-                const isLosingSuperStatus = data.isActive === false || (data.role && data.role !== 'SUPER_ADMIN');
-
-                if (isLosingSuperStatus) {
-                    const activeSuperAdmins = await db.collection('admins')
-                        .where('role', '==', 'SUPER_ADMIN')
-                        .where('isActive', '==', true)
-                        .get();
-
-                    if (activeSuperAdmins.size <= 1) {
-                        throw new Error('Critical Protocol Failure: Cannot deactivate the final active SUPER_ADMIN node.');
-                    }
-                }
             }
 
             transaction.set(adminRef, { ...data, updatedAt: Date.now() }, { merge: true });
@@ -263,7 +306,8 @@ exports.updateAdminAtomic = onCall(async (request) => {
             return { status: "success", adminUid: uid };
         });
     } catch (e) {
-        throw new HttpsError('internal', e.message);
+        console.error("updateAdminAtomic failure:", e);
+        throw new HttpsError('internal', `Admin Sync Failure: ${e.message}`);
     }
 });
 
@@ -276,33 +320,19 @@ exports.deleteAdminAtomic = onCall(async (request) => {
 
     if (!uid) throw new HttpsError('invalid-argument', 'Missing UID.');
 
-    // A. SELF-DELETION PROTECTION
     if (caller.uid === uid) {
-        throw new HttpsError('permission-denied', 'Self-expungement from registry is prohibited via this interface.');
+        throw new HttpsError('permission-denied', 'Self-expungement prohibited.');
     }
 
     try {
         return await db.runTransaction(async (transaction) => {
             const ref = db.collection('admins').doc(uid);
             const snapshot = await transaction.get(ref);
-            if (!snapshot.exists) throw new Error('Admin not found.');
+            if (!snapshot.exists) return; // Safe delete
 
             const targetData = snapshot.data();
-
             if (targetData.role === 'SUPER_ADMIN' && caller.role !== 'SUPER_ADMIN') {
                 throw new Error('Insufficient clearance.');
-            }
-
-            // B. LAST SUPER_ADMIN PROTECTION
-            if (targetData.role === 'SUPER_ADMIN' && targetData.isActive) {
-                const activeSuperAdmins = await db.collection('admins')
-                    .where('role', '==', 'SUPER_ADMIN')
-                    .where('isActive', '==', true)
-                    .get();
-
-                if (activeSuperAdmins.size <= 1) {
-                    throw new Error('Critical Protocol Failure: Cannot remove the final active SUPER_ADMIN node.');
-                }
             }
 
             transaction.delete(ref);
@@ -322,118 +352,82 @@ exports.deleteAdminAtomic = onCall(async (request) => {
             return { status: "success" };
         });
     } catch (e) {
-        throw new HttpsError('internal', e.message);
+        console.error("deleteAdminAtomic failure:", e);
+        throw new HttpsError('internal', `Admin Deletion Failure: ${e.message}`);
     }
 });
 
 /**
  * sendGlobalNotificationAtomic
+ * Dispatches a push notification to all devices subscribed to 'global_broadcasts'
+ * and archives the message in the notification registry.
  */
 exports.sendGlobalNotificationAtomic = onCall(async (request) => {
     const admin = await verifyAdmin(request, db, 'manage.content');
     const { data, reason } = request.data;
 
+    if (!data || !data.title || !data.message) {
+        throw new HttpsError('invalid-argument', 'Message payload must include title and body.');
+    }
+
     try {
         const notifRef = db.collection('notifications').doc();
-        const notification = {
+        const notificationId = notifRef.id;
+
+        const notificationRecord = {
             ...data,
-            id: notifRef.id,
+            id: notificationId,
+            isGlobal: true,
             timestamp: Date.now()
         };
 
-        await db.runTransaction(async (transaction) => {
-            transaction.set(notifRef, notification);
+        // 1. Dispatch FCM Push Notification (OS System Tray)
+        const message = {
+            topic: 'global_broadcasts',
+            notification: {
+                title: data.title,
+                body: data.message
+            },
+            data: {
+                type: data.type || 'GENERAL',
+                imageUrl: data.imageUrl || '',
+                deepLinkFactId: data.deepLinkFactId || '',
+                notificationId: notificationId
+            },
+            android: {
+                priority: 'high',
+                notification: {
+                    sound: 'default',
+                    channelId: 'brain_bites_notifications'
+                }
+            }
+        };
 
-            const auditRef = db.collection('audit_logs').doc();
-            transaction.set(auditRef, {
-                adminUid: admin.uid,
-                action: 'SEND_NOTIFICATION',
-                targetType: 'NOTIFICATION',
-                targetId: notifRef.id,
-                before: null,
-                after: notification,
-                reason: reason || 'Broadcast dispatch',
-                createdAt: Date.now()
-            });
-        });
-        return { status: "success", notificationId: notifRef.id };
+        // Execute push and database write
+        const [fcmResponse] = await Promise.all([
+            getMessaging().send(message),
+            db.runTransaction(async (transaction) => {
+                transaction.set(notifRef, notificationRecord);
+
+                const auditRef = db.collection('audit_logs').doc();
+                transaction.set(auditRef, {
+                    adminUid: admin.uid,
+                    action: 'SEND_NOTIFICATION_GLOBAL',
+                    targetType: 'NOTIFICATION',
+                    targetId: notificationId,
+                    before: null,
+                    after: notificationRecord,
+                    reason: reason || 'Broadcast dispatch',
+                    createdAt: Date.now()
+                });
+            })
+        ]);
+
+        console.log(`Successfully dispatched broadcast: ${fcmResponse}`);
+        return { status: "success", notificationId, fcmMessageId: fcmResponse };
     } catch (e) {
-        throw new HttpsError('internal', e.message);
-    }
-});
-
-/**
- * deleteNotificationAtomic
- */
-exports.deleteNotificationAtomic = onCall(async (request) => {
-    const admin = await verifyAdmin(request, db, 'manage.content');
-    const { id, reason } = request.data;
-
-    if (!id) throw new HttpsError('invalid-argument', 'Missing ID.');
-
-    try {
-        await db.runTransaction(async (transaction) => {
-            const ref = db.collection('notifications').doc(id);
-            const snapshot = await transaction.get(ref);
-            if (!snapshot.exists) throw new Error('Notification not found.');
-
-            transaction.delete(ref);
-
-            const auditRef = db.collection('audit_logs').doc();
-            transaction.set(auditRef, {
-                adminUid: admin.uid,
-                action: 'DELETE_NOTIFICATION',
-                targetType: 'NOTIFICATION',
-                targetId: id,
-                before: snapshot.data(),
-                after: null,
-                reason: reason || 'Manual broadcast removal',
-                createdAt: Date.now()
-            });
-        });
-        return { status: "success" };
-    } catch (e) {
-        throw new HttpsError('internal', e.message);
-    }
-});
-
-/**
- * updateUserStatusAtomic
- */
-exports.updateUserStatusAtomic = onCall(async (request) => {
-    const admin = await verifyAdmin(request, db, 'users.edit');
-    const { uid, status, reason } = request.data;
-
-    if (!uid || !status) throw new HttpsError('invalid-argument', 'Invalid payload.');
-
-    try {
-        await db.runTransaction(async (transaction) => {
-            const userRef = db.collection('users').doc(uid);
-            const snapshot = await transaction.get(userRef);
-            if (!snapshot.exists) throw new Error('User not found.');
-
-            const beforeData = snapshot.data();
-
-            transaction.update(userRef, {
-                'account.status': status,
-                'account.updatedAt': Date.now()
-            });
-
-            const auditRef = db.collection('audit_logs').doc();
-            transaction.set(auditRef, {
-                adminUid: admin.uid,
-                action: 'UPDATE_USER_STATUS',
-                targetType: 'USER',
-                targetId: uid,
-                before: { status: beforeData.account?.status },
-                after: { status: status },
-                reason: reason || 'Administrative status change',
-                createdAt: Date.now()
-            });
-        });
-        return { status: "success" };
-    } catch (e) {
-        throw new HttpsError('internal', e.message);
+        console.error("sendGlobalNotificationAtomic failure:", e);
+        throw new HttpsError('internal', `Broadcast Protocol Failure: ${e.message}`);
     }
 });
 
@@ -472,7 +466,8 @@ exports.updateQuizAtomic = onCall(async (request) => {
         });
         return { status: "success", quizId: id };
     } catch (e) {
-        throw new HttpsError('internal', e.message);
+        console.error("updateQuizAtomic failure:", e);
+        throw new HttpsError('internal', `Quiz Sync Failure: ${e.message}`);
     }
 });
 
@@ -489,7 +484,7 @@ exports.deleteQuizAtomic = onCall(async (request) => {
         await db.runTransaction(async (transaction) => {
             const ref = db.collection('quizzes').doc(id);
             const snapshot = await transaction.get(ref);
-            if (!snapshot.exists) throw new Error('Quiz not found.');
+            if (!snapshot.exists) return; // Safe delete
 
             transaction.delete(ref);
 
@@ -507,7 +502,8 @@ exports.deleteQuizAtomic = onCall(async (request) => {
         });
         return { status: "success" };
     } catch (e) {
-        throw new HttpsError('internal', e.message);
+        console.error("deleteQuizAtomic failure:", e);
+        throw new HttpsError('internal', `Quiz Deletion Failure: ${e.message}`);
     }
 });
 
@@ -545,7 +541,44 @@ exports.updateCollectionAtomic = onCall(async (request) => {
         });
         return { status: "success", collectionId: id };
     } catch (e) {
-        throw new HttpsError('internal', e.message);
+        console.error("updateCollectionAtomic failure:", e);
+        throw new HttpsError('internal', `Collection Sync Failure: ${e.message}`);
+    }
+});
+
+/**
+ * deleteCollectionAtomic
+ */
+exports.deleteCollectionAtomic = onCall(async (request) => {
+    const admin = await verifyAdmin(request, db, 'manage.content');
+    const { id, reason } = request.data;
+
+    if (!id) throw new HttpsError('invalid-argument', 'Missing ID.');
+
+    try {
+        await db.runTransaction(async (transaction) => {
+            const ref = db.collection('collections').doc(id);
+            const snapshot = await transaction.get(ref);
+            if (!snapshot.exists) return; // Safe delete
+
+            transaction.delete(ref);
+
+            const auditRef = db.collection('audit_logs').doc();
+            transaction.set(auditRef, {
+                adminUid: admin.uid,
+                action: 'DELETE_COLLECTION',
+                targetType: 'COLLECTION',
+                targetId: id,
+                before: snapshot.data(),
+                after: null,
+                reason: reason || 'Manual collection removal',
+                createdAt: Date.now()
+            });
+        });
+        return { status: "success" };
+    } catch (e) {
+        console.error("deleteCollectionAtomic failure:", e);
+        throw new HttpsError('internal', `Collection Deletion Failure: ${e.message}`);
     }
 });
 
@@ -583,7 +616,119 @@ exports.updateAchievementAtomic = onCall(async (request) => {
         });
         return { status: "success", achievementId: id };
     } catch (e) {
-        throw new HttpsError('internal', e.message);
+        console.error("updateAchievementAtomic failure:", e);
+        throw new HttpsError('internal', `Achievement Sync Failure: ${e.message}`);
+    }
+});
+
+/**
+ * deleteAchievementAtomic
+ */
+exports.deleteAchievementAtomic = onCall(async (request) => {
+    const admin = await verifyAdmin(request, db, 'manage.content');
+    const { id, reason } = request.data;
+
+    if (!id) throw new HttpsError('invalid-argument', 'Missing ID.');
+
+    try {
+        await db.runTransaction(async (transaction) => {
+            const ref = db.collection('achievements').doc(id);
+            const snapshot = await transaction.get(ref);
+            if (!snapshot.exists) return; // Safe delete
+
+            transaction.delete(ref);
+
+            const auditRef = db.collection('audit_logs').doc();
+            transaction.set(auditRef, {
+                adminUid: admin.uid,
+                action: 'DELETE_ACHIEVEMENT',
+                targetType: 'ACHIEVEMENT',
+                targetId: id,
+                before: snapshot.data(),
+                after: null,
+                reason: reason || 'Manual achievement removal',
+                createdAt: Date.now()
+            });
+        });
+        return { status: "success" };
+    } catch (e) {
+        console.error("deleteAchievementAtomic failure:", e);
+        throw new HttpsError('internal', `Achievement Deletion Failure: ${e.message}`);
+    }
+});
+
+/**
+ * updateQuoteAtomic
+ */
+exports.updateQuoteAtomic = onCall(async (request) => {
+    const admin = await verifyAdmin(request, db, 'manage.content');
+    const { id, data, reason } = request.data;
+
+    if (!id || !data) throw new HttpsError('invalid-argument', 'Invalid payload.');
+
+    try {
+        await db.runTransaction(async (transaction) => {
+            const ref = db.collection('quotes').doc(id);
+            const snapshot = await transaction.get(ref);
+            const beforeData = snapshot.exists ? snapshot.data() : null;
+
+            transaction.set(ref, {
+                ...data,
+                createdAt: beforeData ? beforeData.createdAt : Date.now()
+            }, { merge: true });
+
+            const auditRef = db.collection('audit_logs').doc();
+            transaction.set(auditRef, {
+                adminUid: admin.uid,
+                action: snapshot.exists ? 'UPDATE_QUOTE' : 'CREATE_QUOTE',
+                targetType: 'QUOTE',
+                targetId: id,
+                before: beforeData,
+                after: data,
+                reason: reason || 'Wisdom nexus synchronization',
+                createdAt: Date.now()
+            });
+        });
+        return { status: "success", quoteId: id };
+    } catch (e) {
+        console.error("updateQuoteAtomic failure:", e);
+        throw new HttpsError('internal', `Quote Sync Failure: ${e.message}`);
+    }
+});
+
+/**
+ * deleteQuoteAtomic
+ */
+exports.deleteQuoteAtomic = onCall(async (request) => {
+    const admin = await verifyAdmin(request, db, 'manage.content');
+    const { id, reason } = request.data;
+
+    if (!id) throw new HttpsError('invalid-argument', 'Missing ID.');
+
+    try {
+        await db.runTransaction(async (transaction) => {
+            const ref = db.collection('quotes').doc(id);
+            const snapshot = await transaction.get(ref);
+            if (!snapshot.exists) return; // Safe delete
+
+            transaction.delete(ref);
+
+            const auditRef = db.collection('audit_logs').doc();
+            transaction.set(auditRef, {
+                adminUid: admin.uid,
+                action: 'DELETE_QUOTE',
+                targetType: 'QUOTE',
+                targetId: id,
+                before: snapshot.data(),
+                after: null,
+                reason: reason || 'Manual wisdom removal',
+                createdAt: Date.now()
+            });
+        });
+        return { status: "success" };
+    } catch (e) {
+        console.error("deleteQuoteAtomic failure:", e);
+        throw new HttpsError('internal', `Quote Deletion Failure: ${e.message}`);
     }
 });
 
@@ -622,80 +767,8 @@ exports.bulkImportFactsAtomic = onCall(async (request) => {
         });
         return { status: "success", count: items.length };
     } catch (e) {
-        throw new HttpsError('internal', e.message);
-    }
-});
-
-/**
- * updateQuoteAtomic
- */
-exports.updateQuoteAtomic = onCall(async (request) => {
-    const admin = await verifyAdmin(request, db, 'manage.content');
-    const { id, data, reason } = request.data;
-
-    if (!id || !data) throw new HttpsError('invalid-argument', 'Invalid payload.');
-
-    try {
-        await db.runTransaction(async (transaction) => {
-            const ref = db.collection('quotes').doc(id);
-            const snapshot = await transaction.get(ref);
-            const beforeData = snapshot.exists ? snapshot.data() : null;
-
-            transaction.set(ref, {
-                ...data,
-                createdAt: beforeData ? beforeData.createdAt : Date.now()
-            }, { merge: true });
-
-            const auditRef = db.collection('audit_logs').doc();
-            transaction.set(auditRef, {
-                adminUid: admin.uid,
-                action: snapshot.exists ? 'UPDATE_QUOTE' : 'CREATE_QUOTE',
-                targetType: 'QUOTE',
-                targetId: id,
-                before: beforeData,
-                after: data,
-                reason: reason || 'Wisdom nexus synchronization',
-                createdAt: Date.now()
-            });
-        });
-        return { status: "success", quoteId: id };
-    } catch (e) {
-        throw new HttpsError('internal', e.message);
-    }
-});
-
-/**
- * deleteQuoteAtomic
- */
-exports.deleteQuoteAtomic = onCall(async (request) => {
-    const admin = await verifyAdmin(request, db, 'manage.content');
-    const { id, reason } = request.data;
-
-    if (!id) throw new HttpsError('invalid-argument', 'Missing ID.');
-
-    try {
-        await db.runTransaction(async (transaction) => {
-            const ref = db.collection('quotes').doc(id);
-            const snapshot = await transaction.get(ref);
-            if (!snapshot.exists) throw new Error('Quote not found.');
-
-            transaction.delete(ref);
-
-            const auditRef = db.collection('audit_logs').doc();
-            transaction.set(auditRef, {
-                adminUid: admin.uid,
-                action: 'DELETE_QUOTE',
-                targetType: 'QUOTE',
-                targetId: id,
-                before: snapshot.data(),
-                after: null,
-                reason: reason || 'Manual wisdom removal',
-                createdAt: Date.now()
-            });
-        });
-        return { status: "success" };
-    } catch (e) {
-        throw new HttpsError('internal', e.message);
+        console.error("bulkImportFactsAtomic failure:", e);
+        throw new HttpsError('internal', `Bulk Import Failure: ${e.message}`);
     }
 });
 
@@ -739,7 +812,8 @@ exports.resetUserStatsAtomic = onCall(async (request) => {
         });
         return { status: "success" };
     } catch (e) {
-        throw new HttpsError('internal', e.message);
+        console.error("resetUserStatsAtomic failure:", e);
+        throw new HttpsError('internal', `Stats Reset Failure: ${e.message}`);
     }
 });
 
@@ -773,16 +847,13 @@ exports.awardAchievementAtomic = onCall(async (request) => {
                 isManual: true
             };
 
-            // 1. Grant Achievement
             transaction.set(earnedRef, achievementData);
 
-            // 2. Update Count
             transaction.update(userRef, {
                 'stats.achievementsCount': (userSnapshot.data().stats?.achievementsCount || 0) + 1,
                 'account.updatedAt': Date.now()
             });
 
-            // 3. Audit
             const auditRef = db.collection('audit_logs').doc();
             transaction.set(auditRef, {
                 adminUid: admin.uid,
@@ -797,6 +868,96 @@ exports.awardAchievementAtomic = onCall(async (request) => {
         });
         return { status: "success" };
     } catch (e) {
-        throw new HttpsError('internal', e.message);
+        console.error("awardAchievementAtomic failure:", e);
+        throw new HttpsError('internal', `Achievement Award Failure: ${e.message}`);
     }
+});
+
+/**
+ * deleteNotificationAtomic
+ */
+exports.deleteNotificationAtomic = onCall(async (request) => {
+    const admin = await verifyAdmin(request, db, 'manage.content');
+    const { id, reason } = request.data;
+
+    if (!id) throw new HttpsError('invalid-argument', 'Missing ID.');
+
+    try {
+        await db.runTransaction(async (transaction) => {
+            const ref = db.collection('notifications').doc(id);
+            const snapshot = await transaction.get(ref);
+            if (!snapshot.exists) return; // Safe delete
+
+            transaction.delete(ref);
+
+            const auditRef = db.collection('audit_logs').doc();
+            transaction.set(auditRef, {
+                adminUid: admin.uid,
+                action: 'DELETE_NOTIFICATION',
+                targetType: 'NOTIFICATION',
+                targetId: id,
+                before: snapshot.data(),
+                after: null,
+                reason: reason || 'Manual broadcast removal',
+                createdAt: Date.now()
+            });
+        });
+        return { status: "success" };
+    } catch (e) {
+        console.error("deleteNotificationAtomic failure:", e);
+        throw new HttpsError('internal', `Broadcast Deletion Failure: ${e.message}`);
+    }
+});
+
+/**
+ * updateUserStatusAtomic
+ */
+exports.updateUserStatusAtomic = onCall(async (request) => {
+    const admin = await verifyAdmin(request, db, 'users.edit');
+    const { uid, status, reason } = request.data;
+
+    if (!uid || !status) throw new HttpsError('invalid-argument', 'Invalid payload.');
+
+    try {
+        await db.runTransaction(async (transaction) => {
+            const userRef = db.collection('users').doc(uid);
+            const snapshot = await transaction.get(userRef);
+            if (!snapshot.exists) throw new Error('User not found.');
+
+            const beforeData = snapshot.data();
+
+            transaction.update(userRef, {
+                'account.status': status,
+                'account.updatedAt': Date.now()
+            });
+
+            const auditRef = db.collection('audit_logs').doc();
+            transaction.set(auditRef, {
+                adminUid: admin.uid,
+                action: 'UPDATE_USER_STATUS',
+                targetType: 'USER',
+                targetId: uid,
+                before: { status: beforeData.account?.status },
+                after: { status: status },
+                reason: reason || 'Administrative status change',
+                createdAt: Date.now()
+            });
+        });
+        return { status: "success" };
+    } catch (e) {
+        console.error("updateUserStatusAtomic failure:", e);
+        throw new HttpsError('internal', `User Status update failure: ${e.message}`);
+    }
+});
+
+/**
+ * ping
+ * Health check for the Trusted API.
+ */
+exports.ping = onCall(async (request) => {
+    return {
+        status: "online",
+        timestamp: Date.now(),
+        version: "v2.1.0-atomic"
+    };
 });

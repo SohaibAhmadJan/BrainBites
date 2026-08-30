@@ -1,6 +1,7 @@
 package com.example.brainbites.ui.notifications
 
-import androidx.lifecycle.ViewModel
+import android.app.Application
+import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.brainbites.data.Notification
 import com.example.brainbites.data.NotificationRepository
@@ -8,7 +9,7 @@ import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.stateIn
 
-class NotificationsViewModel : ViewModel() {
+class NotificationsViewModel(application: Application) : AndroidViewModel(application) {
     val notifications: StateFlow<List<Notification>> = NotificationRepository.getNotifications()
         .stateIn(
             scope = viewModelScope,
@@ -17,11 +18,11 @@ class NotificationsViewModel : ViewModel() {
         )
 
     fun markAsRead(id: String) {
-        NotificationRepository.markAsRead(id)
+        NotificationRepository.markAsRead(getApplication(), id)
     }
 
     fun markAllAsRead() {
-        NotificationRepository.markAllAsRead()
+        NotificationRepository.markAllAsRead(getApplication())
     }
 
     fun clearAll() {

@@ -16,7 +16,6 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
 import androidx.lifecycle.viewmodel.compose.viewModel
-import com.example.brainbites.data.BiteCategory
 import com.example.brainbites.data.BiteItem
 import com.example.brainbites.data.BiteRepository
 import com.example.brainbites.ui.components.AnimatedEntrance
@@ -102,7 +101,7 @@ fun FavoritesScreenPreview() {
         val sampleFact = BiteItem(
             id = "1",
             fact = "Humans tend to mimic the body language of people they're comfortable with.",
-            category = BiteCategory.HUMAN_BEHAVIOR,
+            category = "Human Behavior",
             isBookmarked = true
         )
         FavoritesContent(

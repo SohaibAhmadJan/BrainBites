@@ -7,7 +7,7 @@ import kotlinx.serialization.Serializable
 data class BiteItem(
     val id: String,
     val fact: String,
-    val category: BiteCategory,
+    val category: String,
     val title: String? = null,
     val snippet: String? = null,
     val fullFact: String? = null,
@@ -20,7 +20,8 @@ data class BiteItem(
     val keywords: String? = null,
     val readTimeMinutes: Int = 1,
     var isBookmarked: Boolean = false,
-    var isCompleted: Boolean = false
+    var isCompleted: Boolean = false,
+    val isPublished: Boolean = true
 )
 
 @Serializable
