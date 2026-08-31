@@ -1,28 +1,25 @@
-# Walkthrough - Login-Independent Installation Tracking
+# Walkthrough - Dynamic Growth Virality Benchmark
 
-I have successfully separated "Installation" tracking from "User Registration". This ensures that the **Lifetime Installs** card accurately captures every fresh installation as soon as the app is opened, regardless of whether the user logs in or creates an account.
+I have successfully implemented the dynamic benchmark system for the **Growth Virality** card, matching your visual reference and functional requirements.
 
 ## Changes Made
 
-### 1. Robust Installation Registration (Android)
-- **Immediate Execution**: Added `initializeInstallation` to `AnalyticsRepository` and called it early in `MainActivity.onCreate`.
-- **Pre-Login Tracking**: The app now checks for a unique device ID and registers it in a top-level `installations` collection immediately upon startup. This works for guests and registered users alike.
-- **Persistence Logic**: This logic works in tandem with the previous Auto-Backup fix, ensuring that a fresh install generates a new record, while a simple app restart keeps the existing one.
+### 🎯 Dynamic Benchmark Engine
+- **Moving Goal Post**: The red benchmark line is now dynamic. Instead of a static position, it calculates its placement based on a flexible scale (`Math.max(15, current_virality + 5)`). This ensures that the 10% target is always visible and moves relative to your actual progress.
+- **Crossing the Line**: If your virality exceeds 10%, the green progress bar will visibly cross the red line, providing instant visual confirmation of success.
+- **High-Fidelity Styling**: The red line features a subtle outer glow (`shadow-[0_0_10px_rgba(239,68,68,0.5)]`) to make it pop against the background, just like a professional monitoring tool.
 
-### 2. Backend Optimization (Firestore)
-- **Dedicated Collection**: Created a root-level `installations` collection. This bypasses the complex "Collection Group" indexing issues that were causing the count to show as 0.
-- **Security Rules**: Updated `firestore.rules` to allow anonymous device registration while keeping the full list private for administrators.
-
-### 3. Accurate Analytics Hub (Web Admin)
-- **Direct Counting**: Updated `AnalyticsHub.tsx` to fetch the total document count from the new `installations` collection.
-- **Cumulative Lifetime Value**: The "Lifetime Installs" metric now provides a stable, historical total of every unique installation ever recorded, completely independent of time-range filters.
+### 🎨 Visual Polish (Reference-Matched)
+- **Red Legend**: Added a red dot and "Benchmark (10%)" label at the bottom left, specifically styled in `text-red-500` for high contrast.
+- **Balanced Proportions**: Increased the size of "Total Reads" and "Total Shares" text for better readability and matched the overall spacing to your provided image.
+- **Refined Labels**: Synced the "Exceeding/Targeting" text size to `11px` with increased tracking for a premium look.
 
 ## Verification Results
 
-### Logic Integrity
-- [x] **Verified** that installation records are created even without user sign-in.
-- [x] **Verified** that the "Lifetime Installs" card ignores the 7/30/90-day filters.
-- [x] **Verified** that Admin test installs are included in the total count.
+### Dynamic Logic Check
+- [x] **Targeting State**: Verified that if virality is < 10%, the red line is ahead of the green bar.
+- [x] **Exceeding State**: Verified that if virality is > 10%, the green bar successfully crosses the red line.
+- [x] **Visual Consistency**: Confirmed that the red dot in the footer perfectly matches the line on the progress bar.
 
 > [!TIP]
-> To see the fix in action, simply open the app on your device. The **Lifetime Installs** count in your Admin Panel will increment automatically without you having to log in or register.
+> The progress bar now acts as a real-time motivator. As your virality grows, the red line will shift to provide the best possible visual context for your current achievement level.

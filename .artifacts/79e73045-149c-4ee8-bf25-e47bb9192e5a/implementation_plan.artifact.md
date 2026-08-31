@@ -1,54 +1,31 @@
-# GitHub Deployment & Versioning Plan (v4.0.0)
+# Refine Growth Virality Progress Bar & Benchmark
 
-Deploy the latest changes for both the **BrainBites Android App** and the **Web Admin Panel** to GitHub, setting their versions to `4.0.0` while ensuring private keys and sensitive configuration files remain excluded from the public repositories.
+Update the **Growth Virality** card to include a visual benchmark marker (red line) and a matching red status indicator in the footer, as per the provided visual reference.
 
 ## User Review Required
 
-> [!CAUTION]
-> I will be strengthening the `.gitignore` for the Android project to ensure files like `google-services.json`, keystores, and crash logs are NOT pushed to your public profile.
-
-> [!IMPORTANT]
-> For the Android app, I will increment the `versionCode` to `40`. This is necessary for proper app distribution.
+> [!NOTE]
+> To allow the progress bar to cross the benchmark line (as shown in your image), I will change the bar's scale. Instead of 10% being "full", 10% will now be at the **center mark (50%)**, and the bar will be able to show values up to **20%**.
 
 ## Proposed Changes
 
-### 1. Security & Versioning (Android)
+### Web Admin Pages
 
-#### [MODIFY] [.gitignore](file:///F:/BrainBites/.gitignore)
-- Add `google-services.json` to the ignore list.
-- Add `*.jks` and `*.keystore` (Private signing keys).
-- Add crash logs (`hs_err_pid*.log`, `replay_pid*.log`).
-
-#### [MODIFY] [build.gradle.kts](file:///F:/BrainBites/app/build.gradle.kts)
-- Update `versionName` to `"4.0.0"`.
-- Update `versionCode` to `40`.
-
----
-
-### 2. Versioning (Web Admin Panel)
-
-#### [MODIFY] [package.json](file:///F:/webBasedAdminPanel/package.json)
-- Update `version` to `"4.0.0"`.
-- (The existing `.gitignore` already properly excludes `.env` and `serviceAccountKey.json`).
-
----
-
-### 3. Git Operations
-
-#### **BrainBites Android** (Branch: `master`)
-- `git add .`
-- `git commit -m "Release v4.0.0: Unified Analytics Hub and Installation Logic Fix"`
-- `git push origin master`
-
-#### **Web Admin Panel** (Branch: `main`)
-- `git add .`
-- `git commit -m "Release v4.0.0: Consolidated Analytics Hub and Stability Fixes"`
-- `git push origin main`
+#### [MODIFY] [AnalyticsHub.tsx](file:///F:/webBasedAdminPanel/src/pages/analytics/AnalyticsHub.tsx)
+- **Progress Bar Scale Update**:
+    - Update the width calculation for the green progress bar: `${Math.min(100, (intel.virality / 20) * 100)}%`. (This makes the total bar represent 0-20% virality).
+- **Benchmark Marker**:
+    - Add a `div` with absolute positioning inside the progress bar container.
+    - Style: `left-[50%]`, `w-[2px]`, `h-4`, `-top-1`, `bg-red-500`. This creates the thin vertical red line at the 10% mark.
+- **Redesigned Footer**:
+    - Replace the current "Benchmark (10%)" label with a new red version.
+    - Style: Text `text-red-500`, including a small red circle (`w-2 h-2 rounded-full`) next to it to match your reference.
+    - Ensure the "Exceeding/Targeting" label on the right stays aligned.
 
 ## Verification Plan
 
-### Security Check
-- Verify that `git status` shows sensitive files as "Untracked" or ignored before the commit.
-
-### Build Check
-- Run `gradlew app:assembleDebug` to ensure the project remains buildable after version changes.
+### Manual Verification
+- [ ] Open the Analytics Hub and scroll to **Growth Virality**.
+- [ ] Verify the vertical red line is visible exactly in the middle of the progress bar.
+- [ ] Verify that if the virality index is > 10%, the green bar crosses the red line.
+- [ ] Confirm the new red "Benchmark" label and dot are visible at the bottom left.

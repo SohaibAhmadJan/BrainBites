@@ -27,6 +27,7 @@ object AuthRepository {
                 Log.d("AuthRepository", "Signed in anonymously: ${auth.currentUser?.uid}")
             }
             syncUser(context)
+            updateLastActive()
             Result.success(Unit)
         } catch (e: Exception) {
             Log.e("AuthRepository", "Anonymous sign in failed", e)
@@ -39,6 +40,7 @@ object AuthRepository {
             val credential = com.google.firebase.auth.GoogleAuthProvider.getCredential(idToken, null)
             auth.signInWithCredential(credential).await()
             syncUser(context)
+            updateLastActive()
             Result.success(Unit)
         } catch (e: Exception) {
             Result.failure(e)
@@ -49,6 +51,7 @@ object AuthRepository {
         return try {
             auth.signInWithEmailAndPassword(email, password).await()
             syncUser(context)
+            updateLastActive()
             Result.success(Unit)
         } catch (e: Exception) {
             Result.failure(e)
@@ -193,10 +196,20 @@ object AuthRepository {
         val uid = auth.currentUser?.uid ?: return
         try {
             db.collection("users").document(uid)
-                .update("stats.lastActiveAt", System.currentTimeMillis())
+                .update(
+                    mapOf(
+                        "stats.lastActiveAt" to System.currentTimeMillis(),
+                        "account.lastLoginAt" to System.currentTimeMillis(),
+                        "updatedAt" to System.currentTimeMillis()
+                    )
+                )
                 .await()
+            Log.d("AuthRepository", "Global activity ping SUCCESS for $uid")
         } catch (e: Exception) {
-            Log.e("AuthRepository", "Error updating last active", e)
+            Log.e("AuthRepository", "Error updating last active, attempting merge...", e)
+            // Fallback: If document or stats map doesn't exist, create/merge it
+            db.collection("users").document(uid)
+                .set(mapOf("stats" to mapOf("lastActiveAt" to System.currentTimeMillis())), com.google.firebase.firestore.SetOptions.merge())
         }
     }
 

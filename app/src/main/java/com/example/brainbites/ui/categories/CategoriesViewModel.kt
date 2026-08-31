@@ -7,6 +7,9 @@ import com.example.brainbites.data.BiteItem
 import com.example.brainbites.data.BiteRepository
 import com.example.brainbites.data.Category
 import com.example.brainbites.data.CollectionSet
+import com.example.brainbites.data.AnalyticsRepository
+import kotlinx.coroutines.Job
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.combine
@@ -32,6 +35,7 @@ class CategoriesViewModel(application: Application) : AndroidViewModel(applicati
 
     private var allFactsCache: List<BiteItem> = emptyList()
     private var allCategoriesCache: List<Category> = emptyList()
+    private var searchLogJob: Job? = null
 
     init {
         loadInitialData()
@@ -79,14 +83,23 @@ class CategoriesViewModel(application: Application) : AndroidViewModel(applicati
         _searchQuery.value = query
         if (query.isBlank()) {
             _searchResults.value = emptyList()
+            searchLogJob?.cancel()
         } else {
             val tokens = query.lowercase().split("\\s+".toRegex()).filter { it.isNotBlank() }
-            _searchResults.value = allFactsCache.filter { item ->
+            val results = allFactsCache.filter { item ->
                 tokens.all { token ->
                     item.fact.contains(token, ignoreCase = true) ||
                     item.category.contains(token, ignoreCase = true) ||
                     (item.keywords?.contains(token, ignoreCase = true) ?: false)
                 }
+            }
+            _searchResults.value = results
+
+            // Debounced Logging to Firestore
+            searchLogJob?.cancel()
+            searchLogJob = viewModelScope.launch {
+                delay(1000) // Wait for user to stop typing for 1 second
+                AnalyticsRepository.logSearch(query, results.size)
             }
         }
     }

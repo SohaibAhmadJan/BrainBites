@@ -1,7 +1,8 @@
-# Admin Panel Stability Task List
+# Dynamic Growth Virality UI Task List
 
-- `[x]` Restore missing `subscribeToReports` export in `firestoreService.ts`
-- `[x]` Simplify real-time data flow in `AnalyticsHub.tsx`
-- `[x]` Remove unstable object spread in `OverviewModule` render
-- `[ ]` Verify Admin Panel loads correctly in browser
-- `[ ]` Confirm "Lifetime Installs" increments on fresh app open
+- `[x]` Refactor `IntelligenceModule` to calculate dynamic bar scale
+- `[x]` Implement moving red benchmark line on progress bar
+- `[x]` Add red dot and "Benchmark" label to footer
+- `[x]` Update "Exceeding/Targeting" text style to match reference
+- `[x]` Refine "Virality Index" placement and font weights
+- `[ ]` Verify dynamic positioning with various virality percentages

@@ -59,9 +59,11 @@ object NotificationRepository {
                         if (change.type == DocumentChange.Type.ADDED) {
                             val doc = change.document
                             val isGlobal = doc.getBoolean("isGlobal") ?: false
-                            
+                            val targetUserId = doc.getString("targetUserId")
+                            val currentUid = AuthRepository.currentUser.value?.account?.uid
+
                             // IGNORE HISTORY: Don't show dropdowns for the very first load
-                            if (!isInitialSnapshot && isGlobal) {
+                            if (!isInitialSnapshot && (isGlobal || (targetUserId != null && targetUserId == currentUid))) {
                                 processIncomingNotification(context, doc)
                             }
                         }
@@ -166,7 +168,12 @@ object NotificationRepository {
                 val all = (globalSnap.documents + targetedDocs).mapNotNull { doc ->
                     try {
                         val isGlobal = doc.getBoolean("isGlobal") ?: false
-                        if (doc.reference.path.startsWith("notifications/") && !isGlobal) return@mapNotNull null
+                        val targetUserId = doc.getString("targetUserId")
+                        
+                        // Security check: Only include root notifications that are Global or targeted to ME
+                        if (doc.reference.path.startsWith("notifications/")) {
+                            if (!isGlobal && (targetUserId == null || targetUserId != uid)) return@mapNotNull null
+                        }
 
                         Notification(
                             id = doc.id,
@@ -175,6 +182,7 @@ object NotificationRepository {
                             timestamp = doc.getLong("timestamp") ?: System.currentTimeMillis(),
                             isRead = readIds.contains(doc.id), // Use persistent local status
                             type = try { NotificationType.valueOf(doc.getString("type") ?: "GENERAL") } catch(e: Exception) { NotificationType.GENERAL },
+                            audience = doc.getString("audience"),
                             imageUrl = doc.getString("imageUrl"),
                             deepLinkFactId = doc.getString("deepLinkFactId")
                         )
