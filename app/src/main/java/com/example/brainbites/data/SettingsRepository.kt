@@ -32,6 +32,9 @@ object SettingsRepository {
                             featuredFactId = snapshot.getString("featuredFactId") ?: "1",
                             dailyTipTitle = snapshot.getString("dailyTipTitle") ?: "The 2-Minute Rule",
                             dailyTipMessage = snapshot.getString("dailyTipMessage") ?: "If a task takes less than 2 minutes, do it now.",
+                            automationEnabled = snapshot.getBoolean("automationEnabled") ?: false,
+                            dailyNotificationTime = snapshot.getString("dailyNotificationTime") ?: "09:00",
+                            notificationFrequency = snapshot.getString("notificationFrequency") ?: "DAILY",
                             homeSectionsOrder = (snapshot.get("homeSectionsOrder") as? List<*>)?.filterIsInstance<String>() ?: listOf("HERO", "CATEGORIES", "QUICK_ACTIONS", "MOOD", "RECENT", "DISCOVER", "ACHIEVEMENTS", "TIP", "TRENDING")
                         )
                         _settings.value = newSettings

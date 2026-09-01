@@ -1,8 +1,6 @@
-# Dynamic Growth Virality UI Task List
+# Automation Pulse UI Refinement Task List
 
-- `[x]` Refactor `IntelligenceModule` to calculate dynamic bar scale
-- `[x]` Implement moving red benchmark line on progress bar
-- `[x]` Add red dot and "Benchmark" label to footer
-- `[x]` Update "Exceeding/Targeting" text style to match reference
-- `[x]` Refine "Virality Index" placement and font weights
-- `[ ]` Verify dynamic positioning with various virality percentages
+- `[x]` Add "Use Current Time" button logic in `AppSettingsPage.tsx`
+- `[x]` Standardize button styling to match brand labels
+- `[x]` Verify time calculation and state update
+- `[x]` Implement 2-minute grace window in `AutomationManager.kt` to handle sync latency

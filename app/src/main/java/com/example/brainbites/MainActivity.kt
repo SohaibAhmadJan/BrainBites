@@ -1,6 +1,7 @@
 package com.example.brainbites
 
 import android.content.Intent
+import android.net.Uri
 import android.os.Bundle
 import android.util.Log
 import androidx.activity.ComponentActivity
@@ -15,10 +16,10 @@ import com.example.brainbites.data.AuthRepository
 import com.example.brainbites.data.BiteRepository
 import com.example.brainbites.data.NotificationRepository
 import com.example.brainbites.data.AchievementRepository
+import com.example.brainbites.data.AutomationManager
 import com.example.brainbites.data.theme.ThemeManager
 import com.example.brainbites.navigation.BrainBitesNavGraph
 import com.example.brainbites.ui.theme.BrainBitesTheme
-import com.example.brainbites.ui.util.TaglineManager
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import androidx.lifecycle.lifecycleScope
@@ -51,6 +52,7 @@ class MainActivity : ComponentActivity() {
         PreferenceManager.initialize(this)
         AnalyticsRepository.initializeInstallation(this)
         SettingsRepository.startListening()
+        AutomationManager.initialize(this, lifecycleScope)
         NotificationRepository.startGlobalListener(this) // Start heartbeat immediately
         AnalyticsRepository.logAppOpen()
 
@@ -98,12 +100,17 @@ class MainActivity : ComponentActivity() {
             val themeMode by ThemeManager.themeMode.collectAsState()
             val textScale by PreferenceManager.textScale.collectAsState()
             val isDisabled by AuthRepository.isAccountDisabled.collectAsState()
+            val settings by SettingsRepository.settings.collectAsState()
             
             BrainBitesTheme(
                 themeMode = themeMode,
                 textScale = textScale
             ) {
-                if (isDisabled) {
+                if (settings.maintenanceMode) {
+                    com.example.brainbites.ui.main.MaintenanceScreen(
+                        message = settings.maintenanceMessage
+                    )
+                } else if (isDisabled) {
                     com.example.brainbites.ui.main.AccountDisabledScreen()
                 } else {
                     BrainBitesNavGraph(initialFactId = initialFactId)

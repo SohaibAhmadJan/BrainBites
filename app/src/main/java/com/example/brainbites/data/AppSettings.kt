@@ -14,5 +14,8 @@ data class AppSettings(
     val featuredFactId: String = "1",
     val dailyTipTitle: String = "The 2-Minute Rule",
     val dailyTipMessage: String = "If a task takes less than 2 minutes, do it now.",
+    val automationEnabled: Boolean = false,
+    val dailyNotificationTime: String = "09:00",
+    val notificationFrequency: String = "DAILY",
     val homeSectionsOrder: List<String> = listOf("HERO", "CATEGORIES", "QUICK_ACTIONS", "MOOD", "RECENT", "DISCOVER", "ACHIEVEMENTS", "TIP", "TRENDING")
 )

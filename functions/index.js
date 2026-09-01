@@ -239,6 +239,10 @@ exports.updateAppConfigAtomic = onCall(async (request) => {
     const admin = await verifyAdmin(request, db, 'manage.config');
     const { data, reason } = request.data;
 
+    if (!data) {
+        throw new HttpsError('invalid-argument', 'Protocol Failure: Request payload (data) is null or missing.');
+    }
+
     try {
         await db.runTransaction(async (transaction) => {
             const configRef = db.collection('app_settings').doc('global_config');
@@ -261,8 +265,9 @@ exports.updateAppConfigAtomic = onCall(async (request) => {
         });
         return { status: "success" };
     } catch (e) {
-        console.error("updateAppConfigAtomic failure:", e);
-        throw new HttpsError('internal', `Config Sync Failure: ${e.message}`);
+        console.error("updateAppConfigAtomic ERROR:", e);
+        // Return descriptive error to help debug structural issues
+        throw new HttpsError('internal', `Config Sync Protocol Failure: ${e.message || 'Unknown Server Error'}`);
     }
 });
 

@@ -1,31 +1,39 @@
-# Refine Growth Virality Progress Bar & Benchmark
+# Activate Automation Pulse (Notification Schedule)
 
-Update the **Growth Virality** card to include a visual benchmark marker (red line) and a matching red status indicator in the footer, as per the provided visual reference.
+Enable the Android app to automatically schedule and dispatch "Fact of the Day" notifications based on the remote configuration set in the Admin Panel.
 
 ## User Review Required
 
-> [!NOTE]
-> To allow the progress bar to cross the benchmark line (as shown in your image), I will change the bar's scale. Instead of 10% being "full", 10% will now be at the **center mark (50%)**, and the bar will be able to show values up to **20%**.
+> [!IMPORTANT]
+> This activation uses Android's **WorkManager** to ensure notifications are sent even if the app is closed or the device is restarted. The schedule will automatically update whenever you change the settings in the Admin Panel.
 
 ## Proposed Changes
 
-### Web Admin Pages
+### Android Application
 
-#### [MODIFY] [AnalyticsHub.tsx](file:///F:/webBasedAdminPanel/src/pages/analytics/AnalyticsHub.tsx)
-- **Progress Bar Scale Update**:
-    - Update the width calculation for the green progress bar: `${Math.min(100, (intel.virality / 20) * 100)}%`. (This makes the total bar represent 0-20% virality).
-- **Benchmark Marker**:
-    - Add a `div` with absolute positioning inside the progress bar container.
-    - Style: `left-[50%]`, `w-[2px]`, `h-4`, `-top-1`, `bg-red-500`. This creates the thin vertical red line at the 10% mark.
-- **Redesigned Footer**:
-    - Replace the current "Benchmark (10%)" label with a new red version.
-    - Style: Text `text-red-500`, including a small red circle (`w-2 h-2 rounded-full`) next to it to match your reference.
-    - Ensure the "Exceeding/Targeting" label on the right stays aligned.
+#### [NEW] [DailyFactWorker.kt](file:///F:/BrainBites/app/src/main/java/com/example/brainbites/notifications/DailyFactWorker.kt)
+- Create a background worker that:
+    1.  Syncs the latest content from Firestore.
+    2.  Selects the official "Fact of the Day".
+    3.  Triggers a high-priority system notification.
+
+#### [NEW] [AutomationManager.kt](file:///F:/BrainBites/app/src/main/java/com/example/brainbites/data/AutomationManager.kt)
+- Create a central manager to observe remote settings:
+    - **Logic**: If `automationEnabled` is ON, calculate the next dispatch time and schedule a periodic task.
+    - **Dynamics**: Support Daily, Every 2 Days, and Weekly frequencies.
+    - **Self-Healing**: If automation is toggled OFF, immediately cancel all pending background tasks.
+
+#### [MODIFY] [MainActivity.kt](file:///F:/BrainBites/app/src/main/java/com/example/brainbites/MainActivity.kt)
+- Initialize the `AutomationManager` at app startup to begin listening for remote schedule updates.
 
 ## Verification Plan
 
+### Automated Verification
+- Check Logcat for `AutomationManager: Scheduling automation` messages.
+- Confirm the `DailyFactWorker` is successfully enqueued in the system database.
+
 ### Manual Verification
-- [ ] Open the Analytics Hub and scroll to **Growth Virality**.
-- [ ] Verify the vertical red line is visible exactly in the middle of the progress bar.
-- [ ] Verify that if the virality index is > 10%, the green bar crosses the red line.
-- [ ] Confirm the new red "Benchmark" label and dot are visible at the bottom left.
+1.  Set the **Dispatch Time** in the Admin Panel to 2 minutes from now.
+2.  Set **Automation** to **ON** and click **Execute Master Sync**.
+3.  Close the Android app entirely.
+4.  Verify that a notification titled "Your Daily Insight 🧠" appears at the specified time.
