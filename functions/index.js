@@ -371,6 +371,9 @@ exports.sendGlobalNotificationAtomic = onCall(async (request) => {
     const admin = await verifyAdmin(request, db, 'manage.content');
     const { data, reason } = request.data;
 
+    console.log(`[Notification Service] Dispatch Request received. Reason: ${reason || 'Not specified'}`);
+    console.log(`[Notification Service] Payload:`, JSON.stringify(data));
+
     if (!data || !data.title || !data.message) {
         throw new HttpsError('invalid-argument', 'Message payload must include title and body.');
     }
@@ -383,7 +386,8 @@ exports.sendGlobalNotificationAtomic = onCall(async (request) => {
             ...data,
             id: notificationId,
             isGlobal: true,
-            timestamp: Date.now()
+            timestamp: Date.now(),
+            scheduledAt: data.scheduledAt || null
         };
 
         // 1. Dispatch FCM Push Notification (OS System Tray)
@@ -408,10 +412,19 @@ exports.sendGlobalNotificationAtomic = onCall(async (request) => {
             }
         };
 
-        // Execute push and database write
-        const [fcmResponse] = await Promise.all([
-            getMessaging().send(message),
-            db.runTransaction(async (transaction) => {
+        // Step 1: Send FCM Signal
+        let fcmResponse;
+        try {
+            fcmResponse = await getMessaging().send(message);
+            console.log(`[Notification Service] FCM Signal Dispatched: ${fcmResponse}`);
+        } catch (fcmErr) {
+            console.error(`[Notification Service] FCM Protocol FAILURE:`, fcmErr);
+            throw new Error(`Push Signal Failure: ${fcmErr.message}`);
+        }
+
+        // Step 2: Persist to Registry and Audit
+        try {
+            await db.runTransaction(async (transaction) => {
                 transaction.set(notifRef, notificationRecord);
 
                 const auditRef = db.collection('audit_logs').doc();
@@ -425,14 +438,22 @@ exports.sendGlobalNotificationAtomic = onCall(async (request) => {
                     reason: reason || 'Broadcast dispatch',
                     createdAt: Date.now()
                 });
-            })
-        ]);
+            });
+            console.log(`[Notification Service] Registry & Audit SUCCESS for ${notificationId}`);
+        } catch (dbErr) {
+            console.error(`[Notification Service] Database Persistence FAILURE:`, dbErr);
+            // We don't throw here if FCM already went out, but we return a warning
+            return {
+                status: "partial_success",
+                notificationId,
+                warning: "Push sent, but database registry failed."
+            };
+        }
 
-        console.log(`Successfully dispatched broadcast: ${fcmResponse}`);
         return { status: "success", notificationId, fcmMessageId: fcmResponse };
     } catch (e) {
-        console.error("sendGlobalNotificationAtomic failure:", e);
-        throw new HttpsError('internal', `Broadcast Protocol Failure: ${e.message}`);
+        console.error("[Notification Service] CRITICAL FATAL ERROR:", e);
+        throw new HttpsError('internal', e.message || 'Unknown Server Error during dispatch protocol.');
     }
 });
 

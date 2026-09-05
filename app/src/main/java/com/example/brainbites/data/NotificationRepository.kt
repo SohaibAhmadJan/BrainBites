@@ -26,20 +26,22 @@ object NotificationRepository {
     private var isUserListening = false
     
     // Deduplication Set: Prevents showing the same alert twice in one session
-    private val processedIds = HashSet<String>()
+    private val processedIds = mutableSetOf<String>()
     
     // Persistent Read Set: Tracks which notifications the user has viewed
     private val readIds = mutableSetOf<String>()
     private const val PREFS_NAME = "notification_prefs"
     private const val READ_IDS_KEY = "read_notification_ids"
+    private const val PROCESSED_IDS_KEY = "processed_notification_ids"
 
     fun startGlobalListener(context: Context) {
         if (isGlobalListening) return
         isGlobalListening = true
         sessionStartTime = System.currentTimeMillis()
         
-        // Load persistent read status
+        // Load persistent states
         loadReadIds(context)
+        loadProcessedIds(context)
         
         Log.d("NotificationRepository", ">>> HEARTBEAT: Starting Global Watcher at $sessionStartTime")
         
@@ -62,9 +64,20 @@ object NotificationRepository {
                             val targetUserId = doc.getString("targetUserId")
                             val currentUid = AuthRepository.currentUser.value?.account?.uid
 
-                            // IGNORE HISTORY: Don't show dropdowns for the very first load
-                            if (!isInitialSnapshot && (isGlobal || (targetUserId != null && targetUserId == currentUid))) {
-                                processIncomingNotification(context, doc)
+                            // RECOVERY LOGIC:
+                            // We only process incoming alerts (drop-downs) if:
+                            // 1. It's NOT the initial dump of history (isInitialSnapshot = false)
+                            // 2. OR it has a future scheduled time (even if in history, it needs to be set)
+                            // 3. AND it matches the audience criteria
+                            val timestamp = doc.getLong("timestamp") ?: 0L
+                            val scheduledAt = doc.getLong("scheduledAt") ?: 0L
+                            val isFuture = scheduledAt > System.currentTimeMillis()
+                            val isNewSinceOpen = timestamp > sessionStartTime
+
+                            if ((!isInitialSnapshot || isFuture) && (isGlobal || (targetUserId != null && targetUserId == currentUid))) {
+                                if (isNewSinceOpen || isFuture) {
+                                    processIncomingNotification(context, doc)
+                                }
                             }
                         }
                     }
@@ -92,9 +105,16 @@ object NotificationRepository {
                     Log.d("NotificationRepository", "Targeted snapshot: ${it.documentChanges.size} items (Initial: $isInitialSnapshot)")
                     it.documentChanges.forEach { change ->
                         if (change.type == DocumentChange.Type.ADDED) {
-                            // IGNORE HISTORY
-                            if (!isInitialSnapshot) {
-                                processIncomingNotification(context, change.document)
+                            val doc = change.document
+                            val timestamp = doc.getLong("timestamp") ?: 0L
+                            val scheduledAt = doc.getLong("scheduledAt") ?: 0L
+                            val isFuture = scheduledAt > System.currentTimeMillis()
+                            val isNewSinceOpen = timestamp > sessionStartTime
+
+                            if (!isInitialSnapshot || isFuture) {
+                                if (isNewSinceOpen || isFuture) {
+                                    processIncomingNotification(context, doc)
+                                }
                             }
                         }
                     }
@@ -111,6 +131,7 @@ object NotificationRepository {
             return
         }
         processedIds.add(id)
+        saveProcessedIds(context)
 
         val timestamp = doc.getLong("timestamp") ?: 0L
         val title = doc.getString("title") ?: "BrainBites Update"
@@ -206,6 +227,48 @@ object NotificationRepository {
     private fun saveReadIds(context: Context) {
         val prefs = context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
         prefs.edit().putStringSet(READ_IDS_KEY, readIds).apply()
+    }
+
+    private fun loadProcessedIds(context: Context) {
+        val prefs = context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
+        val saved = prefs.getStringSet(PROCESSED_IDS_KEY, emptySet()) ?: emptySet()
+        processedIds.clear()
+        processedIds.addAll(saved)
+    }
+
+    private fun saveProcessedIds(context: Context) {
+        val prefs = context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
+        prefs.edit().putStringSet(PROCESSED_IDS_KEY, processedIds).apply()
+    }
+
+    /**
+     * Manual Sync for Background Worker
+     * Pulls the latest 10 notifications and processes any that haven't been shown yet.
+     */
+    suspend fun manualSync(context: Context) {
+        try {
+            Log.d("NotificationRepository", "Performing Manual Background Sync...")
+            loadProcessedIds(context)
+            
+            val snapshot = db.collection("notifications")
+                .orderBy("timestamp", com.google.firebase.firestore.Query.Direction.DESCENDING)
+                .limit(10)
+                .get()
+                .await()
+
+            snapshot.documents.forEach { doc ->
+                val id = doc.id
+                val isGlobal = doc.getBoolean("isGlobal") ?: false
+                val targetUserId = doc.getString("targetUserId")
+                val currentUid = AuthRepository.currentUser.value?.account?.uid
+
+                if (!processedIds.contains(id) && (isGlobal || (targetUserId != null && targetUserId == currentUid))) {
+                    processIncomingNotification(context, doc)
+                }
+            }
+        } catch (e: Exception) {
+            Log.e("NotificationRepository", "Manual sync failed", e)
+        }
     }
 
     fun getNotifications(): Flow<List<Notification>> = _notifications.asStateFlow()
