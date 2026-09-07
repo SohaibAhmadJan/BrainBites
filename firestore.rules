@@ -1,31 +1,119 @@
 rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
+
+    // --- AUTHENTICATION HELPERS ---
+
     function isAdmin() {
       return request.auth != null &&
              exists(/databases/$(database)/documents/admins/$(request.auth.uid)) &&
              get(/databases/$(database)/documents/admins/$(request.auth.uid)).data.isActive == true;
     }
 
-    match /{document=**} {
-      allow read, write: if isAdmin();
+    function getAdminData() {
+      return get(/databases/$(database)/documents/admins/$(request.auth.uid)).data;
     }
 
-    // Public Read-Only Content
-    match /facts/{id} { allow read: if true; }
-    match /categories/{id} { allow read: if true; }
-    match /collections/{id} { allow read: if true; }
-    match /quizzes/{id} { allow read: if true; }
-    match /achievements/{id} { allow read: if true; }
+    function isSuperAdmin() {
+      return isAdmin() && getAdminData().role == 'SUPER_ADMIN';
+    }
+
+    function isAdministrator() {
+      return isAdmin() && getAdminData().role == 'ADMIN';
+    }
+
+    function isAuthor() {
+      return isAdmin() && getAdminData().role == 'CONTENT_MANAGER';
+    }
+
+    // --- COLLECTION RULES ---
+
+    // Administrative Registry: Strict Downward-Only Management
+    match /admins/{uid} {
+      // Allow user to discover and read their own invitation document or their final UID record
+      allow get: if request.auth != null && (uid == request.auth.uid || resource.data.email == request.auth.token.email || isAdmin());
+      allow list: if isAdmin();
+
+      // Super Admin: Root Authority
+      allow create, update, delete: if isSuperAdmin();
+
+      // Self-Onboarding Handshake: Allow creation of UID record if a matching email invitation exists
+      allow create: if request.auth != null && (
+        uid == request.auth.uid &&
+        exists(/databases/$(database)/documents/admins/$(request.auth.token.email.replace('@', '_').replace('.', '_')))
+      );
+
+      // Administrator: Management of Authors and Viewers only
+      allow create, update: if isAdministrator() &&
+        (request.resource.data.role == 'CONTENT_MANAGER' || request.resource.data.role == 'ANALYST') &&
+        (!exists(/databases/$(database)/documents/admins/$(uid)) ||
+         get(/databases/$(database)/documents/admins/$(uid)).data.role == 'CONTENT_MANAGER' ||
+         get(/databases/$(database)/documents/admins/$(uid)).data.role == 'ANALYST');
+
+      // Allow cleanup of invitation record or self-management of basic fields
+      allow delete: if request.auth != null && resource.data.email == request.auth.token.email;
+
+      // Allow hierarchy-based deletion
+      allow delete: if isSuperAdmin() ||
+        (isAdministrator() &&
+        (get(/databases/$(database)/documents/admins/$(uid)).data.role == 'CONTENT_MANAGER' ||
+         get(/databases/$(database)/documents/admins/$(uid)).data.role == 'ANALYST'));
+    }
+
+    // App Settings & Config
+    match /app_settings/{id} {
+      allow read: if true;
+      allow write: if isSuperAdmin() || isAdministrator();
+    }
+
+    // Content: Facts, Categories, Collections, Achievements, Quotes
+    match /facts/{id} {
+      allow read: if true;
+      allow create, update: if isSuperAdmin() || isAdministrator() || isAuthor();
+      allow delete: if isSuperAdmin() || isAdministrator();
+    }
+    match /categories/{id} {
+      allow read: if true;
+      allow create, update: if isSuperAdmin() || isAdministrator() || isAuthor();
+      allow delete: if isSuperAdmin() || isAdministrator();
+    }
+    match /collections/{id} {
+      allow read: if true;
+      allow create, update: if isSuperAdmin() || isAdministrator() || isAuthor();
+      allow delete: if isSuperAdmin() || isAdministrator();
+    }
+    match /achievements/{id} {
+      allow read: if true;
+      allow create, update: if isSuperAdmin() || isAdministrator() || isAuthor();
+      allow delete: if isSuperAdmin() || isAdministrator();
+    }
+    match /quotes/{id} {
+      allow read: if true;
+      allow create, update: if isSuperAdmin() || isAdministrator() || isAuthor();
+      allow delete: if isSuperAdmin() || isAdministrator();
+    }
 
     // Notifications: Public read for global broadcasts
     match /notifications/{id} {
        allow read: if true;
+       allow create: if isSuperAdmin() || isAdministrator();
+       allow delete: if isSuperAdmin() || isAdministrator();
     }
 
     // User Data: Owned by the specific user
     match /users/{uid}/{document=**} {
        allow read, write: if request.auth != null && request.auth.uid == uid;
+       // Admin can view and suspend users
+       allow read: if isAdmin();
+       allow update: if (isSuperAdmin() || isAdministrator()) &&
+                    request.resource.data.diff(resource.data).affectedKeys().hasOnly(['account']);
+    }
+
+    // Audit Logs: Protected History
+    match /audit_logs/{id} {
+       allow read: if isAdmin();
+       allow create: if isAdmin(); // Audits created by system actions
+       allow update, delete: if false; // Immutability protocol
     }
 
     // Analytics: Authenticated users can log events
@@ -38,6 +126,11 @@ service cloud.firestore {
     match /installations/{deviceId} {
        allow get, create, update: if true;
        allow read, list: if isAdmin();
+    }
+
+    // Global Catch-all: Deny by default for unknown paths
+    match /{document=**} {
+      allow read, write: if false;
     }
   }
 }
