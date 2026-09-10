@@ -24,7 +24,7 @@ object SettingsRepository {
                         val newSettings = AppSettings(
                             maintenanceMode = snapshot.getBoolean("maintenanceMode") ?: false,
                             maintenanceMessage = snapshot.getString("maintenanceMessage") ?: "",
-                            latestVersion = snapshot.getString("latestVersion") ?: "4.4.1",
+                            latestVersion = snapshot.getString("latestVersion") ?: "4.4.2",
                             minVersion = snapshot.getString("minVersion") ?: "1.0.0",
                             supportEmail = snapshot.getString("supportEmail") ?: "support@brainbites.com",
                             achievementsEnabled = flags?.get("achievementsEnabled") as? Boolean ?: true,
