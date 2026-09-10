@@ -8,6 +8,8 @@ import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.unit.dp
 import kotlinx.coroutines.delay
 
+import androidx.compose.ui.platform.LocalInspectionMode
+
 /**
  * A shared component to provide a staggered "bubble" entrance effect.
  * Slides up, scales in, and fades in based on the provided index.
@@ -18,17 +20,20 @@ fun AnimatedEntrance(
     delayMultiplier: Long = 50L,
     content: @Composable () -> Unit
 ) {
-    val animatedProgress = remember { Animatable(0f) }
+    val isPreview = LocalInspectionMode.current
+    val animatedProgress = remember { Animatable(if (isPreview) 1f else 0f) }
 
     LaunchedEffect(Unit) {
-        delay(index * delayMultiplier)
-        animatedProgress.animateTo(
-            targetValue = 1f,
-            animationSpec = spring(
-                dampingRatio = Spring.DampingRatioLowBouncy,
-                stiffness = Spring.StiffnessLow
+        if (!isPreview) {
+            delay(index * delayMultiplier)
+            animatedProgress.animateTo(
+                targetValue = 1f,
+                animationSpec = spring(
+                    dampingRatio = Spring.DampingRatioLowBouncy,
+                    stiffness = Spring.StiffnessLow
+                )
             )
-        )
+        }
     }
 
     Box(
