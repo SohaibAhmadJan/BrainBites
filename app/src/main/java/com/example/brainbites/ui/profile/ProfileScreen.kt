@@ -47,6 +47,7 @@ import androidx.activity.result.contract.ActivityResultContracts
 @Composable
 fun ProfileScreen(
     onCollectionClick: (String) -> Unit,
+    onDeleteAccountClick: () -> Unit,
     viewModel: ProfileViewModel = viewModel()
 ) {
     val stats by viewModel.stats.collectAsState()
@@ -106,6 +107,7 @@ fun ProfileScreen(
         onEditClick = { showEditDialog = true },
         onPrivacyClick = { showPrivacyDialog = true },
         onLogoutClick = { showLogoutDialog = true },
+        onDeleteAccountClick = onDeleteAccountClick,
         onCollectionClick = onCollectionClick
     )
 }
@@ -121,6 +123,7 @@ fun ProfileScreenContent(
     onEditClick: () -> Unit,
     onPrivacyClick: () -> Unit,
     onLogoutClick: () -> Unit,
+    onDeleteAccountClick: () -> Unit,
     onCollectionClick: (String) -> Unit
 ) {
     LazyColumn(
@@ -181,7 +184,8 @@ fun ProfileScreenContent(
                 ProfileActionSection(
                     onEditClick = onEditClick,
                     onPrivacyClick = onPrivacyClick,
-                    onLogoutClick = onLogoutClick
+                    onLogoutClick = onLogoutClick,
+                    onDeleteAccountClick = onDeleteAccountClick
                 )
             }
         }
@@ -491,7 +495,8 @@ fun AchievementsSection(achievements: List<com.example.brainbites.data.Achieveme
 fun ProfileActionSection(
     onEditClick: () -> Unit,
     onPrivacyClick: () -> Unit,
-    onLogoutClick: () -> Unit
+    onLogoutClick: () -> Unit,
+    onDeleteAccountClick: () -> Unit
 ) {
     Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
         Text(
@@ -509,6 +514,13 @@ fun ProfileActionSection(
             title = "Sign Out", 
             icon = Icons.AutoMirrored.Filled.Logout, 
             onClick = onLogoutClick,
+            contentColor = MaterialTheme.colorScheme.onSurfaceVariant
+        )
+
+        ProfileActionItem(
+            title = "Delete Account", 
+            icon = Icons.Default.DeleteForever, 
+            onClick = onDeleteAccountClick,
             contentColor = MaterialTheme.colorScheme.error
         )
     }
@@ -795,6 +807,7 @@ fun ProfileScreenPreview() {
             onEditClick = {},
             onPrivacyClick = {},
             onLogoutClick = {},
+            onDeleteAccountClick = {},
             onCollectionClick = {}
         )
     }

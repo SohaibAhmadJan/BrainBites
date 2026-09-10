@@ -26,6 +26,7 @@ import com.example.brainbites.ui.settings.SettingsScreen
 import com.example.brainbites.ui.teaser.DailyTeaserScreen
 import com.example.brainbites.ui.history.HistoryScreen
 import com.example.brainbites.ui.profile.ProfileScreen
+import com.example.brainbites.ui.profile.DeleteAccountScreen
 import com.example.brainbites.ui.notifications.NotificationsScreen
 import com.example.brainbites.ui.main.MainScaffold
 import com.example.brainbites.ui.collections.CollectionDetailScreen
@@ -320,12 +321,24 @@ fun MainContent() {
                         ProfileScreen(
                             onCollectionClick = { id ->
                                 nestedNavController.navigate(Screen.CollectionDetail.createRoute(id))
+                            },
+                            onDeleteAccountClick = {
+                                nestedNavController.navigate(Screen.DeleteAccount.route)
                             }
                         )
                     }
 
                     composable(route = Screen.Notifications.route) {
                         NotificationsScreen()
+                    }
+
+                    composable(route = Screen.DeleteAccount.route) {
+                        DeleteAccountScreen(
+                            onBack = { nestedNavController.popBackStack() },
+                            onAccountDeleted = {
+                                // Redirection to login is handled by the global listener in BrainBitesNavGraph
+                            }
+                        )
                     }
                 }
             }

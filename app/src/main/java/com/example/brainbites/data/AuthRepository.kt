@@ -235,6 +235,25 @@ object AuthRepository {
         _currentUser.value = null
     }
 
+    suspend fun deleteAccount(): Result<Unit> {
+        val uid = auth.currentUser?.uid ?: return Result.failure(Exception("No user logged in"))
+        return try {
+            // 1. Delete user data from Firestore
+            db.collection("users").document(uid).delete().await()
+            
+            // 2. Delete Firebase Auth user
+            auth.currentUser?.delete()?.await()
+            
+            // 3. Cleanup local state
+            _currentUser.value = null
+            
+            Result.success(Unit)
+        } catch (e: Exception) {
+            Log.e("AuthRepository", "Account deletion failed", e)
+            Result.failure(e)
+        }
+    }
+
     suspend fun updateUserProfile(name: String, bio: String, image: String) {
         val uid = auth.currentUser?.uid ?: return
         try {

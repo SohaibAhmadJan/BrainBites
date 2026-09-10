@@ -30,6 +30,7 @@ sealed class Screen(
     object History : Screen("history_screen")
     object Profile : Screen("profile_screen")
     object Notifications : Screen("notifications_screen")
+    object DeleteAccount : Screen("delete_account_screen")
     
     // Depth Screens with Hub Prefixes (for persistent highlighting)
     object HomeDetail : Screen("home/detail/{factId}") {

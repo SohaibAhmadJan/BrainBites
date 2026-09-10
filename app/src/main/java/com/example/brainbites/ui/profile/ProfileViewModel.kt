@@ -208,4 +208,8 @@ class ProfileViewModel(application: Application) : AndroidViewModel(application)
     fun signOut() {
         AuthRepository.signOut()
     }
+
+    suspend fun deleteAccount(): Result<Unit> {
+        return AuthRepository.deleteAccount()
+    }
 }
