@@ -238,18 +238,25 @@ object AuthRepository {
     suspend fun deleteAccount(): Result<Unit> {
         val uid = auth.currentUser?.uid ?: return Result.failure(Exception("No user logged in"))
         return try {
-            // 1. Delete user data from Firestore
-            db.collection("users").document(uid).delete().await()
+            val thirtyDaysMs = 30L * 24 * 60 * 60 * 1000
+            val deletionDate = System.currentTimeMillis() + thirtyDaysMs
+
+            // 1. Mark user as PENDING_DELETION in Firestore
+            db.collection("users").document(uid).update(
+                mapOf(
+                    "account.status" to "PENDING_DELETION",
+                    "account.scheduledDeletionAt" to deletionDate,
+                    "updatedAt" to System.currentTimeMillis()
+                )
+            ).await()
             
-            // 2. Delete Firebase Auth user
-            auth.currentUser?.delete()?.await()
+            // Note: We do NOT delete the Firebase Auth user yet. 
+            // A background Cloud Function (simulated by script) would handle permanent removal after 30 days.
             
-            // 3. Cleanup local state
-            _currentUser.value = null
-            
+            Log.d("AuthRepository", "Account scheduled for deletion on: $deletionDate")
             Result.success(Unit)
         } catch (e: Exception) {
-            Log.e("AuthRepository", "Account deletion failed", e)
+            Log.e("AuthRepository", "Account soft deletion failed", e)
             Result.failure(e)
         }
     }

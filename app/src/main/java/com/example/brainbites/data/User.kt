@@ -35,7 +35,8 @@ data class UserAccount(
     val createdAt: Long = System.currentTimeMillis(),
     val updatedAt: Long = System.currentTimeMillis(),
     val lastLoginAt: Long = System.currentTimeMillis(),
-    val status: String = "ACTIVE" // ACTIVE, DISABLED
+    val status: String = "ACTIVE", // ACTIVE, DISABLED, PENDING_DELETION
+    val scheduledDeletionAt: Long? = null
 )
 
 data class BrainBitesUser(
