@@ -1,4 +1,4 @@
-rules_version = \u00272\u0027;
+rules_version = '2';
 service firebase.storage {
   match /b/{bucket}/o {
 
@@ -7,33 +7,26 @@ service firebase.storage {
     }
 
     function isAdmin() {
-      return isAuthenticated() \u0026\u0026
+      return isAuthenticated() &&
         firestore.exists(/databases/(default)/documents/admins/$(request.auth.uid));
     }
 
+    // 1. User Profile Photos (Flat Path)
+    match /profile_pics/{userId}.jpg {
+      allow read: if true;
+      allow write: if request.auth.uid == userId || isAdmin();
+    }
+
+    // 2. Main Brand / Shared Folders
     match /brainbites/{allPaths=**} {
-      // Content images (facts, categories)
-      match /facts/{factId}/{allPaths=**} {
-        allow read: if true;
-        allow write: if isAdmin();
-      }
+      allow read: if true;
+      allow write: if isAdmin();
+    }
 
-      match /categories/{categoryId}/{allPaths=**} {
-        allow read: if true;
-        allow write: if isAdmin();
-      }
-
-      // User content
-      match /users/{userId}/{allPaths=**} {
-        allow read: if true;
-        allow write: if request.auth.uid == userId || isAdmin();
-      }
-
-      // App assets
-      match /app/{allPaths=**} {
-        allow read: if true;
-        allow write: if isAdmin();
-      }
+    // 3. General User Sub-folders
+    match /users/{userId}/{allPaths=**} {
+      allow read: if true;
+      allow write: if request.auth.uid == userId || isAdmin();
     }
   }
 }

@@ -41,7 +41,12 @@ fun AvatarView(
                     userImage
                 }
             }
+            userImage.startsWith("http") -> {
+                // Direct public URL (Firebase Storage, etc.)
+                userImage
+            }
             userImage.isNotEmpty() -> {
+                // DiceBear seed
                 "https://api.dicebear.com/9.x/personas/png?seed=$userImage"
             }
             else -> null

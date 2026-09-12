@@ -17,11 +17,14 @@ import com.example.brainbites.data.BiteRepository
 import com.example.brainbites.data.CollectionSet
 import com.example.brainbites.data.HistoryItem
 import com.example.brainbites.data.PreferenceManager
+import com.example.brainbites.data.StorageRepository
 import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
+import android.widget.Toast
 import android.net.Uri
+import android.util.Log
 import java.io.File
 import java.io.FileOutputStream
 import java.util.UUID
@@ -152,18 +155,39 @@ class ProfileViewModel(application: Application) : AndroidViewModel(application)
 
     fun updateProfile(name: String, bio: String, id: String, image: String) {
         viewModelScope.launch {
-            val finalImage = if (image.startsWith("content://")) {
-                withContext(Dispatchers.IO) {
-                    saveImageToInternalStorage(Uri.parse(image))
-                } ?: image
-            } else {
-                image
+            var finalImage = image
+            val currentUser = AuthRepository.currentUser.value
+            val application = getApplication<Application>()
+
+            if (image.startsWith("content://") && currentUser != null) {
+                Toast.makeText(application, "🚀 Step 1/3: Reading image...", Toast.LENGTH_SHORT).show()
+                
+                // 1. Upload to Firebase Storage for cloud sync (Admin Panel visibility)
+                val uploadResult = StorageRepository.uploadProfilePicture(
+                    context = application,
+                    uid = currentUser.account.uid,
+                    localUri = Uri.parse(image)
+                )
+                
+                if (uploadResult.isSuccess) {
+                    finalImage = uploadResult.getOrThrow()
+                    Toast.makeText(application, "✅ Sync Complete! Updating profile...", Toast.LENGTH_SHORT).show()
+                } else {
+                    val errorMsg = uploadResult.exceptionOrNull()?.message ?: "Unknown error"
+                    Log.e("ProfileViewModel", "❌ CLOUD SYNC FAILED: $errorMsg")
+                    Toast.makeText(application, "❌ Error: $errorMsg. Using local backup.", Toast.LENGTH_LONG).show()
+                    
+                    // Fallback to local internal storage if upload fails
+                    finalImage = withContext(Dispatchers.IO) {
+                        saveImageToInternalStorage(Uri.parse(image))
+                    } ?: image
+                }
             }
             
-            // 1. Update Firestore (The "truth")
+            // 2. Update Firestore (The "truth")
             AuthRepository.updateUserProfile(name, bio, finalImage)
             
-            // 2. Update local preferences (Immediate UI feedback)
+            // 3. Update local preferences (Immediate UI feedback)
             PreferenceManager.setUserName(getApplication(), name)
             PreferenceManager.setUserBio(getApplication(), bio)
             PreferenceManager.setUserId(getApplication(), id)
