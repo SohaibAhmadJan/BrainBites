@@ -15,7 +15,7 @@ async function fix() {
     const config = {
         maintenanceMode: false,
         minVersion: '1.0.0',
-        latestVersion: '4.4.6',
+        latestVersion: '4.4.7',
         quizzesEnabled: true,
         achievementsEnabled: true,
         dailyFactId: '1',

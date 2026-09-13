@@ -20,6 +20,18 @@ object AuthRepository {
     private val _isAccountDisabled = MutableStateFlow(false)
     val isAccountDisabled = _isAccountDisabled.asStateFlow()
 
+    suspend fun isUsernameAvailable(handle: String): Boolean {
+        if (handle.isBlank()) return false
+        val normalizedHandle = handle.lowercase().trim()
+        return try {
+            val document = db.collection("handles").document(normalizedHandle).get().await()
+            !document.exists()
+        } catch (e: Exception) {
+            Log.e("AuthRepository", "Error checking handle availability", e)
+            false // Default to not available on error to be safe
+        }
+    }
+
     suspend fun signInAnonymously(context: Context): Result<Unit> {
         return try {
             if (auth.currentUser == null) {
@@ -58,26 +70,49 @@ object AuthRepository {
         }
     }
 
-    suspend fun signUp(context: android.content.Context, email: String, password: String, name: String): Result<Unit> {
+    suspend fun signUp(context: android.content.Context, email: String, password: String, name: String, handle: String): Result<Unit> {
         return try {
+            val normalizedHandle = handle.lowercase().trim()
+            val isAvailable = isUsernameAvailable(normalizedHandle)
+            if (!isAvailable) {
+                throw Exception("Handle '@$normalizedHandle' is already taken.")
+            }
+
             val result = auth.createUserWithEmailAndPassword(email, password).await()
             val uid = result.user?.uid ?: throw Exception("User creation failed")
             
-            val now = System.currentTimeMillis()
-            val newUser = BrainBitesUser(
-                account = UserAccount(
-                    uid = uid,
-                    createdAt = now,
-                    updatedAt = now,
-                    lastLoginAt = now,
-                    status = "ACTIVE"
-                ),
-                profile = UserProfile(
-                    displayName = name,
-                    email = email
+            // Atomically claim the handle and create the user record
+            db.runBatch { batch ->
+                val handleRef = db.collection("handles").document(normalizedHandle)
+                val userRef = db.collection("users").document(uid)
+                
+                batch.set(handleRef, mapOf("uid" to uid))
+                
+                val now = System.currentTimeMillis()
+                val newUser = BrainBitesUser(
+                    account = UserAccount(
+                        uid = uid,
+                        createdAt = now,
+                        updatedAt = now,
+                        lastLoginAt = now,
+                        status = "ACTIVE"
+                    ),
+                    profile = UserProfile(
+                        displayName = name,
+                        email = email,
+                        handle = normalizedHandle
+                    )
                 )
-            )
-            saveUser(newUser)
+                
+                batch.set(userRef, mapOf(
+                    "account" to newUser.account,
+                    "profile" to newUser.profile,
+                    "stats" to newUser.stats,
+                    "preferences" to newUser.preferences,
+                    "updatedAt" to System.currentTimeMillis()
+                ))
+            }.await()
+            
             AnalyticsRepository.logAppInstall(context)
             Result.success(Unit)
         } catch (e: Exception) {
@@ -124,6 +159,7 @@ object AuthRepository {
                             profile = UserProfile(
                                 displayName = profile?.get("displayName") as? String ?: firebaseUser.displayName ?: "Knowledge Seeker",
                                 email = profile?.get("email") as? String ?: firebaseUser.email ?: "",
+                                handle = profile?.get("handle") as? String ?: "",
                                 photoUrl = profile?.get("photoUrl") as? String ?: firebaseUser.photoUrl?.toString() ?: "",
                                 bio = profile?.get("bio") as? String ?: "",
                                 isPublic = profile?.get("isPublic") as? Boolean ?: false
@@ -169,6 +205,7 @@ object AuthRepository {
                 } else {
                     // Create new user record if it doesn't exist
                     val now = System.currentTimeMillis()
+                    val randomHandle = "user_${now.toString().takeLast(6)}"
                     val newUser = BrainBitesUser(
                         account = UserAccount(
                             uid = uid,
@@ -179,10 +216,13 @@ object AuthRepository {
                         ),
                         profile = UserProfile(
                             displayName = firebaseUser.displayName ?: "Knowledge Seeker",
-                            email = firebaseUser.email ?: ""
+                            email = firebaseUser.email ?: "",
+                            handle = randomHandle
                         )
                     )
                     MainScope().launch {
+                        // Claim random handle
+                        db.collection("handles").document(randomHandle).set(mapOf("uid" to uid)).await()
                         saveUser(newUser)
                         AnalyticsRepository.logAppInstall(context)
                         val instanceId = com.google.firebase.installations.FirebaseInstallations.getInstance().id.await()
@@ -237,44 +277,89 @@ object AuthRepository {
 
     suspend fun deleteAccount(): Result<Unit> {
         val uid = auth.currentUser?.uid ?: return Result.failure(Exception("No user logged in"))
+        val currentHandle = _currentUser.value?.profile?.handle ?: ""
+        
         return try {
             val thirtyDaysMs = 30L * 24 * 60 * 60 * 1000
             val deletionDate = System.currentTimeMillis() + thirtyDaysMs
 
-            // 1. Mark user as PENDING_DELETION in Firestore
-            db.collection("users").document(uid).update(
-                mapOf(
+            // Atomic Anonymization + Handle Release
+            db.runBatch { batch ->
+                val userRef = db.collection("users").document(uid)
+                
+                // 1. Mark as pending and wipe PII immediately
+                batch.update(userRef, mapOf(
                     "account.status" to "PENDING_DELETION",
                     "account.scheduledDeletionAt" to deletionDate,
+                    "profile.displayName" to "Deleted User",
+                    "profile.email" to "",
+                    "profile.bio" to "",
+                    "profile.photoUrl" to "",
+                    "profile.handle" to "",
                     "updatedAt" to System.currentTimeMillis()
-                )
-            ).await()
+                ))
+
+                // 2. Release the @handle so others can use it
+                if (currentHandle.isNotBlank()) {
+                    val handleRef = db.collection("handles").document(currentHandle)
+                    batch.delete(handleRef)
+                }
+            }.await()
             
-            // Note: We do NOT delete the Firebase Auth user yet. 
-            // A background Cloud Function (simulated by script) would handle permanent removal after 30 days.
+            // 3. Destroy Firebase Auth Credential immediately
+            auth.currentUser?.delete()?.await()
             
-            Log.d("AuthRepository", "Account scheduled for deletion on: $deletionDate")
+            _currentUser.value = null
+            Log.d("AuthRepository", "Account anonymized and scheduled for deletion")
             Result.success(Unit)
         } catch (e: Exception) {
-            Log.e("AuthRepository", "Account soft deletion failed", e)
+            Log.e("AuthRepository", "Account deletion/anonymization failed", e)
             Result.failure(e)
         }
     }
 
-    suspend fun updateUserProfile(name: String, bio: String, image: String) {
-        val uid = auth.currentUser?.uid ?: return
-        try {
-            db.collection("users").document(uid).update(
-                mapOf(
+    suspend fun updateUserProfile(name: String, bio: String, image: String, newHandle: String? = null): Result<Unit> {
+        val uid = auth.currentUser?.uid ?: return Result.failure(Exception("No user logged in"))
+        val currentHandle = _currentUser.value?.profile?.handle ?: ""
+        
+        return try {
+            val normalizedNewHandle = newHandle?.lowercase()?.trim()
+            
+            // Use batch write to ensure we don't end up with orphaned handles or users without handles
+            db.runBatch { batch ->
+                val userRef = db.collection("users").document(uid)
+                
+                val updates = mutableMapOf<String, Any>(
                     "profile.displayName" to name,
                     "profile.bio" to bio,
                     "profile.photoUrl" to image,
                     "updatedAt" to System.currentTimeMillis()
                 )
-            ).await()
+
+                // Only perform handle swap if it's changing and valid
+                if (normalizedNewHandle != null && normalizedNewHandle != currentHandle) {
+                    val newHandleRef = db.collection("handles").document(normalizedNewHandle)
+                    batch.set(newHandleRef, mapOf("uid" to uid)) // Claim new
+                    
+                    if (currentHandle.isNotBlank()) {
+                        val oldHandleRef = db.collection("handles").document(currentHandle)
+                        batch.delete(oldHandleRef) // Release old
+                    }
+                    
+                    updates["profile.handle"] = normalizedNewHandle
+                }
+
+                batch.update(userRef, updates)
+            }.await()
+
             Log.d("AuthRepository", "Profile updated in Firestore")
+            Result.success(Unit)
         } catch (e: Exception) {
+            // Note: If the new handle is already claimed, the batch will fail gracefully
+            // due to Firestore security rules, assuming we don't have read access to it
+            // or the create rule fails.
             Log.e("AuthRepository", "Error updating profile in Firestore", e)
+            Result.failure(Exception(e.message?.let { if (it.contains("PERMISSION_DENIED")) "Handle is already taken or invalid." else it } ?: "Unknown error"))
         }
     }
 

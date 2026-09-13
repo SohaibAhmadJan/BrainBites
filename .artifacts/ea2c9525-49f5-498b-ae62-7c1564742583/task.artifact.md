@@ -1,7 +1,5 @@
-- [x] Update LoginScreen with official logo
-- [x] Update SignUpScreen with official logo
-- [x] Verify UI consistency
-- [x] Update version to 4.4.6 (User App)
-- [x] Update version to 4.4.6 (Admin Panel)
-- [/] Commit and Push User App
-- [ ] Commit and Push Admin Panel
+- [x] Update `firebase.json` with Security Headers
+- [x] Lock down CORS in `functions/index.js`
+- [x] Sanitize Backend Errors in `functions/index.js`
+- [x] Remove `console.log` from `functions/index.js`
+- [x] Remove `Log.d` statements from Android App

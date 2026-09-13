@@ -173,7 +173,7 @@ fun SplashScreen(
             }
 
             Text(
-                text = "Version 4.4.6",
+                text = "Version 4.4.7",
                 style = MaterialTheme.typography.labelSmall.copy(
                     color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.6f)
                 ),

@@ -55,6 +55,7 @@ fun ProfileScreen(
     val userName by viewModel.userName.collectAsState()
     val userBio by viewModel.userBio.collectAsState()
     val userId by viewModel.userId.collectAsState()
+    val userHandle by viewModel.userHandle.collectAsState()
     val userImage by viewModel.userImage.collectAsState()
     val isPublic by viewModel.isPublicProfile.collectAsState()
     val isAnalytics by viewModel.isAnalyticsEnabled.collectAsState()
@@ -62,17 +63,27 @@ fun ProfileScreen(
     var showEditDialog by remember { mutableStateOf(false) }
     var showPrivacyDialog by remember { mutableStateOf(false) }
     var showLogoutDialog by remember { mutableStateOf(false) }
+    var profileError by remember { mutableStateOf<String?>(null) }
 
     if (showEditDialog) {
         EditProfileDialog(
             currentName = userName,
             currentBio = userBio,
             currentId = userId,
+            currentHandle = userHandle,
             currentImage = userImage,
-            onDismiss = { showEditDialog = false },
-            onConfirm = { name, bio, id, image ->
-                viewModel.updateProfile(name, bio, id, image)
+            errorMsg = profileError,
+            onDismiss = { 
                 showEditDialog = false
+                profileError = null 
+            },
+            onConfirm = { name, bio, id, image, handle ->
+                viewModel.updateProfile(name, bio, id, image, handle, { error ->
+                    profileError = error
+                }, {
+                    showEditDialog = false
+                    profileError = null
+                })
             }
         )
     }
@@ -103,6 +114,7 @@ fun ProfileScreen(
         userName = userName,
         userBio = userBio,
         userId = userId,
+        userHandle = userHandle,
         userImage = userImage,
         onEditClick = { showEditDialog = true },
         onPrivacyClick = { showPrivacyDialog = true },
@@ -119,6 +131,7 @@ fun ProfileScreenContent(
     userName: String,
     userBio: String,
     userId: String,
+    userHandle: String,
     userImage: String,
     onEditClick: () -> Unit,
     onPrivacyClick: () -> Unit,
@@ -137,6 +150,7 @@ fun ProfileScreenContent(
                 ProfileHeader(
                     userName = userName,
                     userId = userId,
+                    userHandle = userHandle,
                     userImage = userImage,
                     level = stats.level,
                     rankTitle = stats.rankTitle,
@@ -198,6 +212,7 @@ fun ProfileScreenContent(
 fun ProfileHeader(
     userName: String,
     userId: String,
+    userHandle: String,
     userImage: String,
     level: Int,
     rankTitle: String,
@@ -228,7 +243,7 @@ fun ProfileHeader(
             modifier = Modifier.padding(top = 4.dp)
         ) {
             Text(
-                text = "@$userId",
+                text = if (userHandle.isNotBlank()) "@$userHandle" else "@$userId",
                 style = MaterialTheme.typography.labelMedium,
                 color = MaterialTheme.colorScheme.primary,
                 fontWeight = FontWeight.SemiBold,
@@ -607,13 +622,16 @@ fun EditProfileDialog(
     currentBio: String,
     currentId: String,
     currentImage: String,
+    currentHandle: String,
+    errorMsg: String? = null,
     onDismiss: () -> Unit,
-    onConfirm: (String, String, String, String) -> Unit
+    onConfirm: (String, String, String, String, String) -> Unit
 ) {
     var name by remember { mutableStateOf(currentName) }
     var bio by remember { mutableStateOf(currentBio) }
     var userId by remember { mutableStateOf(currentId) }
     var userImage by remember { mutableStateOf(currentImage) }
+    var handle by remember { mutableStateOf(currentHandle) }
 
     val photoPickerLauncher = rememberLauncherForActivityResult(
         contract = ActivityResultContracts.PickVisualMedia(),
@@ -661,12 +679,26 @@ fun EditProfileDialog(
                 }
 
                 Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
-                    Text("User ID", style = MaterialTheme.typography.labelMedium)
+                    Text("Username (@handle)", style = MaterialTheme.typography.labelMedium)
+                    OutlinedTextField(
+                        value = handle,
+                        onValueChange = { handle = it.replace(" ", "_").lowercase() },
+                        placeholder = { Text("unique_handle") },
+                        leadingIcon = { Text("@", modifier = Modifier.padding(start = 12.dp)) },
+                        shape = RoundedCornerShape(12.dp),
+                        modifier = Modifier.fillMaxWidth(),
+                        singleLine = true,
+                        colors = textFieldColors
+                    )
+                }
+
+                Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
+                    Text("System ID", style = MaterialTheme.typography.labelMedium)
                     OutlinedTextField(
                         value = userId,
-                        onValueChange = { userId = it.replace(" ", "_").lowercase() },
+                        onValueChange = { },
+                        enabled = false,
                         placeholder = { Text("unique_id") },
-                        leadingIcon = { Text("@", modifier = Modifier.padding(start = 12.dp)) },
                         shape = RoundedCornerShape(12.dp),
                         modifier = Modifier.fillMaxWidth(),
                         singleLine = true,
@@ -686,12 +718,21 @@ fun EditProfileDialog(
                         colors = textFieldColors
                     )
                 }
+                
+                if (errorMsg != null) {
+                    Text(
+                        text = errorMsg,
+                        color = MaterialTheme.colorScheme.error,
+                        style = MaterialTheme.typography.bodySmall,
+                        modifier = Modifier.padding(top = 8.dp)
+                    )
+                }
             }
         },
         confirmButton = {
             TextButton(
-                onClick = { onConfirm(name, bio, userId, userImage) },
-                enabled = name.isNotBlank() && userId.isNotBlank()
+                onClick = { onConfirm(name, bio, userId, userImage, handle) },
+                enabled = name.isNotBlank() && handle.isNotBlank()
             ) {
                 Text("Save Changes")
             }
@@ -803,6 +844,7 @@ fun ProfileScreenPreview() {
             userName = "Knowledge Seeker",
             userBio = "Curious mind exploring the world of psychology.",
             userId = "knowledge_seeker",
+            userHandle = "knowledge_seeker",
             userImage = "🧠",
             onEditClick = {},
             onPrivacyClick = {},

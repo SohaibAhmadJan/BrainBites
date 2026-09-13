@@ -50,6 +50,7 @@ class ProfileViewModel(application: Application) : AndroidViewModel(application)
     val userName = PreferenceManager.userName
     val userImage = PreferenceManager.userImage
     val userBio = PreferenceManager.userBio
+    val userHandle = PreferenceManager.userHandle
     val userId = PreferenceManager.userId
     val isPublicProfile = PreferenceManager.isPublicProfile
     val isAnalyticsEnabled = PreferenceManager.isAnalyticsEnabled
@@ -152,7 +153,7 @@ class ProfileViewModel(application: Application) : AndroidViewModel(application)
         PreferenceManager.setUserName(getApplication(), name)
     }
 
-    fun updateProfile(name: String, bio: String, id: String, image: String) {
+    fun updateProfile(name: String, bio: String, id: String, image: String, handle: String, onError: (String) -> Unit = {}, onSuccess: () -> Unit = {}) {
         viewModelScope.launch {
             var finalImage = image
             val currentUser = AuthRepository.currentUser.value
@@ -184,13 +185,20 @@ class ProfileViewModel(application: Application) : AndroidViewModel(application)
             }
             
             // 2. Update Firestore (The "truth")
-            AuthRepository.updateUserProfile(name, bio, finalImage)
+            val result = AuthRepository.updateUserProfile(name, bio, finalImage, handle)
             
-            // 3. Update local preferences (Immediate UI feedback)
-            PreferenceManager.setUserName(getApplication(), name)
-            PreferenceManager.setUserBio(getApplication(), bio)
-            PreferenceManager.setUserId(getApplication(), id)
-            PreferenceManager.setUserImage(getApplication(), finalImage)
+            if (result.isSuccess) {
+                // 3. Update local preferences (Immediate UI feedback)
+                PreferenceManager.setUserName(getApplication(), name)
+                PreferenceManager.setUserBio(getApplication(), bio)
+                PreferenceManager.setUserId(getApplication(), id)
+                PreferenceManager.setUserHandle(getApplication(), handle)
+                PreferenceManager.setUserImage(getApplication(), finalImage)
+                onSuccess()
+            } else {
+                val errorMsg = result.exceptionOrNull()?.message ?: "Failed to update profile."
+                onError(errorMsg)
+            }
         }
     }
 

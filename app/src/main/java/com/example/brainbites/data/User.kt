@@ -6,6 +6,7 @@ import kotlinx.serialization.Serializable
 data class UserProfile(
     val displayName: String = "Knowledge Seeker",
     val email: String = "",
+    val handle: String = "",
     val photoUrl: String = "",
     val bio: String = "Curious mind exploring the world of psychology.",
     val isPublic: Boolean = false

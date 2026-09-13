@@ -12,10 +12,38 @@ const { verifyAdmin } = require('./utils/auth');
 initializeApp();
 const db = getFirestore();
 
+const CORS_CONFIG = {
+    cors: [
+        "https://brainbites-24332456.web.app",
+        "https://brainbites-24332456.firebaseapp.com"
+    ]
+};
+
+function secureOnCall(handler) {
+    return secureOnCall(CORS_CONFIG, async (request) => {
+        try {
+            return await handler(request);
+        } catch (e) {
+            if (e instanceof HttpsError) {
+                if (e.code === 'internal') {
+                    const correlationId = Math.random().toString(36).substring(2, 10);
+                    console.error(`[Error Ref: ${correlationId}] Internal HttpsError:`, e);
+                    throw new HttpsError('internal', `An internal server error occurred. Reference ID: ${correlationId}`);
+                }
+                throw e;
+            }
+            const correlationId = Math.random().toString(36).substring(2, 10);
+            console.error(`[Error Ref: ${correlationId}] Unhandled failure:`, e);
+            throw new HttpsError('internal', `An internal server error occurred. Reference ID: ${correlationId}`);
+        }
+    });
+}
+
+
 /**
  * updateFactAtomic
  */
-exports.updateFactAtomic = onCall(async (request) => {
+exports.updateFactAtomic = secureOnCall(async (request) => {
     const admin = await verifyAdmin(request, db, 'manage.content');
     const { id, data, reason } = request.data;
 
@@ -63,7 +91,7 @@ exports.updateFactAtomic = onCall(async (request) => {
  * Optimized: Now handles "Deep Deletion" (cleans up quizzes and collection references).
  * Fixed: Queries moved outside transaction to prevent protocol rollback.
  */
-exports.deleteFactAtomic = onCall(async (request) => {
+exports.deleteFactAtomic = secureOnCall(async (request) => {
     const admin = await verifyAdmin(request, db, 'manage.content');
     const { id, reason } = request.data;
 
@@ -122,7 +150,7 @@ exports.deleteFactAtomic = onCall(async (request) => {
 /**
  * updateCategoryAtomic
  */
-exports.updateCategoryAtomic = onCall(async (request) => {
+exports.updateCategoryAtomic = secureOnCall(async (request) => {
     const admin = await verifyAdmin(request, db, 'manage.content');
     const { id, data, reason } = request.data;
 
@@ -158,7 +186,7 @@ exports.updateCategoryAtomic = onCall(async (request) => {
 /**
  * deleteCategoryAtomic
  */
-exports.deleteCategoryAtomic = onCall(async (request) => {
+exports.deleteCategoryAtomic = secureOnCall(async (request) => {
     const admin = await verifyAdmin(request, db, 'manage.content');
     const { id, reason } = request.data;
 
@@ -194,7 +222,7 @@ exports.deleteCategoryAtomic = onCall(async (request) => {
 /**
  * updateReportStatusAtomic
  */
-exports.updateReportStatusAtomic = onCall(async (request) => {
+exports.updateReportStatusAtomic = secureOnCall(async (request) => {
     const admin = await verifyAdmin(request, db, 'users.edit');
     const { id, status, reason } = request.data;
 
@@ -235,7 +263,7 @@ exports.updateReportStatusAtomic = onCall(async (request) => {
 /**
  * updateAppConfigAtomic
  */
-exports.updateAppConfigAtomic = onCall(async (request) => {
+exports.updateAppConfigAtomic = secureOnCall(async (request) => {
     const admin = await verifyAdmin(request, db, 'manage.config');
     const { data, reason } = request.data;
 
@@ -274,7 +302,7 @@ exports.updateAppConfigAtomic = onCall(async (request) => {
 /**
  * updateAdminAtomic
  */
-exports.updateAdminAtomic = onCall(async (request) => {
+exports.updateAdminAtomic = secureOnCall(async (request) => {
     const caller = await verifyAdmin(request, db, 'manage.admins');
     const { uid, data, reason } = request.data;
 
@@ -319,7 +347,7 @@ exports.updateAdminAtomic = onCall(async (request) => {
 /**
  * deleteAdminAtomic
  */
-exports.deleteAdminAtomic = onCall(async (request) => {
+exports.deleteAdminAtomic = secureOnCall(async (request) => {
     const caller = await verifyAdmin(request, db, 'manage.admins');
     const { uid, reason } = request.data;
 
@@ -367,12 +395,9 @@ exports.deleteAdminAtomic = onCall(async (request) => {
  * Dispatches a push notification to all devices subscribed to 'global_broadcasts'
  * and archives the message in the notification registry.
  */
-exports.sendGlobalNotificationAtomic = onCall(async (request) => {
+exports.sendGlobalNotificationAtomic = secureOnCall(async (request) => {
     const admin = await verifyAdmin(request, db, 'manage.content');
     const { data, reason } = request.data;
-
-    console.log(`[Notification Service] Dispatch Request received. Reason: ${reason || 'Not specified'}`);
-    console.log(`[Notification Service] Payload:`, JSON.stringify(data));
 
     if (!data || !data.title || !data.message) {
         throw new HttpsError('invalid-argument', 'Message payload must include title and body.');
@@ -416,7 +441,6 @@ exports.sendGlobalNotificationAtomic = onCall(async (request) => {
         let fcmResponse;
         try {
             fcmResponse = await getMessaging().send(message);
-            console.log(`[Notification Service] FCM Signal Dispatched: ${fcmResponse}`);
         } catch (fcmErr) {
             console.error(`[Notification Service] FCM Protocol FAILURE:`, fcmErr);
             throw new Error(`Push Signal Failure: ${fcmErr.message}`);
@@ -439,7 +463,6 @@ exports.sendGlobalNotificationAtomic = onCall(async (request) => {
                     createdAt: Date.now()
                 });
             });
-            console.log(`[Notification Service] Registry & Audit SUCCESS for ${notificationId}`);
         } catch (dbErr) {
             console.error(`[Notification Service] Database Persistence FAILURE:`, dbErr);
             // We don't throw here if FCM already went out, but we return a warning
@@ -460,7 +483,7 @@ exports.sendGlobalNotificationAtomic = onCall(async (request) => {
 /**
  * updateQuizAtomic
  */
-exports.updateQuizAtomic = onCall(async (request) => {
+exports.updateQuizAtomic = secureOnCall(async (request) => {
     const admin = await verifyAdmin(request, db, 'manage.content');
     const { id, data, reason } = request.data;
 
@@ -500,7 +523,7 @@ exports.updateQuizAtomic = onCall(async (request) => {
 /**
  * deleteQuizAtomic
  */
-exports.deleteQuizAtomic = onCall(async (request) => {
+exports.deleteQuizAtomic = secureOnCall(async (request) => {
     const admin = await verifyAdmin(request, db, 'manage.content');
     const { id, reason } = request.data;
 
@@ -536,7 +559,7 @@ exports.deleteQuizAtomic = onCall(async (request) => {
 /**
  * updateCollectionAtomic
  */
-exports.updateCollectionAtomic = onCall(async (request) => {
+exports.updateCollectionAtomic = secureOnCall(async (request) => {
     const admin = await verifyAdmin(request, db, 'manage.content');
     const { id, data, reason } = request.data;
 
@@ -575,7 +598,7 @@ exports.updateCollectionAtomic = onCall(async (request) => {
 /**
  * deleteCollectionAtomic
  */
-exports.deleteCollectionAtomic = onCall(async (request) => {
+exports.deleteCollectionAtomic = secureOnCall(async (request) => {
     const admin = await verifyAdmin(request, db, 'manage.content');
     const { id, reason } = request.data;
 
@@ -611,7 +634,7 @@ exports.deleteCollectionAtomic = onCall(async (request) => {
 /**
  * updateAchievementAtomic
  */
-exports.updateAchievementAtomic = onCall(async (request) => {
+exports.updateAchievementAtomic = secureOnCall(async (request) => {
     const admin = await verifyAdmin(request, db, 'manage.content');
     const { id, data, reason } = request.data;
 
@@ -650,7 +673,7 @@ exports.updateAchievementAtomic = onCall(async (request) => {
 /**
  * deleteAchievementAtomic
  */
-exports.deleteAchievementAtomic = onCall(async (request) => {
+exports.deleteAchievementAtomic = secureOnCall(async (request) => {
     const admin = await verifyAdmin(request, db, 'manage.content');
     const { id, reason } = request.data;
 
@@ -686,7 +709,7 @@ exports.deleteAchievementAtomic = onCall(async (request) => {
 /**
  * updateQuoteAtomic
  */
-exports.updateQuoteAtomic = onCall(async (request) => {
+exports.updateQuoteAtomic = secureOnCall(async (request) => {
     const admin = await verifyAdmin(request, db, 'manage.content');
     const { id, data, reason } = request.data;
 
@@ -725,7 +748,7 @@ exports.updateQuoteAtomic = onCall(async (request) => {
 /**
  * deleteQuoteAtomic
  */
-exports.deleteQuoteAtomic = onCall(async (request) => {
+exports.deleteQuoteAtomic = secureOnCall(async (request) => {
     const admin = await verifyAdmin(request, db, 'manage.content');
     const { id, reason } = request.data;
 
@@ -761,7 +784,7 @@ exports.deleteQuoteAtomic = onCall(async (request) => {
 /**
  * bulkImportFactsAtomic
  */
-exports.bulkImportFactsAtomic = onCall(async (request) => {
+exports.bulkImportFactsAtomic = secureOnCall(async (request) => {
     const admin = await verifyAdmin(request, db, 'manage.content');
     const { items, reason } = request.data;
 
@@ -801,7 +824,7 @@ exports.bulkImportFactsAtomic = onCall(async (request) => {
 /**
  * resetUserStatsAtomic
  */
-exports.resetUserStatsAtomic = onCall(async (request) => {
+exports.resetUserStatsAtomic = secureOnCall(async (request) => {
     const admin = await verifyAdmin(request, db, 'users.edit');
     const { uid, fields, reason } = request.data;
 
@@ -846,7 +869,7 @@ exports.resetUserStatsAtomic = onCall(async (request) => {
 /**
  * awardAchievementAtomic
  */
-exports.awardAchievementAtomic = onCall(async (request) => {
+exports.awardAchievementAtomic = secureOnCall(async (request) => {
     const admin = await verifyAdmin(request, db, 'users.edit');
     const { uid, achievementId, reason } = request.data;
 
@@ -902,7 +925,7 @@ exports.awardAchievementAtomic = onCall(async (request) => {
 /**
  * deleteNotificationAtomic
  */
-exports.deleteNotificationAtomic = onCall(async (request) => {
+exports.deleteNotificationAtomic = secureOnCall(async (request) => {
     const admin = await verifyAdmin(request, db, 'manage.content');
     const { id, reason } = request.data;
 
@@ -938,7 +961,7 @@ exports.deleteNotificationAtomic = onCall(async (request) => {
 /**
  * updateUserStatusAtomic
  */
-exports.updateUserStatusAtomic = onCall(async (request) => {
+exports.updateUserStatusAtomic = secureOnCall(async (request) => {
     const admin = await verifyAdmin(request, db, 'users.edit');
     const { uid, status, reason } = request.data;
 

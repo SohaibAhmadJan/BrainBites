@@ -13,7 +13,8 @@ object PreferenceManager {
     private const val KEY_USER_NAME = "user_display_name"
     private const val KEY_USER_IMAGE = "user_profile_image"
     private const val KEY_USER_BIO = "user_profile_bio"
-    private const val KEY_USER_ID = "user_unique_id"
+    private const val KEY_USER_ID = "user_unique_id" // System ID
+    private const val KEY_USER_HANDLE = "user_handle" // Public @handle
     private const val KEY_PUBLIC_PROFILE = "is_public_profile"
     private const val KEY_ANALYTICS = "is_analytics_enabled"
     private const val KEY_STREAK = "current_streak_count"
@@ -43,6 +44,9 @@ object PreferenceManager {
     private val _userId = MutableStateFlow("")
     val userId = _userId.asStateFlow()
 
+    private val _userHandle = MutableStateFlow("")
+    val userHandle = _userHandle.asStateFlow()
+
     private val _isPublicProfile = MutableStateFlow(false)
     val isPublicProfile = _isPublicProfile.asStateFlow()
 
@@ -64,6 +68,7 @@ object PreferenceManager {
         _userImage.value = prefs.getString(KEY_USER_IMAGE, "") ?: ""
         _userBio.value = prefs.getString(KEY_USER_BIO, "Curious mind exploring the world of psychology.") ?: "Curious mind exploring the world of psychology."
         _userId.value = prefs.getString(KEY_USER_ID, "") ?: ""
+        _userHandle.value = prefs.getString(KEY_USER_HANDLE, "") ?: ""
         _isPublicProfile.value = prefs.getBoolean(KEY_PUBLIC_PROFILE, false)
         _isAnalyticsEnabled.value = prefs.getBoolean(KEY_ANALYTICS, true)
         _streakCount.value = prefs.getInt(KEY_STREAK, 0)
@@ -78,6 +83,7 @@ object PreferenceManager {
         _userImage.value = user.profile.photoUrl
         _userBio.value = user.profile.bio
         _userId.value = user.account.uid
+        _userHandle.value = user.profile.handle
         _isPublicProfile.value = user.profile.isPublic
         _isAnalyticsEnabled.value = user.preferences.analyticsEnabled
         _streakCount.value = user.stats.streakCount
@@ -123,6 +129,12 @@ object PreferenceManager {
         context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
             .edit().putString(KEY_USER_ID, id).apply()
         _userId.value = id
+    }
+
+    fun setUserHandle(context: Context, handle: String) {
+        context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
+            .edit().putString(KEY_USER_HANDLE, handle).apply()
+        _userHandle.value = handle
     }
 
     fun setPublicProfile(context: Context, enabled: Boolean) {

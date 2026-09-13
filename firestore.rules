@@ -100,6 +100,21 @@ service cloud.firestore {
        allow delete: if isSuperAdmin() || isAdministrator();
     }
 
+    // User Handles: Globally unique usernames
+    match /handles/{handleId} {
+       // Anyone can check if a handle is available
+       allow read: if true;
+       // Can only create if it doesn't exist, and MUST assign their own UID to it
+       allow create: if request.auth != null &&
+                     !exists(/databases/$(database)/documents/handles/$(handleId)) &&
+                     request.resource.data.uid == request.auth.uid;
+       // Can only delete their own handle (to free it up or change it)
+       allow delete: if request.auth != null &&
+                     resource.data.uid == request.auth.uid;
+       // Updates not allowed (must delete and recreate to change ownership)
+       allow update: if false;
+    }
+
     // User Data: Owned by the specific user
     match /users/{uid}/{document=**} {
        allow read, write: if request.auth != null && request.auth.uid == uid;
