@@ -1,0 +1,7 @@
+- [x] Update LoginScreen with official logo
+- [x] Update SignUpScreen with official logo
+- [x] Verify UI consistency
+- [x] Update version to 4.4.6 (User App)
+- [x] Update version to 4.4.6 (Admin Panel)
+- [/] Commit and Push User App
+- [ ] Commit and Push Admin Panel

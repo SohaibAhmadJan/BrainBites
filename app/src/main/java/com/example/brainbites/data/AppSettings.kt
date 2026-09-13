@@ -6,7 +6,7 @@ import kotlinx.serialization.Serializable
 data class AppSettings(
     val maintenanceMode: Boolean = false,
     val maintenanceMessage: String = "",
-    val latestVersion: String = "3.4.8.7",
+    val latestVersion: String = "4.4.6",
     val minVersion: String = "1.0.0",
     val supportEmail: String = "support@brainbites.com",
     val achievementsEnabled: Boolean = true,

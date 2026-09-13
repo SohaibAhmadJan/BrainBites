@@ -34,6 +34,7 @@ import androidx.credentials.CredentialManager
 import androidx.credentials.GetCredentialRequest
 import com.example.brainbites.R
 import com.example.brainbites.data.AuthRepository
+import com.example.brainbites.ui.components.BrainBitesLogo
 import com.example.brainbites.ui.theme.BrainBitesTheme
 import com.google.android.libraries.identity.googleid.GetGoogleIdOption
 import kotlinx.coroutines.launch
@@ -69,22 +70,11 @@ fun SignUpScreen(
             ) {
                 Spacer(modifier = Modifier.height(32.dp))
 
-                // App Icon Box
-                Surface(
+                // App Icon
+                BrainBitesLogo(
                     modifier = Modifier.size(64.dp),
-                    shape = RoundedCornerShape(20.dp),
-                    color = MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.8f),
-                    border = BorderStroke(1.dp, MaterialTheme.colorScheme.primary.copy(alpha = 0.2f))
-                ) {
-                    Box(contentAlignment = Alignment.Center) {
-                        Icon(
-                            imageVector = Icons.Default.Psychology,
-                            contentDescription = null,
-                            tint = MaterialTheme.colorScheme.onPrimaryContainer,
-                            modifier = Modifier.size(32.dp)
-                        )
-                    }
-                }
+                    color = MaterialTheme.colorScheme.primary
+                )
 
                 Spacer(modifier = Modifier.height(24.dp))
 
