@@ -177,7 +177,7 @@ object MigrationManager {
         val config = mapOf(
             "maintenanceMode" to false,
             "minVersion" to "1.0.0",
-            "latestVersion" to "4.4.7",
+            "latestVersion" to "4.4.8",
             "achievementsEnabled" to true,
             "dailyFactId" to "1",
             "updatedAt" to System.currentTimeMillis()

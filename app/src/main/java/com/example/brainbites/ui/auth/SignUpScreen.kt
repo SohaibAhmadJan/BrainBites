@@ -69,15 +69,15 @@ fun SignUpScreen(
                     .padding(24.dp),
                 horizontalAlignment = Alignment.CenterHorizontally
             ) {
-                Spacer(modifier = Modifier.height(32.dp))
+                Spacer(modifier = Modifier.height(12.dp))
 
                 // App Icon
                 BrainBitesLogo(
-                    modifier = Modifier.size(64.dp),
+                    modifier = Modifier.size(120.dp),
                     color = MaterialTheme.colorScheme.primary
                 )
 
-                Spacer(modifier = Modifier.height(24.dp))
+                Spacer(modifier = Modifier.height(12.dp))
 
                 Text(
                     text = "Create Your Account",
@@ -96,7 +96,7 @@ fun SignUpScreen(
                     modifier = Modifier.padding(top = 8.dp)
                 )
 
-                Spacer(modifier = Modifier.height(32.dp))
+                Spacer(modifier = Modifier.height(12.dp))
 
                 AuthCard {
                     PremiumTextField(

@@ -68,11 +68,11 @@ fun LoginScreen(
 
                 // App Icon
                 BrainBitesLogo(
-                    modifier = Modifier.size(80.dp),
+                    modifier = Modifier.size(120.dp),
                     color = MaterialTheme.colorScheme.primary
                 )
 
-                Spacer(modifier = Modifier.height(32.dp))
+                Spacer(modifier = Modifier.height(12.dp))
 
                 Text(
                     text = "Welcome Back",
@@ -91,7 +91,7 @@ fun LoginScreen(
                     modifier = Modifier.padding(top = 8.dp)
                 )
 
-                Spacer(modifier = Modifier.height(48.dp))
+                Spacer(modifier = Modifier.height(12.dp))
 
                 AuthCard {
                     PremiumTextField(

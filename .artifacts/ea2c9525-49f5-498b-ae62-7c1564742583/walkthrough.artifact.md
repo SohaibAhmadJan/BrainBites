@@ -1,24 +1,15 @@
-# Walkthrough - Production Hardening & Pre-Deployment Audit
+# Walkthrough - Social Share Image Fix (Constraints)
 
-I have successfully completed the rigorous 7-point pre-deployment audit and hardening pass across the entire BrainBites ecosystem.
+I have completely resolved the issue causing the shared Quote Card to appear squished and distorted on WhatsApp.
 
-## Summary of Checks & Fixes
+## Root Cause
+When you tapped "Share", the app rendered the Quote Card "off-screen" to take a screenshot of it. However, because it was technically still sitting inside your phone's main screen layout, Android's layout system forced the `1080x1080` card to "squish" down to fit the narrow portrait width of your phone screen! This caused the text to wrap tightly and break the layout.
 
-| Check # | Requirement | Status | Action Taken / Fix |
-|:---|:---|:---|:---|
-| **1** | **Environment Variables** | **PASSED** | Verified frontend startup checks in `App.tsx` and `firebaseService.ts` which halt and show a clean "System Offline" view if configuration variables are missing. |
-| **2** | **Debug Code Removal** | **PASSED** | Scrubbed all debugging `console.log` statements from `functions/index.js` and removed extraneous loggers. |
-| **3** | **Error Handling** | **PASSED** | Implemented a `secureOnCall` wrapper in `functions/index.js` that catches unhandled or internal database errors, masks raw `e.message` stack traces from the client, generates a random **Correlation Reference ID**, and logs the full diagnostic details server-side only. |
-| **4** | **Security Headers** | **PASSED** | Configured strict security headers in `firebase.json` under `hosting.headers`: `X-Content-Type-Options: nosniff`, `X-Frame-Options: DENY`, `Strict-Transport-Security`, and a secure `Content-Security-Policy`. |
-| **5** | **Rate Limiting** | **PASSED** | Relied on Firebase Authentication's native IP-based throttling and anti-abuse safeguards for login, signup, and password resets, protecting against brute-force attacks. |
-| **6** | **CORS Configuration** | **PASSED** | Restricted all Firebase Functions `onCall` endpoints strictly to the authorized production web domains (`brainbites-24332456.firebaseapp.com` and `.web.app`), preventing unauthorized cross-origin requests. |
-| **7** | **Database Security** | **PASSED** | Validated that Firestore runs fully over TLS/SSL, enforces authentication via `firestore.rules`, and exposes no default credentials or open TCP ports. |
+## The Fix
+I updated the layout capturing logic in both **`FactDetailScreen.kt`** and **`HomeScreen.kt`**.
+I added a rule telling Android to **completely ignore the phone screen's physical limits** for that specific component and force it to measure at exactly `1080.dp x 1080.dp`.
 
----
+Now, when you generate a share image, it guarantees a massive, perfectly square canvas. Your logo, category badge, and quote text will all render cleanly, exactly as they appear in your Android Studio Preview window!
 
-## Artifacts Updated
-- **[firebase.json](file:///F:/BrainBites/firebase.json)**: Added security headers.
-- **[functions/index.js](file:///F:/BrainBites/functions/index.js)**: Integrated CORS restrictions, error sanitization, and removed debugging logs.
-
-render_diffs(file:///F:/BrainBites/firebase.json)
-render_diffs(file:///F:/BrainBites/functions/index.js)
+render_diffs(file:///F:/BrainBites/app/src/main/java/com/example/brainbites/ui/facts/FactDetailScreen.kt)
+render_diffs(file:///F:/BrainBites/app/src/main/java/com/example/brainbites/ui/home/HomeScreen.kt)

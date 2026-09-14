@@ -81,7 +81,7 @@ fun MaintenanceScreen(
                         ) {
                             Box(contentAlignment = Alignment.Center) {
                                 BrainBitesLogo(
-                                    modifier = Modifier.size(60.dp),
+                                    modifier = Modifier.size(120.dp),
                                     color = accentColor
                                 )
                             }

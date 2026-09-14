@@ -123,7 +123,7 @@ fun SplashScreen(
             // Animated Logo (Floating)
             BrainBitesLogo(
                 modifier = Modifier
-                    .size(140.dp)
+                    .size(185.dp)
                     .graphicsLayer(
                         alpha = logoAlpha.value,
                         scaleX = logoScale.value,
@@ -173,7 +173,7 @@ fun SplashScreen(
             }
 
             Text(
-                text = "Version 4.4.7",
+                text = "Version 4.4.8",
                 style = MaterialTheme.typography.labelSmall.copy(
                     color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.6f)
                 ),

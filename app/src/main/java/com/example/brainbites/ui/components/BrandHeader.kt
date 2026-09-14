@@ -25,7 +25,7 @@ fun BrandHeader(
             horizontalArrangement = Arrangement.spacedBy(8.dp)
         ) {
             BrainBitesLogo(
-                modifier = Modifier.size(28.dp),
+                modifier = Modifier.size(42.dp),
                 color = MaterialTheme.colorScheme.primary
             )
             Text(

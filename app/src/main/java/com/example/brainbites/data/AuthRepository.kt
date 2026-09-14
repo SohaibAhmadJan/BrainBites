@@ -35,15 +35,88 @@ object AuthRepository {
     suspend fun signInAnonymously(context: Context): Result<Unit> {
         return try {
             if (auth.currentUser == null) {
-                auth.signInAnonymously().await()
-                Log.d("AuthRepository", "Signed in anonymously: ${auth.currentUser?.uid}")
+                if (!NetworkUtils.isNetworkAvailable(context)) {
+                    Log.d("AuthRepository", "Offline detected via NetworkUtils. Creating local guest session.")
+                    createLocalGuestSession(context)
+                    return Result.success(Unit)
+                }
+
+                try {
+                    auth.signInAnonymously().await()
+                    Log.d("AuthRepository", "Signed in anonymously: ${auth.currentUser?.uid}")
+                } catch (e: Exception) {
+                    Log.w("AuthRepository", "Firebase Auth network call failed. Falling back to local guest session.", e)
+                    createLocalGuestSession(context)
+                    return Result.success(Unit)
+                }
             }
             syncUser(context)
             updateLastActive()
             Result.success(Unit)
         } catch (e: Exception) {
-            Log.e("AuthRepository", "Anonymous sign in failed", e)
-            Result.failure(e)
+            Log.e("AuthRepository", "Anonymous sign in failed, falling back to local guest session", e)
+            createLocalGuestSession(context)
+            Result.success(Unit)
+        }
+    }
+
+    private fun createLocalGuestSession(context: Context) {
+        val localUid = "local_guest_" + System.currentTimeMillis()
+        val now = System.currentTimeMillis()
+        val localUser = BrainBitesUser(
+            account = UserAccount(
+                uid = localUid,
+                createdAt = now,
+                updatedAt = now,
+                lastLoginAt = now,
+                status = "ACTIVE"
+            ),
+            profile = UserProfile(
+                displayName = "Local Guest",
+                email = "",
+                handle = "guest_${now.toString().takeLast(6)}"
+            )
+        )
+        val prefs = context.getSharedPreferences("brain_bites_device", Context.MODE_PRIVATE)
+        prefs.edit().putBoolean("pending_online_provisioning", true).apply()
+
+        _currentUser.value = localUser
+        PreferenceManager.syncWithServer(localUser)
+    }
+
+    fun startNetworkProvisioningObserver(context: Context) {
+        val connectivityManager = context.getSystemService(Context.CONNECTIVITY_SERVICE) as? android.net.ConnectivityManager ?: return
+        val request = android.net.NetworkRequest.Builder()
+            .addCapability(android.net.NetworkCapabilities.NET_CAPABILITY_INTERNET)
+            .build()
+
+        try {
+            connectivityManager.registerNetworkCallback(request, object : android.net.ConnectivityManager.NetworkCallback() {
+                override fun onAvailable(network: android.net.Network) {
+                    super.onAvailable(network)
+                    val prefs = context.getSharedPreferences("brain_bites_device", Context.MODE_PRIVATE)
+                    val isPending = prefs.getBoolean("pending_online_provisioning", false)
+                    if (isPending || auth.currentUser == null) {
+                        MainScope().launch {
+                            try {
+                                if (auth.currentUser == null) {
+                                    auth.signInAnonymously().await()
+                                    Log.d("AuthRepository", "Background Provisioning: Signed in anonymously upon reconnection.")
+                                }
+                                syncUser(context)
+                                updateLastActive()
+                                pushUserDataToServer(context)
+                                prefs.edit().putBoolean("pending_online_provisioning", false).apply()
+                                Log.d("AuthRepository", "Background Provisioning: Successfully synced local guest to cloud.")
+                            } catch (e: Exception) {
+                                Log.e("AuthRepository", "Background Provisioning failed upon reconnection", e)
+                            }
+                        }
+                    }
+                }
+            })
+        } catch (e: Exception) {
+            Log.e("AuthRepository", "Error registering network callback", e)
         }
     }
 

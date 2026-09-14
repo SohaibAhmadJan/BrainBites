@@ -86,10 +86,13 @@ fun HomeScreen(
             Box(
                 modifier = Modifier
                     .size(1080.dp)
-                    .layout { measurable, constraints ->
-                        val placeable = measurable.measure(constraints)
+                    .layout { measurable, _ ->
+                        // Force a massive 1080x1080 canvas regardless of device screen constraints
+                        val sizePx = 1080.dp.roundToPx()
+                        val fixedConstraints = androidx.compose.ui.unit.Constraints.fixed(sizePx, sizePx)
+                        val placeable = measurable.measure(fixedConstraints)
                         layout(placeable.width, placeable.height) {
-                            placeable.place(-2000, -2000) // Positioned far off-screen
+                            placeable.place(-3000, -3000) // Positioned far off-screen
                         }
                     }
                     .captureComposable(captureController)

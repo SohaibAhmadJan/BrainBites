@@ -50,6 +50,7 @@ class MainActivity : ComponentActivity() {
         checkNotificationPermission()
         ThemeManager.initialize(this)
         PreferenceManager.initialize(this)
+        AuthRepository.startNetworkProvisioningObserver(this)
         AnalyticsRepository.initializeInstallation(this)
         SettingsRepository.startListening()
         AutomationManager.initialize(this, lifecycleScope)

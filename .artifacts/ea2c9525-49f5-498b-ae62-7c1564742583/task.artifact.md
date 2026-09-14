@@ -1,5 +1,3 @@
-- [x] Update `firebase.json` with Security Headers
-- [x] Lock down CORS in `functions/index.js`
-- [x] Sanitize Backend Errors in `functions/index.js`
-- [x] Remove `console.log` from `functions/index.js`
-- [x] Remove `Log.d` statements from Android App
+- [x] Fix screen constraints crushing `QuoteCard` in `FactDetailScreen.kt`
+- [x] Fix screen constraints crushing `QuoteCard` in `HomeScreen.kt`
+- [x] Build and verify APK
