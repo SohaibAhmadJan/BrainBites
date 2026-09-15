@@ -1,3 +1,3 @@
-- [x] Fix screen constraints crushing `QuoteCard` in `FactDetailScreen.kt`
-- [x] Fix screen constraints crushing `QuoteCard` in `HomeScreen.kt`
-- [x] Build and verify APK
+- [x] Fix `storage.rules` syntax to allow `.jpg` uploads correctly
+- [x] Refactor `StorageRepository.kt` to use `putFile(uri)` to prevent Out-Of-Memory crashes
+- [x] Remove local fallback in `ProfileViewModel.kt` to enforce true cloud sync

@@ -12,9 +12,10 @@ service firebase.storage {
     }
 
     // 1. User Profile Photos (Flat Path)
-    match /profile_pics/{userId}.jpg {
+    match /profile_pics/{fileName} {
       allow read: if true;
-      allow write: if request.auth.uid == userId || isAdmin();
+      allow write: if isAuthenticated() &&
+                   (fileName == request.auth.uid + '.jpg') || isAdmin();
     }
 
     // 2. Main Brand / Shared Folders

@@ -36,6 +36,12 @@ import com.example.brainbites.ui.components.BrandHeader
 import com.example.brainbites.ui.components.LottieBackground
 import kotlinx.coroutines.launch
 
+import androidx.compose.ui.tooling.preview.Preview
+import com.example.brainbites.ui.theme.BrainBitesTheme
+import androidx.compose.foundation.pager.rememberPagerState
+
+import androidx.compose.ui.platform.LocalInspectionMode
+
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun MainScaffold(
@@ -43,6 +49,7 @@ fun MainScaffold(
     pagerState: PagerState? = null,
     content: @Composable (Modifier) -> Unit
 ) {
+    val isInPreview = LocalInspectionMode.current
     val coroutineScope = rememberCoroutineScope()
     val navBackStackEntry by navController.currentBackStackEntryAsState()
     val currentDestination = navBackStackEntry?.destination
@@ -54,18 +61,26 @@ fun MainScaffold(
 
     val currentTitle = "BrainBites"
     
-    val userName by PreferenceManager.userName.collectAsState()
-    val userImage by PreferenceManager.userImage.collectAsState()
+    val userName by if (isInPreview) remember { mutableStateOf("Knowledge Seeker") } else PreferenceManager.userName.collectAsState()
+    val userImage by if (isInPreview) remember { mutableStateOf("") } else PreferenceManager.userImage.collectAsState()
 
     Box(modifier = Modifier.fillMaxSize()) {
-        LottieBackground()
+        if (!isInPreview) {
+            LottieBackground()
+        } else {
+            Box(modifier = Modifier.fillMaxSize().background(MaterialTheme.colorScheme.background))
+        }
         Scaffold(
             containerColor = Color.Transparent,
             topBar = {
                 TopAppBar(
                     title = { BrandHeader(title = currentTitle) },
                     actions = {
-                        val unreadCount by NotificationRepository.getUnreadCount().collectAsState(initial = 0)
+                        val unreadCount by if (isInPreview) {
+                            remember { mutableStateOf(2) }
+                        } else {
+                            NotificationRepository.getUnreadCount().collectAsState(initial = 0)
+                        }
 
                         if (currentRoute != Screen.Profile.route) {
                             IconButton(
@@ -153,7 +168,7 @@ fun MainScaffold(
                                     modifier = Modifier
                                         .offset(x = indicatorOffset + (tabWidth - 64.dp) / 2)
                                         .align(Alignment.CenterStart)
-                                        .size(width = 64.dp, height = 40.dp),
+                                        .size(width = 64.dp, height = 50.dp),
                                     shape = RoundedCornerShape(12.dp),
                                     color = MaterialTheme.colorScheme.primary.copy(alpha = 0.1f)
                                 ) {}
@@ -261,5 +276,24 @@ fun MainScaffold(
             }
         }
     }
+}
 
+@Preview(showBackground = true, showSystemUi = true)
+@Composable
+fun MainScaffoldPreview() {
+    BrainBitesTheme {
+        MainScaffold(
+            navController = rememberNavController(),
+            pagerState = rememberPagerState { 4 }
+        ) { modifier ->
+            Box(
+                modifier = modifier
+                    .fillMaxSize()
+                    .background(Color.Gray.copy(alpha = 0.1f)),
+                contentAlignment = Alignment.Center
+            ) {
+                Text("Main Content Area")
+            }
+        }
+    }
 }

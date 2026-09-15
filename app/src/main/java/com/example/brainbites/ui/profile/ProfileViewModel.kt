@@ -164,23 +164,20 @@ class ProfileViewModel(application: Application) : AndroidViewModel(application)
                 
                 // 1. Upload to Firebase Storage for cloud sync (Admin Panel visibility)
                 val uploadResult = StorageRepository.uploadProfilePicture(
-                    context = application,
                     uid = currentUser.account.uid,
                     localUri = Uri.parse(image)
                 )
                 
                 if (uploadResult.isSuccess) {
                     finalImage = uploadResult.getOrThrow()
-                    Toast.makeText(application, "✅ Sync Complete! Updating profile...", Toast.LENGTH_SHORT).show()
+                    Toast.makeText(application, "✅ Image uploaded successfully!", Toast.LENGTH_SHORT).show()
                 } else {
                     val errorMsg = uploadResult.exceptionOrNull()?.message ?: "Unknown error"
                     Log.e("ProfileViewModel", "❌ CLOUD SYNC FAILED: $errorMsg")
-                    Toast.makeText(application, "❌ Error: $errorMsg. Using local backup.", Toast.LENGTH_LONG).show()
+                    Toast.makeText(application, "❌ Image upload failed. Please try again.", Toast.LENGTH_LONG).show()
                     
-                    // Fallback to local internal storage if upload fails
-                    finalImage = withContext(Dispatchers.IO) {
-                        saveImageToInternalStorage(Uri.parse(image))
-                    } ?: image
+                    onError("Failed to upload image. Please check your connection and try again.")
+                    return@launch
                 }
             }
             
@@ -199,32 +196,6 @@ class ProfileViewModel(application: Application) : AndroidViewModel(application)
                 val errorMsg = result.exceptionOrNull()?.message ?: "Failed to update profile."
                 onError(errorMsg)
             }
-        }
-    }
-
-    private fun saveImageToInternalStorage(uri: Uri): String? {
-        return try {
-            val context = getApplication<Application>()
-            
-            // Open stream from the gallery URI
-            val inputStream = context.contentResolver.openInputStream(uri) ?: return null
-            
-            // Create a local file in internal storage
-            val fileName = "profile_custom_${System.currentTimeMillis()}.jpg"
-            val file = File(context.filesDir, fileName)
-            
-            // Copy data
-            inputStream.use { input ->
-                FileOutputStream(file).use { output ->
-                    input.copyTo(output)
-                }
-            }
-            
-            // Return the absolute path as a file URI string
-            Uri.fromFile(file).toString()
-        } catch (e: Exception) {
-            e.printStackTrace()
-            null
         }
     }
 
