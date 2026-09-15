@@ -1,0 +1,460 @@
+[
+    {
+        "id": "tab_content_automation",
+        "type": "tab",
+        "label": "AI Content & Multi-Platform Automation",
+        "disabled": false,
+        "info": "Automated multi-agent content generation with multi-account rotation and YouTube/Facebook/TikTok publishing."
+    },
+    {
+        "id": "comment_trigger",
+        "type": "comment",
+        "z": "tab_content_automation",
+        "name": "STEP 1: SCHEDULER",
+        "info": "This node triggers the entire automation flow every 6 hours.",
+        "x": 140,
+        "y": 160,
+        "wires": []
+    },
+    {
+        "id": "inject_scheduler",
+        "type": "inject",
+        "z": "tab_content_automation",
+        "name": "Trigger Schedule (Every 6h)",
+        "props": [
+            {
+                "property": "payload",
+                "type": "str",
+                "value": "Generate Content"
+            }
+        ],
+        "repeat": "21600",
+        "crontab": "",
+        "once": false,
+        "onceDelay": 0.1,
+        "topic": "",
+        "payloadType": "str",
+        "x": 160,
+        "y": 200,
+        "wires": [
+            [
+                "fn_account_rotator"
+            ]
+        ]
+    },
+    {
+        "id": "comment_rotation",
+        "type": "comment",
+        "z": "tab_content_automation",
+        "name": "STEP 2: ACCOUNT MANAGEMENT",
+        "info": "Selects the current API key and Gmail account from the pool. Handles switching keys to avoid free-tier quota limits.",
+        "x": 520,
+        "y": 160,
+        "wires": []
+    },
+    {
+        "id": "fn_account_rotator",
+        "type": "function",
+        "z": "tab_content_automation",
+        "name": "Account & Key Rotator",
+        "func": "// Initialize multi-account pool if not exists\nif (!flow.get(\"accountPool\")) {\n    flow.set(\"accountPool\", [\n        { email: \"account1@gmail.com\", apiKey: \"AIzaSy_YOUR_KEY_1_HERE\" },\n        { email: \"account2@gmail.com\", apiKey: \"AIzaSy_YOUR_KEY_2_HERE\" },\n        { email: \"account3@gmail.com\", apiKey: \"AIzaSy_YOUR_KEY_3_HERE\" }\n    ]);\n    flow.set(\"currentAccountIndex\", 0);\n}\n\nlet pool = flow.get(\"accountPool\");\nlet index = flow.get(\"currentAccountIndex\");\n\nlet currentAccount = pool[index];\nmsg.currentAccount = currentAccount;\nmsg.retryCount = msg.retryCount || 0;\n\nnode.warn(`Using account: ${currentAccount.email} (Index: ${index})`);\nreturn msg;",
+        "outputs": 1,
+        "timeout": "",
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 480,
+        "y": 200,
+        "wires": [
+            [
+                "http_gemini_ideation"
+            ]
+        ]
+    },
+    {
+        "id": "comment_agent1",
+        "type": "comment",
+        "z": "tab_content_automation",
+        "name": "STEP 3: AI AGENT - IDEATION",
+        "info": "Agent 1 calls the Gemini Flash API (Free Tier) to come up with viral content ideas based on trending topics.",
+        "x": 1090,
+        "y": 160,
+        "wires": []
+    },
+    {
+        "id": "http_gemini_ideation",
+        "type": "http request",
+        "z": "tab_content_automation",
+        "name": "AI Agent 1: Ideation (Gemini)",
+        "method": "POST",
+        "ret": "obj",
+        "paytoqs": "ignore",
+        "url": "https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key={{{currentAccount.apiKey}}}",
+        "tls": "",
+        "persist": false,
+        "proxy": "",
+        "insecureHTTPParser": false,
+        "authType": "",
+        "headers": [
+            {
+                "key": "Content-Type",
+                "value": "application/json"
+            }
+        ],
+        "x": 1080,
+        "y": 200,
+        "wires": [
+            [
+                "fn_parse_ideation"
+            ]
+        ]
+    },
+    {
+        "id": "comment_parse",
+        "type": "comment",
+        "z": "tab_content_automation",
+        "name": "STEP 4: SCRIPT PREP",
+        "info": "Parses the AI output and creates a prompt for the Script Writing agent.",
+        "x": 220,
+        "y": 440,
+        "wires": []
+    },
+    {
+        "id": "fn_parse_ideation",
+        "type": "function",
+        "z": "tab_content_automation",
+        "name": "Parse & Prepare Script Agent",
+        "func": "let response = msg.payload;\nif (response && response.candidates && response.candidates[0]) {\n    let text = response.candidates[0].content.parts[0].text;\n    msg.payload = {\n        topic: text,\n        prompt: `Write an engaging 60-second video script and social media caption for YouTube Shorts, Facebook Reels, and TikTok based on this topic: ${text}`\n    };\n    return msg;\n}\nnode.error(\"Failed to generate ideation\", msg);\nreturn null;",
+        "outputs": 1,
+        "timeout": "",
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 200,
+        "y": 500,
+        "wires": [
+            [
+                "http_gemini_script"
+            ]
+        ]
+    },
+    {
+        "id": "comment_agent2",
+        "type": "comment",
+        "z": "tab_content_automation",
+        "name": "STEP 5: AI AGENT - SCRIPT WRITER",
+        "info": "Agent 2 writes full scripts and captions tailored for each social media platform.",
+        "x": 570,
+        "y": 440,
+        "wires": []
+    },
+    {
+        "id": "http_gemini_script",
+        "type": "http request",
+        "z": "tab_content_automation",
+        "name": "AI Agent 2: Script Writer",
+        "method": "POST",
+        "ret": "obj",
+        "paytoqs": "ignore",
+        "url": "https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key={{{currentAccount.apiKey}}}",
+        "tls": "",
+        "persist": false,
+        "proxy": "",
+        "insecureHTTPParser": false,
+        "authType": "",
+        "headers": [
+            {
+                "key": "Content-Type",
+                "value": "application/json"
+            }
+        ],
+        "x": 570,
+        "y": 500,
+        "wires": [
+            [
+                "fn_format_publishing"
+            ]
+        ]
+    },
+    {
+        "id": "comment_format",
+        "type": "comment",
+        "z": "tab_content_automation",
+        "name": "STEP 6: CONTENT FORMATTER",
+        "info": "Splits the final content into four paths: YouTube, Facebook, TikTok, and Google Drive Archival.",
+        "x": 1020,
+        "y": 440,
+        "wires": []
+    },
+    {
+        "id": "fn_format_publishing",
+        "type": "function",
+        "z": "tab_content_automation",
+        "name": "Format for Social Media",
+        "func": "let response = msg.payload;\nif (response && response.candidates && response.candidates[0]) {\n    let scriptText = response.candidates[0].content.parts[0].text;\n    msg.content = {\n        script: scriptText,\n        title: \"Mind Blowing Fact of the Day! 🤯 #shorts\",\n        platforms: [\"youtube\", \"facebook\", \"tiktok\"]\n    };\n    // Output 1: YouTube, Output 2: Facebook, Output 3: TikTok, Output 4: Drive Archival\n    return [msg, msg, msg, msg]; \n}\nreturn null;",
+        "outputs": 4,
+        "timeout": "",
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 1010,
+        "y": 500,
+        "wires": [
+            [
+                "http_publish_youtube"
+            ],
+            [
+                "http_publish_facebook"
+            ],
+            [
+                "http_publish_tiktok"
+            ],
+            [
+                "fn_drive_prep"
+            ]
+        ]
+    },
+    {
+        "id": "comment_publishers",
+        "type": "comment",
+        "z": "tab_content_automation",
+        "name": "STEP 7: MULTI-PLATFORM PUBLISHING",
+        "info": "These nodes send the final generated content to the official APIs of YouTube, Facebook, and TikTok.",
+        "x": 1440,
+        "y": 420,
+        "wires": []
+    },
+    {
+        "id": "http_publish_youtube",
+        "type": "http request",
+        "z": "tab_content_automation",
+        "name": "Publish to YouTube Shorts",
+        "method": "POST",
+        "ret": "obj",
+        "paytoqs": "ignore",
+        "url": "https://www.googleapis.com/youtube/v3/videos?part=snippet,status",
+        "tls": "",
+        "persist": false,
+        "proxy": "",
+        "insecureHTTPParser": false,
+        "authType": "bearer",
+        "x": 1460,
+        "y": 460,
+        "wires": [
+            [
+                "debug_success"
+            ]
+        ]
+    },
+    {
+        "id": "http_publish_facebook",
+        "type": "http request",
+        "z": "tab_content_automation",
+        "name": "Publish to Facebook Reels",
+        "method": "POST",
+        "ret": "obj",
+        "paytoqs": "ignore",
+        "url": "https://graph.facebook.com/v18.0/me/feed",
+        "tls": "",
+        "persist": false,
+        "proxy": "",
+        "insecureHTTPParser": false,
+        "authType": "bearer",
+        "x": 1460,
+        "y": 520,
+        "wires": [
+            [
+                "debug_success"
+            ]
+        ]
+    },
+    {
+        "id": "http_publish_tiktok",
+        "type": "http request",
+        "z": "tab_content_automation",
+        "name": "Publish to TikTok",
+        "method": "POST",
+        "ret": "obj",
+        "paytoqs": "ignore",
+        "url": "https://open.tiktokapis.com/v2/post/publish/video/init/",
+        "tls": "",
+        "persist": false,
+        "proxy": "",
+        "insecureHTTPParser": false,
+        "authType": "bearer",
+        "x": 1450,
+        "y": 580,
+        "wires": [
+            [
+                "debug_success"
+            ]
+        ]
+    },
+    {
+        "id": "debug_success",
+        "type": "debug",
+        "z": "tab_content_automation",
+        "name": "Publish Result",
+        "active": true,
+        "tosidebar": true,
+        "console": false,
+        "tostatus": false,
+        "complete": "payload",
+        "targetType": "msg",
+        "statusVal": "",
+        "statusType": "auto",
+        "x": 1920,
+        "y": 500,
+        "wires": []
+    },
+    {
+        "id": "comment_drive",
+        "type": "comment",
+        "z": "tab_content_automation",
+        "name": "STEP 9: GOOGLE DRIVE ARCHIVAL (FOR DIFFERENT EMAIL)",
+        "info": "Handles archiving all generated content to a dedicated Google Drive account using separate OAuth 2.0 credentials.",
+        "x": 400,
+        "y": 700,
+        "wires": []
+    },
+    {
+        "id": "fn_drive_prep",
+        "type": "function",
+        "z": "tab_content_automation",
+        "name": "Drive Storage Prep",
+        "func": "// Prepare timestamped filename\nlet now = new Date();\nlet filename = `ContentArchive_${now.toISOString().replace(/[:.]/g, '-')}.json`;\n\n// Package all metadata\nlet archivalData = {\n    timestamp: now.toISOString(),\n    topic: msg.payload.topic,\n    script: msg.content.script,\n    title: msg.content.title,\n    platforms: msg.content.platforms\n};\n\nmsg.filename = filename;\nmsg.payload = archivalData;\n\n// Drive OAuth Config (Replace with your separate account details)\nmsg.driveConfig = {\n    clientId: \"YOUR_DRIVE_CLIENT_ID\",\n    clientSecret: \"YOUR_DRIVE_CLIENT_SECRET\",\n    refreshToken: \"YOUR_DRIVE_REFRESH_TOKEN\"\n};\n\nreturn msg;",
+        "outputs": 1,
+        "timeout": "",
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 200,
+        "y": 760,
+        "wires": [
+            [
+                "http_drive_auth_refresh"
+            ]
+        ]
+    },
+    {
+        "id": "http_drive_auth_refresh",
+        "type": "http request",
+        "z": "tab_content_automation",
+        "name": "Drive: Refresh OAuth Token",
+        "method": "POST",
+        "ret": "obj",
+        "paytoqs": "ignore",
+        "url": "https://oauth2.googleapis.com/token",
+        "tls": "",
+        "persist": false,
+        "proxy": "",
+        "insecureHTTPParser": false,
+        "authType": "",
+        "headers": [
+            {
+                "key": "Content-Type",
+                "value": "application/x-www-form-urlencoded"
+            }
+        ],
+        "x": 480,
+        "y": 760,
+        "wires": [
+            [
+                "fn_drive_upload_prep"
+            ]
+        ]
+    },
+    {
+        "id": "fn_drive_upload_prep",
+        "type": "function",
+        "z": "tab_content_automation",
+        "name": "Drive: Final Upload Prep",
+        "func": "if (msg.payload && msg.payload.access_token) {\n    let token = msg.payload.access_token;\n    let filename = msg.filename;\n    let content = JSON.stringify(msg.payload, null, 2);\n    \n    msg.headers = {\n        \"Authorization\": \"Bearer \" + token,\n        \"Content-Type\": \"application/json\"\n    };\n    \n    // Simple upload metadata\n    msg.url = \"https://www.googleapis.com/upload/drive/v3/files?uploadType\u003dmedia\";\n    msg.payload = content;\n    \n    return msg;\n}\nnode.error(\"Failed to refresh Drive token\", msg);\nreturn null;",
+        "outputs": 1,
+        "timeout": "",
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 780,
+        "y": 760,
+        "wires": [
+            [
+                "http_drive_upload"
+            ]
+        ]
+    },
+    {
+        "id": "http_drive_upload",
+        "type": "http request",
+        "z": "tab_content_automation",
+        "name": "Drive: Upload Archive File",
+        "method": "POST",
+        "ret": "obj",
+        "paytoqs": "ignore",
+        "url": "",
+        "tls": "",
+        "persist": false,
+        "proxy": "",
+        "insecureHTTPParser": false,
+        "authType": "",
+        "x": 1080,
+        "y": 760,
+        "wires": [
+            [
+                "debug_success"
+            ]
+        ]
+    },
+    {
+        "id": "comment_error_handling",
+        "type": "comment",
+        "z": "tab_content_automation",
+        "name": "STEP 8: QUOTA PROTECTION (FAILOVER)",
+        "info": "This section listens for 'Quota Exceeded' errors. If the free tier limit is hit, it automatically switches to the next account in the pool and retries the process.",
+        "x": 300,
+        "y": 10,
+        "wires": []
+    },
+    {
+        "id": "catch_errors",
+        "type": "catch",
+        "z": "tab_content_automation",
+        "name": "Quota / Rate Limit Catcher",
+        "scope": [
+            "http_gemini_ideation",
+            "http_gemini_script"
+        ],
+        "x": 200,
+        "y": 40,
+        "wires": [
+            [
+                "fn_rotate_on_error"
+            ]
+        ]
+    },
+    {
+        "id": "fn_rotate_on_error",
+        "type": "function",
+        "z": "tab_content_automation",
+        "name": "Rotate Account & Retry",
+        "func": "let err = msg.error;\nlet pool = flow.get(\"accountPool\");\nlet index = flow.get(\"currentAccountIndex\");\n\nnode.warn(`Quota / Error encountered on account ${pool[index].email}: ${err.message}. Rotating account...`);\n\n// Rotate to next account in round-robin fashion\nindex = (index + 1) % pool.length;\nflow.set(\"currentAccountIndex\", index);\n\nmsg.retryCount = (msg.retryCount || 0) + 1;\n\nif (msg.retryCount <= pool.length) {\n    // Retry with new account\n    return [msg];\n} else {\n    node.error(\"All accounts in pool exhausted quota!\");\n    return null;\n}",
+        "outputs": 1,
+        "timeout": "",
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 650,
+        "y": 40,
+        "wires": [
+            [
+                "fn_account_rotator"
+            ]
+        ]
+    }
+]
