@@ -22,5 +22,5 @@ dependencyResolutionManagement {
     }
 }
 
-rootProject.name = "Social Media Automation App"
+rootProject.name = "BrainBites"
 include(":app")
