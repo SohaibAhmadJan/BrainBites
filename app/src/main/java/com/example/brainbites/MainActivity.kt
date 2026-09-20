@@ -58,6 +58,7 @@ class MainActivity : ComponentActivity() {
         AnalyticsRepository.logAppOpen()
 
         lifecycleScope.launch {
+            AuthRepository.verifySession()
             AuthRepository.syncUser(this@MainActivity)
             AuthRepository.updateLastActive()
         }

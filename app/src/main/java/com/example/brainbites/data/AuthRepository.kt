@@ -20,6 +20,16 @@ object AuthRepository {
     private val _isAccountDisabled = MutableStateFlow(false)
     val isAccountDisabled = _isAccountDisabled.asStateFlow()
 
+    suspend fun verifySession() {
+        val firebaseUser = auth.currentUser ?: return
+        try {
+            firebaseUser.reload().await()
+        } catch (e: Exception) {
+            Log.e("AuthRepository", "Failed to reload user session (likely deleted or disabled). Signing out locally.", e)
+            signOut()
+        }
+    }
+
     suspend fun isUsernameAvailable(handle: String): Boolean {
         if (handle.isBlank()) return false
         val normalizedHandle = handle.lowercase().trim()
@@ -136,18 +146,12 @@ object AuthRepository {
                     Log.e("AuthRepository", "Failed to delete auto-created user", e)
                 }
                 auth.signOut()
-                kotlinx.coroutines.withContext(kotlinx.coroutines.Dispatchers.Main) {
-                    android.widget.Toast.makeText(context, "Account does not exist. Please use Sign Up.", android.widget.Toast.LENGTH_LONG).show()
-                }
                 return Result.failure(Exception("Account does not exist. Please use Sign Up."))
             }
 
             if (isSignUpFlow && !isNewUser) {
                 // Sign Up flow but user already exists
                 auth.signOut()
-                kotlinx.coroutines.withContext(kotlinx.coroutines.Dispatchers.Main) {
-                    android.widget.Toast.makeText(context, "Account already exists. Please log in.", android.widget.Toast.LENGTH_LONG).show()
-                }
                 return Result.failure(Exception("Account already exists. Please log in."))
             }
 

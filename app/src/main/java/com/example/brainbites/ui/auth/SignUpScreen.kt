@@ -233,8 +233,16 @@ fun SignUpScreen(
                                     
                                     if (googleIdToken != null) {
                                         val authResult = AuthRepository.signInWithGoogle(context, googleIdToken, isSignUpFlow = true)
-                                        if (authResult.isSuccess) onSignUpSuccess()
-                                        else error = authResult.exceptionOrNull()?.message
+                                        if (authResult.isSuccess) {
+                                            onSignUpSuccess()
+                                        } else {
+                                            val errorMsg = authResult.exceptionOrNull()?.message
+                                            if (errorMsg == "Account already exists. Please log in.") {
+                                                Toast.makeText(context, errorMsg, Toast.LENGTH_LONG).show()
+                                            } else {
+                                                error = errorMsg
+                                            }
+                                        }
                                     }
                                 } catch (e: Exception) {
                                     error = e.message
