@@ -120,10 +120,79 @@ object AuthRepository {
         }
     }
 
-    suspend fun signInWithGoogle(context: Context, idToken: String): Result<Unit> {
+    suspend fun signInWithGoogle(context: Context, idToken: String, isSignUpFlow: Boolean = false): Result<Unit> {
         return try {
             val credential = com.google.firebase.auth.GoogleAuthProvider.getCredential(idToken, null)
-            auth.signInWithCredential(credential).await()
+            val result = auth.signInWithCredential(credential).await()
+            val firebaseUser = result.user ?: throw Exception("Google Sign-In failed")
+            val isNewUser = result.additionalUserInfo?.isNewUser == true
+            val uid = firebaseUser.uid
+
+            if (!isSignUpFlow && isNewUser) {
+                // Log In flow but user is new
+                try {
+                    firebaseUser.delete().await()
+                } catch (e: Exception) {
+                    Log.e("AuthRepository", "Failed to delete auto-created user", e)
+                }
+                auth.signOut()
+                kotlinx.coroutines.withContext(kotlinx.coroutines.Dispatchers.Main) {
+                    android.widget.Toast.makeText(context, "Account does not exist. Please use Sign Up.", android.widget.Toast.LENGTH_LONG).show()
+                }
+                return Result.failure(Exception("Account does not exist. Please use Sign Up."))
+            }
+
+            if (isSignUpFlow && !isNewUser) {
+                // Sign Up flow but user already exists
+                auth.signOut()
+                kotlinx.coroutines.withContext(kotlinx.coroutines.Dispatchers.Main) {
+                    android.widget.Toast.makeText(context, "Account already exists. Please log in.", android.widget.Toast.LENGTH_LONG).show()
+                }
+                return Result.failure(Exception("Account already exists. Please log in."))
+            }
+
+            // Create user document if it does not exist (or if it's missing profile)
+            val userDoc = db.collection("users").document(uid).get().await()
+            if (!userDoc.exists() || !userDoc.contains("profile")) {
+                val now = System.currentTimeMillis()
+                val randomHandle = "user_${now.toString().takeLast(6)}"
+                val newUser = BrainBitesUser(
+                    account = UserAccount(
+                        uid = uid,
+                        createdAt = now,
+                        updatedAt = now,
+                        lastLoginAt = now,
+                        status = "ACTIVE"
+                    ),
+                    profile = UserProfile(
+                        displayName = firebaseUser.displayName ?: "Knowledge Seeker",
+                        email = firebaseUser.email ?: "",
+                        handle = randomHandle,
+                        photoUrl = firebaseUser.photoUrl?.toString() ?: ""
+                    )
+                )
+
+                try {
+                    db.collection("users").document(uid).set(
+                        mapOf(
+                            "account" to newUser.account,
+                            "profile" to newUser.profile,
+                            "stats" to newUser.stats,
+                            "preferences" to newUser.preferences,
+                            "updatedAt" to System.currentTimeMillis()
+                        )
+                    ).await()
+                    
+                    try {
+                        db.collection("handles").document(randomHandle).set(mapOf("uid" to uid)).await()
+                    } catch (e: Exception) {
+                        Log.e("AuthRepository", "Failed to claim handle during Google Sign-up", e)
+                    }
+                } catch (e: Exception) {
+                    Log.e("AuthRepository", "Error creating Google user document", e)
+                }
+            }
+
             syncUser(context)
             updateLastActive()
             Result.success(Unit)
@@ -290,16 +359,28 @@ object AuthRepository {
                         profile = UserProfile(
                             displayName = firebaseUser.displayName ?: "Knowledge Seeker",
                             email = firebaseUser.email ?: "",
-                            handle = randomHandle
+                            handle = randomHandle,
+                            photoUrl = firebaseUser.photoUrl?.toString() ?: ""
                         )
                     )
                     MainScope().launch {
-                        // Claim random handle
-                        db.collection("handles").document(randomHandle).set(mapOf("uid" to uid)).await()
-                        saveUser(newUser)
-                        AnalyticsRepository.logAppInstall(context)
-                        val instanceId = com.google.firebase.installations.FirebaseInstallations.getInstance().id.await()
-                        syncDeviceToken(context, instanceId)
+                        var success = false
+                        var retries = 0
+                        while (!success && retries < 3) {
+                            try {
+                                // Claim random handle
+                                db.collection("handles").document(randomHandle).set(mapOf("uid" to uid)).await()
+                                saveUser(newUser)
+                                AnalyticsRepository.logAppInstall(context)
+                                val instanceId = com.google.firebase.installations.FirebaseInstallations.getInstance().id.await()
+                                syncDeviceToken(context, instanceId)
+                                success = true
+                            } catch (e: Exception) {
+                                retries++
+                                Log.e("AuthRepository", "Failed to claim handle or save user (Auth propagation delay?), retrying... ($retries/3)", e)
+                                kotlinx.coroutines.delay(1000)
+                            }
+                        }
                     }
                 }
             }

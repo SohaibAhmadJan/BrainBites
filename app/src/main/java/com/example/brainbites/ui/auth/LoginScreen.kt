@@ -188,7 +188,7 @@ fun LoginScreen(
                                     val googleIdToken = (result.credential as? androidx.credentials.CustomCredential)?.data?.getString("com.google.android.libraries.identity.googleid.BUNDLE_KEY_ID_TOKEN")
                                     
                                     if (googleIdToken != null) {
-                                        val authResult = AuthRepository.signInWithGoogle(context, googleIdToken)
+                                        val authResult = AuthRepository.signInWithGoogle(context, googleIdToken, isSignUpFlow = false)
                                         if (authResult.isSuccess) onLoginSuccess()
                                         else error = authResult.exceptionOrNull()?.message
                                     }
