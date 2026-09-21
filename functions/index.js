@@ -5,9 +5,20 @@
 
 const { initializeApp } = require('firebase-admin/app');
 const { getFirestore, FieldValue } = require('firebase-admin/firestore');
+const { getAuth } = require('firebase-admin/auth');
 const { getMessaging } = require('firebase-admin/messaging');
 const { onCall, HttpsError } = require('firebase-functions/v2/https');
 const { verifyAdmin } = require('./utils/auth');
+const nodemailer = require('nodemailer');
+
+// Set up Nodemailer transporter using Gmail SMTP
+const transporter = nodemailer.createTransport({
+    service: 'gmail',
+    auth: {
+        user: process.env.SMTP_EMAIL || 'ahmedjansohaib8@gmail.com',
+        pass: process.env.SMTP_PASSWORD || 'your_app_password_here'
+    }
+});
 
 initializeApp();
 const db = getFirestore();
@@ -39,6 +50,142 @@ function secureOnCall(handler) {
     });
 }
 
+
+/**
+ * requestEmailVerification
+ * Generates a 6-digit OTP, saves it to Firestore, and emails it to the user.
+ */
+exports.requestEmailVerification = onCall(async (request) => {
+    const { email } = request.data;
+    if (!email) {
+        throw new HttpsError('invalid-argument', 'Email is required.');
+    }
+
+    try {
+        // 1. Check if user already exists
+        try {
+            await getAuth().getUserByEmail(email);
+            throw new HttpsError('already-exists', 'Account already exists. Please log in.');
+        } catch (error) {
+            if (error.code !== 'auth/user-not-found') {
+                throw error;
+            }
+            // User does not exist, which is what we want for sign up.
+        }
+
+        // 2. Generate 6-digit OTP
+        const otp = Math.floor(100000 + Math.random() * 900000).toString();
+        const expiresAt = Date.now() + 15 * 60 * 1000; // 15 minutes
+
+        // 3. Save OTP to Firestore
+        await db.collection('otp_codes').doc(email.toLowerCase()).set({
+            otp: otp,
+            expiresAt: expiresAt,
+            attempts: 0
+        });
+
+        // 4. Send Email via NodeMailer
+        const mailOptions = {
+            from: `"BrainBites" <${process.env.SMTP_EMAIL || 'ahmedjansohaib8@gmail.com'}>`,
+            to: email,
+            subject: 'Your BrainBites Verification Code',
+            text: `Welcome to BrainBites!\n\nYour 6-digit verification code is: ${otp}\n\nThis code will expire in 15 minutes.\n\nIf you did not request this, please ignore this email.`,
+            html: `
+                <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px; border: 1px solid #e0e0e0; border-radius: 10px;">
+                    <h2 style="color: #2D6A4F; text-align: center;">Welcome to BrainBites!</h2>
+                    <p style="font-size: 16px; color: #333;">Please use the following 6-digit verification code to complete your sign-up:</p>
+                    <div style="background-color: #f5f5f5; padding: 15px; text-align: center; border-radius: 8px; margin: 20px 0;">
+                        <span style="font-size: 32px; font-weight: bold; letter-spacing: 5px; color: #1a1a1a;">${otp}</span>
+                    </div>
+                    <p style="font-size: 14px; color: #666;">This code will expire in 15 minutes.</p>
+                    <hr style="border: none; border-top: 1px solid #eee; margin: 30px 0;" />
+                    <p style="font-size: 12px; color: #999; text-align: center;">If you did not request this verification, please ignore this email.</p>
+                </div>
+            `
+        };
+
+        await transporter.sendMail(mailOptions);
+
+        return { status: "success", message: "OTP sent successfully." };
+    } catch (e) {
+        console.error("requestEmailVerification failure:", e);
+        if (e instanceof HttpsError) throw e;
+        throw new HttpsError('internal', `Failed to process request: ${e.message}`);
+    }
+});
+
+/**
+ * verifyOtpAndSignUp
+ * Validates the OTP, creates the Auth user, and issues a Custom Token.
+ */
+exports.verifyOtpAndSignUp = onCall(async (request) => {
+    const { email, password, name, otp } = request.data;
+
+    if (!email || !password || !name || !otp) {
+        throw new HttpsError('invalid-argument', 'Missing required fields.');
+    }
+
+    const normalizedEmail = email.toLowerCase();
+
+    try {
+        // 1. Fetch OTP record
+        const otpRef = db.collection('otp_codes').doc(normalizedEmail);
+        const otpDoc = await otpRef.get();
+
+        if (!otpDoc.exists) {
+            throw new HttpsError('not-found', 'No pending verification found. Please request a new code.');
+        }
+
+        const otpData = otpDoc.data();
+
+        // 2. Validate Expiration & Attempts
+        if (Date.now() > otpData.expiresAt) {
+            await otpRef.delete();
+            throw new HttpsError('deadline-exceeded', 'Verification code has expired. Please request a new one.');
+        }
+
+        if (otpData.attempts >= 5) {
+            await otpRef.delete();
+            throw new HttpsError('resource-exhausted', 'Too many failed attempts. Please request a new code.');
+        }
+
+        // 3. Verify Code
+        if (otpData.otp !== otp) {
+            await otpRef.update({ attempts: FieldValue.increment(1) });
+            throw new HttpsError('invalid-argument', 'Incorrect verification code.');
+        }
+
+        // 4. Code is correct! Create the user in Firebase Auth
+        let userRecord;
+        try {
+            userRecord = await getAuth().createUser({
+                email: normalizedEmail,
+                password: password,
+                displayName: name,
+                emailVerified: true // Automatically verified since they proved they own the email
+            });
+        } catch (createError) {
+             throw new HttpsError('internal', `Failed to create user account: ${createError.message}`);
+        }
+
+        // 5. Clean up OTP document
+        await otpRef.delete();
+
+        // 6. Generate Custom Token to sign the user in on the client side
+        const customToken = await getAuth().createCustomToken(userRecord.uid);
+
+        return {
+            status: "success",
+            customToken: customToken,
+            uid: userRecord.uid
+        };
+
+    } catch (e) {
+        console.error("verifyOtpAndSignUp failure:", e);
+        if (e instanceof HttpsError) throw e;
+        throw new HttpsError('internal', `Verification failed: ${e.message}`);
+    }
+});
 
 /**
  * updateFactAtomic

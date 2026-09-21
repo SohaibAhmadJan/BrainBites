@@ -221,6 +221,151 @@ object AuthRepository {
         }
     }
 
+    suspend fun requestEmailOtp(email: String): Result<Unit> {
+        return kotlinx.coroutines.withContext(kotlinx.coroutines.Dispatchers.IO) {
+            try {
+                val url = java.net.URL("https://vercel-backend-orpin-ten.vercel.app/api/requestOtp")
+                val connection = url.openConnection() as java.net.HttpURLConnection
+                connection.requestMethod = "POST"
+                connection.setRequestProperty("Content-Type", "application/json")
+                connection.doOutput = true
+
+                val jsonPayload = org.json.JSONObject().apply {
+                    put("email", email)
+                }.toString()
+
+                connection.outputStream.use { os ->
+                    val input = jsonPayload.toByteArray(Charsets.UTF_8)
+                    os.write(input, 0, input.size)
+                }
+
+                val responseCode = connection.responseCode
+                if (responseCode == java.net.HttpURLConnection.HTTP_OK) {
+                    Result.success(Unit)
+                } else {
+                    val errorStream = connection.errorStream ?: connection.inputStream
+                    val errorResponse = errorStream.bufferedReader().use { it.readText() }
+                    try {
+                        val errorJson = org.json.JSONObject(errorResponse)
+                        val errMsg = errorJson.optString("error", "Failed to send code.")
+                        Result.failure(Exception(errMsg))
+                    } catch (e: Exception) {
+                        Result.failure(Exception("Failed to send code: HTTP $responseCode"))
+                    }
+                }
+            } catch (e: Exception) {
+                Log.e("AuthRepository", "Failed to request OTP", e)
+                Result.failure(Exception("Network error while sending code."))
+            }
+        }
+    }
+
+    suspend fun verifyOtpAndSignUp(context: android.content.Context, email: String, password: String, name: String, otp: String): Result<Unit> {
+        return kotlinx.coroutines.withContext(kotlinx.coroutines.Dispatchers.IO) {
+            try {
+                val url = java.net.URL("https://vercel-backend-orpin-ten.vercel.app/api/verifyOtp")
+                val connection = url.openConnection() as java.net.HttpURLConnection
+                connection.requestMethod = "POST"
+                connection.setRequestProperty("Content-Type", "application/json")
+                connection.doOutput = true
+
+                val jsonPayload = org.json.JSONObject().apply {
+                    put("email", email)
+                    put("password", password)
+                    put("name", name)
+                    put("otp", otp)
+                }.toString()
+
+                connection.outputStream.use { os ->
+                    val input = jsonPayload.toByteArray(Charsets.UTF_8)
+                    os.write(input, 0, input.size)
+                }
+
+                val responseCode = connection.responseCode
+                if (responseCode == java.net.HttpURLConnection.HTTP_OK) {
+                    val responseStr = connection.inputStream.bufferedReader().use { it.readText() }
+                    val json = org.json.JSONObject(responseStr)
+                    val customToken = json.optString("customToken")
+                    
+                    if (customToken.isEmpty()) {
+                        return@withContext Result.failure(Exception("Invalid token received from server."))
+                    }
+
+                    // 1. Sign in with Custom Token
+                    val result = auth.signInWithCustomToken(customToken).await()
+                    val firebaseUser = result.user ?: throw Exception("Auth session creation failed")
+                    val uid = firebaseUser.uid
+                    
+                    // 2. Setup Profile in Firestore
+                    val now = System.currentTimeMillis()
+                    val randomHandle = "user_${now.toString().takeLast(6)}"
+                    val newUser = BrainBitesUser(
+                        account = UserAccount(
+                            uid = uid,
+                            createdAt = now,
+                            updatedAt = now,
+                            lastLoginAt = now,
+                            status = "ACTIVE"
+                        ),
+                        profile = UserProfile(
+                            displayName = name.ifBlank { "Knowledge Seeker" },
+                            email = email,
+                            handle = randomHandle,
+                            photoUrl = "" // Explicitly set to empty so the UI falls back to placeholder
+                        )
+                    )
+                    
+                    var success = false
+                    var retries = 0
+                    while (!success && retries < 3) {
+                        try {
+                            db.collection("users").document(uid).set(
+                                mapOf(
+                                    "account" to newUser.account,
+                                    "profile" to newUser.profile,
+                                    "stats" to newUser.stats,
+                                    "preferences" to newUser.preferences,
+                                    "updatedAt" to System.currentTimeMillis()
+                                )
+                            ).await()
+                            
+                            try {
+                                db.collection("handles").document(randomHandle).set(mapOf("uid" to uid)).await()
+                            } catch (e: Exception) {
+                                Log.e("AuthRepository", "Failed to claim handle during Email Sign-up", e)
+                            }
+                            
+                            AnalyticsRepository.logAppInstall(context)
+                            success = true
+                        } catch (e: Exception) {
+                            retries++
+                            Log.e("AuthRepository", "Failed to save user (Auth propagation delay?), retrying... ($retries/3)", e)
+                            kotlinx.coroutines.delay(1000)
+                        }
+                    }
+                    
+                    syncUser(context)
+                    updateLastActive()
+                    
+                    Result.success(Unit)
+                } else {
+                    val errorStream = connection.errorStream ?: connection.inputStream
+                    val errorResponse = errorStream.bufferedReader().use { it.readText() }
+                    try {
+                        val errorJson = org.json.JSONObject(errorResponse)
+                        val errMsg = errorJson.optString("error", "Verification failed.")
+                        Result.failure(Exception(errMsg))
+                    } catch (e: Exception) {
+                        Result.failure(Exception("Verification failed: HTTP $responseCode"))
+                    }
+                }
+            } catch (e: Exception) {
+                Log.e("AuthRepository", "Failed to verify OTP", e)
+                Result.failure(Exception("Network error during verification."))
+            }
+        }
+    }
+
     suspend fun signUp(context: android.content.Context, email: String, password: String, name: String): Result<Unit> {
         return try {
             val result = auth.createUserWithEmailAndPassword(email, password).await()

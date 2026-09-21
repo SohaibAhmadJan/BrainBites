@@ -48,6 +48,8 @@ fun SignUpScreen(
     var email by remember { mutableStateOf("") }
     var password by remember { mutableStateOf("") }
     var termsAccepted by remember { mutableStateOf(false) }
+    var otpSent by remember { mutableStateOf(false) }
+    var otp by remember { mutableStateOf("") }
     var isLoading by remember { mutableStateOf(false) }
     var isGoogleLoading by remember { mutableStateOf(false) }
     var error by remember { mutableStateOf<String?>(null) }
@@ -79,7 +81,7 @@ fun SignUpScreen(
                 Spacer(modifier = Modifier.height(12.dp))
 
                 Text(
-                    text = "Create Your Account",
+                    text = if (otpSent) "Verify Your Email" else "Create Your Account",
                     style = MaterialTheme.typography.headlineMedium,
                     fontWeight = FontWeight.Bold,
                     color = MaterialTheme.colorScheme.onBackground,
@@ -87,7 +89,7 @@ fun SignUpScreen(
                 )
                 
                 Text(
-                    text = "Join thousands of others on a journey\nto understand the human mind.",
+                    text = if (otpSent) "We've sent a 6-digit code to\n$email" else "Join thousands of others on a journey\nto understand the human mind.",
                     style = MaterialTheme.typography.bodyMedium,
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
                     textAlign = TextAlign.Center,
@@ -98,106 +100,151 @@ fun SignUpScreen(
                 Spacer(modifier = Modifier.height(12.dp))
 
                 AuthCard {
-                    PremiumTextField(
-                        value = name,
-                        onValueChange = { name = it; error = null },
-                        label = "Full Name",
-                        icon = Icons.Default.Person
-                    )
-
-                    PremiumTextField(
-                        value = email,
-                        onValueChange = { email = it; error = null },
-                        label = "Email address",
-                        icon = Icons.Default.Email,
-                        keyboardType = KeyboardType.Email
-                    )
-
-                    Column {
+                    if (!otpSent) {
                         PremiumTextField(
-                            value = password,
-                            onValueChange = { password = it; error = null },
-                            label = "Password",
-                            icon = Icons.Default.Lock,
-                            isPassword = true,
-                            imeAction = ImeAction.Done
+                            value = name,
+                            onValueChange = { name = it; error = null },
+                            label = "Full Name",
+                            icon = Icons.Default.Person
                         )
-                        PasswordStrengthBar(password)
-                    }
 
-                    Row(
-                        modifier = Modifier.fillMaxWidth(),
-                        verticalAlignment = Alignment.CenterVertically
-                    ) {
-                        Checkbox(
-                            checked = termsAccepted,
-                            onCheckedChange = { termsAccepted = it },
-                            colors = CheckboxDefaults.colors(
-                                checkedColor = MaterialTheme.colorScheme.primary,
-                                uncheckedColor = MaterialTheme.colorScheme.outline,
-                                checkmarkColor = MaterialTheme.colorScheme.onPrimary
-                            )
+                        PremiumTextField(
+                            value = email,
+                            onValueChange = { email = it; error = null },
+                            label = "Email address",
+                            icon = Icons.Default.Email,
+                            keyboardType = KeyboardType.Email
                         )
-                        
-                        val annotatedString = buildAnnotatedString {
-                            append("By signing up, you agree to our ")
-                            pushStringAnnotation(tag = "terms", annotation = "terms")
-                            withStyle(SpanStyle(color = MaterialTheme.colorScheme.primary, fontWeight = FontWeight.Bold)) {
-                                append("Terms")
-                            }
-                            pop()
-                            append(" and ")
-                            pushStringAnnotation(tag = "privacy", annotation = "privacy")
-                            withStyle(SpanStyle(color = MaterialTheme.colorScheme.primary, fontWeight = FontWeight.Bold)) {
-                                append("Privacy Policy")
-                            }
-                            pop()
-                            append(".")
+
+                        Column {
+                            PremiumTextField(
+                                value = password,
+                                onValueChange = { password = it; error = null },
+                                label = "Password",
+                                icon = Icons.Default.Lock,
+                                isPassword = true,
+                                imeAction = ImeAction.Done
+                            )
+                            PasswordStrengthBar(password)
                         }
 
-                        ClickableText(
-                            text = annotatedString,
-                            style = MaterialTheme.typography.bodySmall.copy(color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.6f)),
-                            onClick = { offset ->
-                                annotatedString.getStringAnnotations(tag = "terms", start = offset, end = offset).firstOrNull()?.let {
-                                    Toast.makeText(context, "Terms of Service", Toast.LENGTH_SHORT).show()
+                        Row(
+                            modifier = Modifier.fillMaxWidth(),
+                            verticalAlignment = Alignment.CenterVertically
+                        ) {
+                            Checkbox(
+                                checked = termsAccepted,
+                                onCheckedChange = { termsAccepted = it },
+                                colors = CheckboxDefaults.colors(
+                                    checkedColor = MaterialTheme.colorScheme.primary,
+                                    uncheckedColor = MaterialTheme.colorScheme.outline,
+                                    checkmarkColor = MaterialTheme.colorScheme.onPrimary
+                                )
+                            )
+                            
+                            val annotatedString = buildAnnotatedString {
+                                append("By signing up, you agree to our ")
+                                pushStringAnnotation(tag = "terms", annotation = "terms")
+                                withStyle(SpanStyle(color = MaterialTheme.colorScheme.primary, fontWeight = FontWeight.Bold)) {
+                                    append("Terms")
                                 }
-                                annotatedString.getStringAnnotations(tag = "privacy", start = offset, end = offset).firstOrNull()?.let {
-                                    Toast.makeText(context, "Privacy Policy", Toast.LENGTH_SHORT).show()
+                                pop()
+                                append(" and ")
+                                pushStringAnnotation(tag = "privacy", annotation = "privacy")
+                                withStyle(SpanStyle(color = MaterialTheme.colorScheme.primary, fontWeight = FontWeight.Bold)) {
+                                    append("Privacy Policy")
                                 }
+                                pop()
+                                append(".")
                             }
-                        )
-                    }
 
-                    MainActionButton(
-                        onClick = {
-                            if (name.isBlank() || email.isBlank() || password.isBlank()) {
-                                error = "All fields required"
-                                return@MainActionButton
-                            }
-                            if (!termsAccepted) {
-                                error = "Please accept Terms \u0026 Privacy"
-                                return@MainActionButton
-                            }
-                            isLoading = true
-                            scope.launch {
-                                val result = AuthRepository.signUp(context, email, password, name)
-                                isLoading = false
-                                if (result.isSuccess) {
-                                    onSignUpSuccess()
-                                } else {
-                                    val errorMsg = result.exceptionOrNull()?.message
-                                    if (errorMsg == "Account already exists. Please log in.") {
-                                        Toast.makeText(context, errorMsg, Toast.LENGTH_LONG).show()
-                                    } else {
-                                        error = errorMsg
+                            ClickableText(
+                                text = annotatedString,
+                                style = MaterialTheme.typography.bodySmall.copy(color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.6f)),
+                                onClick = { offset ->
+                                    annotatedString.getStringAnnotations(tag = "terms", start = offset, end = offset).firstOrNull()?.let {
+                                        Toast.makeText(context, "Terms of Service", Toast.LENGTH_SHORT).show()
+                                    }
+                                    annotatedString.getStringAnnotations(tag = "privacy", start = offset, end = offset).firstOrNull()?.let {
+                                        Toast.makeText(context, "Privacy Policy", Toast.LENGTH_SHORT).show()
                                     }
                                 }
-                            }
-                        },
-                        text = "Create Account",
-                        isLoading = isLoading
-                    )
+                            )
+                        }
+
+                        MainActionButton(
+                            onClick = {
+                                if (name.isBlank() || email.isBlank() || password.isBlank()) {
+                                    error = "All fields required"
+                                    return@MainActionButton
+                                }
+                                if (!termsAccepted) {
+                                    error = "Please accept Terms & Privacy"
+                                    return@MainActionButton
+                                }
+                                isLoading = true
+                                scope.launch {
+                                    val result = AuthRepository.requestEmailOtp(email)
+                                    isLoading = false
+                                    if (result.isSuccess) {
+                                        otpSent = true
+                                        error = null
+                                    } else {
+                                        val errorMsg = result.exceptionOrNull()?.message
+                                        if (errorMsg == "Account already exists. Please log in.") {
+                                            Toast.makeText(context, errorMsg, Toast.LENGTH_LONG).show()
+                                        } else {
+                                            error = errorMsg
+                                        }
+                                    }
+                                }
+                            },
+                            text = "Send Code",
+                            isLoading = isLoading
+                        )
+                    } else {
+                        // OTP Input State
+                        PremiumTextField(
+                            value = otp,
+                            onValueChange = { if (it.length <= 6) { otp = it; error = null } },
+                            label = "6-Digit Code",
+                            icon = Icons.Default.Lock,
+                            keyboardType = KeyboardType.Number,
+                            imeAction = ImeAction.Done
+                        )
+
+                        MainActionButton(
+                            onClick = {
+                                if (otp.length < 6) {
+                                    error = "Please enter the full 6-digit code."
+                                    return@MainActionButton
+                                }
+                                isLoading = true
+                                scope.launch {
+                                    val result = AuthRepository.verifyOtpAndSignUp(context, email, password, name, otp)
+                                    isLoading = false
+                                    if (result.isSuccess) {
+                                        onSignUpSuccess()
+                                    } else {
+                                        error = result.exceptionOrNull()?.message
+                                    }
+                                }
+                            },
+                            text = "Verify & Create Account",
+                            isLoading = isLoading
+                        )
+
+                        Spacer(modifier = Modifier.height(8.dp))
+                        Text(
+                            text = "Go back",
+                            style = MaterialTheme.typography.bodySmall,
+                            color = MaterialTheme.colorScheme.primary,
+                            modifier = Modifier
+                                .align(Alignment.CenterHorizontally)
+                                .clickable { otpSent = false; otp = "" }
+                                .padding(8.dp)
+                        )
+                    }
 
                     AuthDivider()
 
