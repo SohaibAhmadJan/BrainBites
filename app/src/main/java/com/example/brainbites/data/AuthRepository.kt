@@ -251,33 +251,37 @@ object AuthRepository {
                 )
             )
             
-            MainScope().launch {
-                var success = false
-                var retries = 0
-                while (!success && retries < 3) {
+            var success = false
+            var retries = 0
+            while (!success && retries < 3) {
+                try {
+                    db.collection("users").document(uid).set(
+                        mapOf(
+                            "account" to newUser.account,
+                            "profile" to newUser.profile,
+                            "stats" to newUser.stats,
+                            "preferences" to newUser.preferences,
+                            "updatedAt" to System.currentTimeMillis()
+                        )
+                    ).await()
+                    
                     try {
-                        db.runBatch { batch ->
-                            val handleRef = db.collection("handles").document(randomHandle)
-                            val userRef = db.collection("users").document(uid)
-                            
-                            batch.set(handleRef, mapOf("uid" to uid))
-                            batch.set(userRef, mapOf(
-                                "account" to newUser.account,
-                                "profile" to newUser.profile,
-                                "stats" to newUser.stats,
-                                "preferences" to newUser.preferences,
-                                "updatedAt" to System.currentTimeMillis()
-                            ))
-                        }.await()
-                        AnalyticsRepository.logAppInstall(context)
-                        success = true
+                        db.collection("handles").document(randomHandle).set(mapOf("uid" to uid)).await()
                     } catch (e: Exception) {
-                        retries++
-                        Log.e("AuthRepository", "Failed to claim handle or save user (Auth propagation delay?), retrying... ($retries/3)", e)
-                        kotlinx.coroutines.delay(1000)
+                        Log.e("AuthRepository", "Failed to claim handle during Email Sign-up", e)
                     }
+                    
+                    AnalyticsRepository.logAppInstall(context)
+                    success = true
+                } catch (e: Exception) {
+                    retries++
+                    Log.e("AuthRepository", "Failed to save user (Auth propagation delay?), retrying... ($retries/3)", e)
+                    kotlinx.coroutines.delay(1000)
                 }
             }
+            
+            syncUser(context)
+            updateLastActive()
             
             Result.success(Unit)
         } catch (e: Exception) {
@@ -318,6 +322,11 @@ object AuthRepository {
                         val prefs = snapshot.get("preferences") as? Map<*, *>
                         val account = snapshot.get("account") as? Map<*, *>
 
+                        // Use the profile name from Firestore. If it's missing, fall back to Auth displayName.
+                        // ONLY fall back to "Knowledge Seeker" if absolutely nothing is set anywhere.
+                        val dbName = profile?.get("displayName") as? String
+                        val resolvedName = if (!dbName.isNullOrBlank()) dbName else (firebaseUser.displayName ?: "Knowledge Seeker")
+
                         val brainBitesUser = BrainBitesUser(
                             account = UserAccount(
                                 uid = uid,
@@ -327,7 +336,7 @@ object AuthRepository {
                                 status = account?.get("status") as? String ?: "ACTIVE"
                             ),
                             profile = UserProfile(
-                                displayName = profile?.get("displayName") as? String ?: firebaseUser.displayName ?: "Knowledge Seeker",
+                                displayName = resolvedName,
                                 email = profile?.get("email") as? String ?: firebaseUser.email ?: "",
                                 handle = profile?.get("handle") as? String ?: "",
                                 photoUrl = profile?.get("photoUrl") as? String ?: firebaseUser.photoUrl?.toString() ?: "",
