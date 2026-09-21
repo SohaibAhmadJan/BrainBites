@@ -6,28 +6,22 @@ service firebase.storage {
       return request.auth != null;
     }
 
-    function isAdmin() {
-      return isAuthenticated() &&
-        firestore.exists(/databases/(default)/documents/admins/$(request.auth.uid));
-    }
-
     // 1. User Profile Photos (Flat Path)
     match /profile_pics/{fileName} {
       allow read: if true;
-      allow write: if isAuthenticated() &&
-                   (fileName == request.auth.uid + '.jpg') || isAdmin();
+      allow write: if isAuthenticated() && fileName == request.auth.uid + '.jpg';
     }
 
     // 2. Main Brand / Shared Folders
     match /brainbites/{allPaths=**} {
       allow read: if true;
-      allow write: if isAdmin();
+      allow write: if isAuthenticated(); // Admins bypass rules via Admin SDK anyway, but if uploaded via client, needs auth
     }
 
     // 3. General User Sub-folders
     match /users/{userId}/{allPaths=**} {
       allow read: if true;
-      allow write: if request.auth.uid == userId || isAdmin();
+      allow write: if isAuthenticated() && request.auth.uid == userId;
     }
   }
 }

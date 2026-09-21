@@ -162,8 +162,9 @@ class ProfileViewModel(application: Application) : AndroidViewModel(application)
             if (image.startsWith("content://") && currentUser != null) {
                 Toast.makeText(application, "🚀 Step 1/3: Reading image...", Toast.LENGTH_SHORT).show()
                 
-                // 1. Upload to Firebase Storage for cloud sync (Admin Panel visibility)
+                // 1. Upload to Cloudinary for cloud sync (Admin Panel visibility)
                 val uploadResult = StorageRepository.uploadProfilePicture(
+                    context = application,
                     uid = currentUser.account.uid,
                     localUri = Uri.parse(image)
                 )
