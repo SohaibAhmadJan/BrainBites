@@ -147,8 +147,16 @@ fun LoginScreen(
                             scope.launch {
                                 val result = AuthRepository.signIn(context, email, password)
                                 isLoading = false
-                                if (result.isSuccess) onLoginSuccess()
-                                else error = result.exceptionOrNull()?.message
+                                if (result.isSuccess) {
+                                    onLoginSuccess()
+                                } else {
+                                    val errorMsg = result.exceptionOrNull()?.message
+                                    if (errorMsg == "Account does not exist. Please use Sign Up.") {
+                                        Toast.makeText(context, errorMsg, Toast.LENGTH_LONG).show()
+                                    } else {
+                                        error = errorMsg
+                                    }
+                                }
                             }
                         },
                         text = "Sign In",

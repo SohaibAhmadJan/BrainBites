@@ -212,57 +212,81 @@ object AuthRepository {
             updateLastActive()
             Result.success(Unit)
         } catch (e: Exception) {
-            Result.failure(e)
+            if (e is com.google.firebase.auth.FirebaseAuthInvalidUserException || 
+                (e is com.google.firebase.auth.FirebaseAuthException && e.errorCode == "ERROR_USER_NOT_FOUND")) {
+                Result.failure(Exception("Account does not exist. Please use Sign Up."))
+            } else {
+                Result.failure(e)
+            }
         }
     }
 
-    suspend fun signUp(context: android.content.Context, email: String, password: String, name: String, handle: String): Result<Unit> {
+    suspend fun signUp(context: android.content.Context, email: String, password: String, name: String): Result<Unit> {
         return try {
-            val normalizedHandle = handle.lowercase().trim()
-            val isAvailable = isUsernameAvailable(normalizedHandle)
-            if (!isAvailable) {
-                throw Exception("Handle '@$normalizedHandle' is already taken.")
-            }
-
             val result = auth.createUserWithEmailAndPassword(email, password).await()
-            val uid = result.user?.uid ?: throw Exception("User creation failed")
+            val firebaseUser = result.user ?: throw Exception("User creation failed")
+            val uid = firebaseUser.uid
             
-            // Atomically claim the handle and create the user record
-            db.runBatch { batch ->
-                val handleRef = db.collection("handles").document(normalizedHandle)
-                val userRef = db.collection("users").document(uid)
-                
-                batch.set(handleRef, mapOf("uid" to uid))
-                
-                val now = System.currentTimeMillis()
-                val newUser = BrainBitesUser(
-                    account = UserAccount(
-                        uid = uid,
-                        createdAt = now,
-                        updatedAt = now,
-                        lastLoginAt = now,
-                        status = "ACTIVE"
-                    ),
-                    profile = UserProfile(
-                        displayName = name,
-                        email = email,
-                        handle = normalizedHandle
-                    )
+            // Update Firebase Auth profile immediately to prevent syncUser race conditions
+            val profileUpdates = com.google.firebase.auth.UserProfileChangeRequest.Builder()
+                .setDisplayName(name)
+                .build()
+            firebaseUser.updateProfile(profileUpdates).await()
+            
+            val now = System.currentTimeMillis()
+            val randomHandle = "user_${now.toString().takeLast(6)}"
+            val newUser = BrainBitesUser(
+                account = UserAccount(
+                    uid = uid,
+                    createdAt = now,
+                    updatedAt = now,
+                    lastLoginAt = now,
+                    status = "ACTIVE"
+                ),
+                profile = UserProfile(
+                    displayName = name.ifBlank { "Knowledge Seeker" },
+                    email = email,
+                    handle = randomHandle,
+                    photoUrl = "" // Explicitly set to empty so the UI falls back to placeholder
                 )
-                
-                batch.set(userRef, mapOf(
-                    "account" to newUser.account,
-                    "profile" to newUser.profile,
-                    "stats" to newUser.stats,
-                    "preferences" to newUser.preferences,
-                    "updatedAt" to System.currentTimeMillis()
-                ))
-            }.await()
+            )
             
-            AnalyticsRepository.logAppInstall(context)
+            MainScope().launch {
+                var success = false
+                var retries = 0
+                while (!success && retries < 3) {
+                    try {
+                        db.runBatch { batch ->
+                            val handleRef = db.collection("handles").document(randomHandle)
+                            val userRef = db.collection("users").document(uid)
+                            
+                            batch.set(handleRef, mapOf("uid" to uid))
+                            batch.set(userRef, mapOf(
+                                "account" to newUser.account,
+                                "profile" to newUser.profile,
+                                "stats" to newUser.stats,
+                                "preferences" to newUser.preferences,
+                                "updatedAt" to System.currentTimeMillis()
+                            ))
+                        }.await()
+                        AnalyticsRepository.logAppInstall(context)
+                        success = true
+                    } catch (e: Exception) {
+                        retries++
+                        Log.e("AuthRepository", "Failed to claim handle or save user (Auth propagation delay?), retrying... ($retries/3)", e)
+                        kotlinx.coroutines.delay(1000)
+                    }
+                }
+            }
+            
             Result.success(Unit)
         } catch (e: Exception) {
-            Result.failure(e)
+            if (e is com.google.firebase.auth.FirebaseAuthUserCollisionException || 
+                (e is com.google.firebase.auth.FirebaseAuthException && e.errorCode == "ERROR_EMAIL_ALREADY_IN_USE")) {
+                Result.failure(Exception("Account already exists. Please log in."))
+            } else {
+                Result.failure(e)
+            }
         }
     }
 

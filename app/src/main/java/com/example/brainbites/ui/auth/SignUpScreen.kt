@@ -45,7 +45,6 @@ fun SignUpScreen(
     onNavigateToLogin: () -> Unit
 ) {
     var name by remember { mutableStateOf("") }
-    var handle by remember { mutableStateOf("") }
     var email by remember { mutableStateOf("") }
     var password by remember { mutableStateOf("") }
     var termsAccepted by remember { mutableStateOf(false) }
@@ -104,13 +103,6 @@ fun SignUpScreen(
                         onValueChange = { name = it; error = null },
                         label = "Full Name",
                         icon = Icons.Default.Person
-                    )
-                    
-                    PremiumTextField(
-                        value = handle,
-                        onValueChange = { handle = it.replace(" ", "_").lowercase(); error = null },
-                        label = "Username (@handle)",
-                        icon = Icons.Default.AccountCircle
                     )
 
                     PremiumTextField(
@@ -179,7 +171,7 @@ fun SignUpScreen(
 
                     MainActionButton(
                         onClick = {
-                            if (name.isBlank() || email.isBlank() || password.isBlank() || handle.isBlank()) {
+                            if (name.isBlank() || email.isBlank() || password.isBlank()) {
                                 error = "All fields required"
                                 return@MainActionButton
                             }
@@ -189,10 +181,18 @@ fun SignUpScreen(
                             }
                             isLoading = true
                             scope.launch {
-                                val result = AuthRepository.signUp(context, email, password, name, handle)
+                                val result = AuthRepository.signUp(context, email, password, name)
                                 isLoading = false
-                                if (result.isSuccess) onSignUpSuccess()
-                                else error = result.exceptionOrNull()?.message
+                                if (result.isSuccess) {
+                                    onSignUpSuccess()
+                                } else {
+                                    val errorMsg = result.exceptionOrNull()?.message
+                                    if (errorMsg == "Account already exists. Please log in.") {
+                                        Toast.makeText(context, errorMsg, Toast.LENGTH_LONG).show()
+                                    } else {
+                                        error = errorMsg
+                                    }
+                                }
                             }
                         },
                         text = "Create Account",
