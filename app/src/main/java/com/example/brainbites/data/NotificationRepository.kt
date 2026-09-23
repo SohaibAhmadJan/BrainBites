@@ -186,21 +186,29 @@ object NotificationRepository {
                     emptyList()
                 }
                 
-                val all = (globalSnap.documents + targetedDocs).mapNotNull { doc ->
+                val userCreatedAt = AuthRepository.currentUser.value?.account?.createdAt ?: 0L
+                
+                val fetchedNotifs = (globalSnap.documents + targetedDocs).mapNotNull { doc ->
                     try {
                         val isGlobal = doc.getBoolean("isGlobal") ?: false
                         val targetUserId = doc.getString("targetUserId")
+                        val timestamp = doc.getLong("timestamp") ?: System.currentTimeMillis()
                         
                         // Security check: Only include root notifications that are Global or targeted to ME
                         if (doc.reference.path.startsWith("notifications/")) {
                             if (!isGlobal && (targetUserId == null || targetUserId != uid)) return@mapNotNull null
+                            
+                            // Feature: Filter out historical global broadcasts sent before the user joined
+                            if (isGlobal && timestamp < userCreatedAt) {
+                                return@mapNotNull null
+                            }
                         }
 
                         Notification(
                             id = doc.id,
                             title = doc.getString("title") ?: "",
                             message = doc.getString("message") ?: "",
-                            timestamp = doc.getLong("timestamp") ?: System.currentTimeMillis(),
+                            timestamp = timestamp,
                             isRead = readIds.contains(doc.id), // Use persistent local status
                             type = try { NotificationType.valueOf(doc.getString("type") ?: "GENERAL") } catch(e: Exception) { NotificationType.GENERAL },
                             audience = doc.getString("audience"),
@@ -208,7 +216,31 @@ object NotificationRepository {
                             deepLinkFactId = doc.getString("deepLinkFactId")
                         )
                     } catch (e: Exception) { null }
-                }.distinctBy { it.id }.sortedByDescending { it.timestamp }
+                }
+
+                // Inject 2 Standard Welcome Notifications
+                val welcomeNotifs = listOf(
+                    Notification(
+                        id = "welcome_2",
+                        title = "Optimize Your Experience ⚙️",
+                        message = "Head to Settings to set your Daily Goal, adjust text size, and configure your preferred Daily Pulse schedule.",
+                        timestamp = userCreatedAt + 2000, // Slightly after join
+                        isRead = readIds.contains("welcome_2"),
+                        type = NotificationType.SYSTEM
+                    ),
+                    Notification(
+                        id = "welcome_1",
+                        title = "Welcome to BrainBites! \uD83E\uDDE0",
+                        message = "Your journey into the human mind begins here. Explore categories, save your favorite insights, and level up your knowledge.",
+                        timestamp = userCreatedAt + 1000, // Just after join
+                        isRead = readIds.contains("welcome_1"),
+                        type = NotificationType.GENERAL
+                    )
+                )
+                
+                val all = (fetchedNotifs + welcomeNotifs)
+                    .distinctBy { it.id }
+                    .sortedByDescending { it.timestamp }
                 
                 _notifications.value = all
             } catch (e: Exception) { 
