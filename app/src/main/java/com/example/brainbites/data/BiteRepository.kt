@@ -240,10 +240,12 @@ object BiteRepository {
         }
     }
 
-    private fun buildSecureImageUrl(id: String): String {
-        // Switch to Picsum Photos for maximum reliability and 100% success rate
-        // Using seed forces a unique image per ID while being extremely stable
-        return "https://picsum.photos/seed/$id/1200/800"
+    private fun buildSecureImageUrl(id: String, keywords: String): String {
+        // Use LoremFlickr as a highly reliable replacement for the deprecated source.unsplash API.
+        // It fetches relevant images based on comma-separated keywords.
+        // We use the `lock` parameter with the fact `id` so the image doesn't constantly change.
+        val safeKeywords = keywords.replace(" ", "").replace(",", ",")
+        return "https://loremflickr.com/1200/800/$safeKeywords?lock=$id"
     }
 
     suspend fun initializeDatabase(context: Context) {
@@ -333,6 +335,7 @@ object BiteRepository {
                             val categoryStr = doc.getString("category") ?: "Human Behavior"
                             val quiz = quizMap[id]
                             
+                            val keywordsStr = doc.getString("keywords") ?: getSearchQuery(id)
                             BiteItem(
                                 id = id,
                                 fact = fact,
@@ -345,8 +348,8 @@ object BiteRepository {
                                 quizOptions = quiz?.options,
                                 correctAnswerIndex = quiz?.correctIndex,
                                 teaserType = quiz?.teaserType,
-                                imageUrl = doc.getString("imageUrl") ?: buildSecureImageUrl(id),
-                                keywords = doc.getString("keywords") ?: getSearchQuery(id),
+                                imageUrl = doc.getString("imageUrl") ?: buildSecureImageUrl(id, keywordsStr),
+                                keywords = keywordsStr,
                                 readTimeMinutes = doc.getLong("readTimeMinutes")?.toInt() ?: 1,
                                 isPublished = doc.getBoolean("isPublished") ?: true
                             )
@@ -409,7 +412,7 @@ object BiteRepository {
                     val mergedBites = factsWrapper.facts.map { bite ->
                         val quiz = quizMap[bite.id]
                         val query = getSearchQuery(bite.id)
-                        val imageUrl = buildSecureImageUrl(bite.id)
+                        val imageUrl = buildSecureImageUrl(bite.id, query)
 
                         bite.copy(
                             quizQuestion = quiz?.question,

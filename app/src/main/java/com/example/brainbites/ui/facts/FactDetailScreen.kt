@@ -229,7 +229,7 @@ fun FactPage(fact: BiteItem, onToggleBookmark: () -> Unit, onShare: () -> Unit) 
             Text(
                 text = fact.fact,
                 style = MaterialTheme.typography.headlineMedium,
-                color = MaterialTheme.colorScheme.primary,
+                color = MaterialTheme.colorScheme.onBackground,
                 textAlign = TextAlign.Center,
                 fontWeight = FontWeight.Medium
             )

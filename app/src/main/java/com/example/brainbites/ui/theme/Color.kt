@@ -43,8 +43,8 @@ val md_theme_light_error = Color(0xFFD65A5A)
 val md_theme_light_onError = Color(0xFFFFFFFF)
 
 // --- Dark Theme Refinements ---
-val md_theme_dark_primary = Color(0xFF3E8C64)
-val md_theme_dark_onPrimary = Color(0xFFFFFFFF)
+val md_theme_dark_primary = Color(0xFF95D5B2) // Lightened for much better text contrast against dark backgrounds
+val md_theme_dark_onPrimary = Color(0xFF0F1F17)
 val md_theme_dark_primaryContainer = Color(0xFF2D6A4F)
 val md_theme_dark_onPrimaryContainer = Color(0xFFE6F4EA)
 val md_theme_dark_secondary = Color(0xFF74C69D)
