@@ -168,6 +168,11 @@ fun FactPage(fact: BiteItem, onToggleBookmark: () -> Unit, onShare: () -> Unit) 
                         model = ImageRequest.Builder(LocalContext.current)
                             .data(fact.imageUrl)
                             .crossfade(600)
+                            // By attaching the memoryCacheKey to the fact ID, 
+                            // Coil treats the image for Fact A and Fact B as separate distinct requests.
+                            // If Fact A fails, it will still retry the network request when swiping to Fact B
+                            // because Fact B has a different cache key, even though the URL is the same.
+                            .memoryCacheKey("${fact.imageUrl}_${fact.id}")
                             .build(),
                         contentDescription = null,
                         contentScale = ContentScale.Crop,

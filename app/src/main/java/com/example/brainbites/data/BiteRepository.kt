@@ -240,12 +240,23 @@ object BiteRepository {
         }
     }
 
-    private fun buildSecureImageUrl(id: String, keywords: String): String {
-        // Use LoremFlickr as a highly reliable replacement for the deprecated source.unsplash API.
-        // It fetches relevant images based on comma-separated keywords.
-        // We use the `lock` parameter with the fact `id` so the image doesn't constantly change.
-        val safeKeywords = keywords.replace(" ", "").replace(",", ",")
-        return "https://loremflickr.com/1200/800/$safeKeywords?lock=$id"
+    private fun buildSecureImageUrl(id: String, category: String): String {
+        // Option 1: Category-Specific Curated Photos
+        // We use hand-picked, premium Unsplash images per category to guarantee 
+        // 100% relevance, instant load times, and a beautiful UI.
+        return when (category) {
+            "Human Behavior" -> "https://images.unsplash.com/photo-1529333166437-7750a6dd5a70?w=1200&h=800&fit=crop"
+            "Mental Health" -> "https://images.unsplash.com/photo-1506126613408-eca07ce68773?w=1200&h=800&fit=crop"
+            "Brain Science" -> "https://images.unsplash.com/photo-1559757175-5700dde675bc?w=1200&h=800&fit=crop"
+            "Love & Attraction" -> "https://images.unsplash.com/photo-1518199266791-5375a83190b7?w=1200&h=800&fit=crop"
+            "Personality Traits" -> "https://images.unsplash.com/photo-1506869640319-fea1a2ab8e40?w=1200&h=800&fit=crop"
+            "Body Language" -> "https://images.unsplash.com/photo-1522202176988-66273c2fd55f?w=1200&h=800&fit=crop"
+            "Subconscious Mind" -> "https://images.unsplash.com/photo-1519681393784-d120267933ba?w=1200&h=800&fit=crop"
+            "Social Psychology" -> "https://images.unsplash.com/photo-1517486808906-6ca8b3f04846?w=1200&h=800&fit=crop"
+            "Habits & Motivation" -> "https://images.unsplash.com/photo-1434494878577-86c23bcb06b9?w=1200&h=800&fit=crop"
+            "Memory & Learning" -> "https://images.unsplash.com/photo-1456513080510-7bf3a84b82f8?w=1200&h=800&fit=crop"
+            else -> "https://images.unsplash.com/photo-1507608616759-54f48f0af0ee?w=1200&h=800&fit=crop" // Beautiful nature fallback
+        }
     }
 
     suspend fun initializeDatabase(context: Context) {
@@ -348,7 +359,7 @@ object BiteRepository {
                                 quizOptions = quiz?.options,
                                 correctAnswerIndex = quiz?.correctIndex,
                                 teaserType = quiz?.teaserType,
-                                imageUrl = doc.getString("imageUrl") ?: buildSecureImageUrl(id, keywordsStr),
+                                imageUrl = doc.getString("imageUrl") ?: buildSecureImageUrl(id, categoryStr),
                                 keywords = keywordsStr,
                                 readTimeMinutes = doc.getLong("readTimeMinutes")?.toInt() ?: 1,
                                 isPublished = doc.getBoolean("isPublished") ?: true
@@ -412,7 +423,7 @@ object BiteRepository {
                     val mergedBites = factsWrapper.facts.map { bite ->
                         val quiz = quizMap[bite.id]
                         val query = getSearchQuery(bite.id)
-                        val imageUrl = buildSecureImageUrl(bite.id, query)
+                        val imageUrl = buildSecureImageUrl(bite.id, bite.category)
 
                         bite.copy(
                             quizQuestion = quiz?.question,
