@@ -613,43 +613,26 @@ object AuthRepository {
 
     suspend fun deleteAccount(): Result<Unit> {
         val uid = auth.currentUser?.uid ?: return Result.failure(Exception("No user logged in"))
-        val currentHandle = _currentUser.value?.profile?.handle ?: ""
         
         return try {
             val thirtyDaysMs = 30L * 24 * 60 * 60 * 1000
             val deletionDate = System.currentTimeMillis() + thirtyDaysMs
 
-            // Atomic Anonymization + Handle Release
-            db.runBatch { batch ->
-                val userRef = db.collection("users").document(uid)
-                
-                // 1. Mark as pending and wipe PII immediately
-                batch.update(userRef, mapOf(
-                    "account.status" to "PENDING_DELETION",
-                    "account.scheduledDeletionAt" to deletionDate,
-                    "profile.displayName" to "Deleted User",
-                    "profile.email" to "",
-                    "profile.bio" to "",
-                    "profile.photoUrl" to "",
-                    "profile.handle" to "",
-                    "updatedAt" to System.currentTimeMillis()
-                ))
+            // 1. Mark as pending deletion (DO NOT wipe PII or Handle yet to allow for account recovery)
+            db.collection("users").document(uid).update(mapOf(
+                "account.status" to "PENDING_DELETION",
+                "account.scheduledDeletionAt" to deletionDate,
+                "updatedAt" to System.currentTimeMillis()
+            )).await()
 
-                // 2. Release the @handle so others can use it
-                if (currentHandle.isNotBlank()) {
-                    val handleRef = db.collection("handles").document(currentHandle)
-                    batch.delete(handleRef)
-                }
-            }.await()
-            
-            // 3. Destroy Firebase Auth Credential immediately
-            auth.currentUser?.delete()?.await()
-            
-            _currentUser.value = null
-            Log.d("AuthRepository", "Account anonymized and scheduled for deletion")
+            // 2. Sign the user out locally so they lose access, but their Auth credential stays alive
+            // in case they want to log back in within 30 days to cancel the deletion.
+            signOut()
+
+            Log.d("AuthRepository", "Account scheduled for deletion in 30 days")
             Result.success(Unit)
         } catch (e: Exception) {
-            Log.e("AuthRepository", "Account deletion/anonymization failed", e)
+            Log.e("AuthRepository", "Account deletion scheduling failed", e)
             Result.failure(e)
         }
     }
