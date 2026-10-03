@@ -624,6 +624,12 @@ object AuthRepository {
         _currentUser.value = null
     }
 
+    fun isAnonymousUser(): Boolean {
+        val isFirebaseAuthAnonymous = auth.currentUser?.isAnonymous == true
+        val isOfflineLocalGuest = _currentUser.value?.account?.uid?.startsWith("local_guest_") == true
+        return isFirebaseAuthAnonymous || isOfflineLocalGuest
+    }
+
     suspend fun deleteAccount(): Result<Unit> {
         val uid = auth.currentUser?.uid ?: return Result.failure(Exception("No user logged in"))
         
