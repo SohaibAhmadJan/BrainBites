@@ -448,124 +448,137 @@ object AuthRepository {
         }
     }
 
-    fun syncUser(context: Context) {
+    private fun parseUserSnapshot(context: Context, firebaseUser: com.google.firebase.auth.FirebaseUser, snapshot: com.google.firebase.firestore.DocumentSnapshot) {
+        try {
+            val uid = firebaseUser.uid
+            val profile = snapshot.get("profile") as? Map<*, *>
+            val stats = snapshot.get("stats") as? Map<*, *>
+            val prefs = snapshot.get("preferences") as? Map<*, *>
+            val account = snapshot.get("account") as? Map<*, *>
+
+            // Use the profile name from Firestore. If it's missing, fall back to Auth displayName.
+            // ONLY fall back to "Knowledge Seeker" if absolutely nothing is set anywhere.
+            val dbName = profile?.get("displayName") as? String
+            val resolvedName = if (!dbName.isNullOrBlank()) dbName else (firebaseUser.displayName ?: "Knowledge Seeker")
+
+            val brainBitesUser = BrainBitesUser(
+                account = UserAccount(
+                    uid = uid,
+                    createdAt = account?.get("createdAt") as? Long ?: System.currentTimeMillis(),
+                    updatedAt = account?.get("updatedAt") as? Long ?: System.currentTimeMillis(),
+                    lastLoginAt = account?.get("lastLoginAt") as? Long ?: System.currentTimeMillis(),
+                    status = account?.get("status") as? String ?: "ACTIVE"
+                ),
+                profile = UserProfile(
+                    displayName = resolvedName,
+                    email = profile?.get("email") as? String ?: firebaseUser.email ?: "",
+                    handle = profile?.get("handle") as? String ?: "",
+                    photoUrl = profile?.get("photoUrl") as? String ?: firebaseUser.photoUrl?.toString() ?: "",
+                    bio = profile?.get("bio") as? String ?: "",
+                    isPublic = profile?.get("isPublic") as? Boolean ?: false
+                ),
+                stats = UserStats(
+                    streakCount = (stats?.get("streakCount") as? Long)?.toInt() ?: 0,
+                    factsReadCount = (stats?.get("factsReadCount") as? Long)?.toInt() ?: 0,
+                    favoritesCount = (stats?.get("favoritesCount") as? Long)?.toInt() ?: 0,
+                    sharesCount = (stats?.get("sharesCount") as? Long)?.toInt() ?: 0,
+                    lastActiveAt = stats?.get("lastActiveAt") as? Long ?: 0
+                ),
+                preferences = UserPreferences(
+                    dailyGoal = (prefs?.get("dailyGoal") as? Long)?.toInt() ?: 5,
+                    textScale = (prefs?.get("textScale") as? Double)?.toFloat() ?: 1.0f,
+                    hapticsEnabled = prefs?.get("hapticsEnabled") as? Boolean ?: true,
+                    analyticsEnabled = prefs?.get("analyticsEnabled") as? Boolean ?: true,
+                    notificationsEnabled = prefs?.get("notificationsEnabled") as? Boolean ?: true
+                )
+            )
+
+            // Smart Sync: Backfill missing email if it exists in Firebase Auth
+            val existingEmail = profile?.get("email") as? String
+            if (existingEmail.isNullOrEmpty() && !firebaseUser.email.isNullOrEmpty()) {
+                MainScope().launch {
+                    db.collection("users").document(uid)
+                        .update("profile.email", firebaseUser.email)
+                        .await()
+                    Log.d("AuthRepository", "Smart Sync: Backfilled email for $uid")
+                }
+            }
+
+            _currentUser.value = brainBitesUser
+            _isAccountDisabled.value = brainBitesUser.account.status == "DISABLED"
+
+            // Device Hardening: Ensure current device record is active and up to date
+            MainScope().launch {
+                val instanceId = com.google.firebase.installations.FirebaseInstallations.getInstance().id.await()
+                syncDeviceToken(context, instanceId)
+            }
+        } catch (ex: Exception) {
+            Log.e("AuthRepository", "Error mapping user data", ex)
+        }
+    }
+
+    suspend fun syncUser(context: Context) {
         val firebaseUser = auth.currentUser ?: return
         val uid = firebaseUser.uid
 
-        // Start real-time listener for user document (Account status & Profile)
-        db.collection("users").document(uid)
-            .addSnapshotListener { snapshot, e ->
+        try {
+            // Step 1: Initial definitive fetch to prevent cache/network race conditions
+            val snapshot = db.collection("users").document(uid).get().await()
+
+            if (snapshot.exists()) {
+                parseUserSnapshot(context, firebaseUser, snapshot)
+            } else {
+                // Create new user record definitively
+                val now = System.currentTimeMillis()
+                val randomHandle = "user_${now.toString().takeLast(6)}"
+                val newUser = BrainBitesUser(
+                    account = UserAccount(
+                        uid = uid,
+                        createdAt = now,
+                        updatedAt = now,
+                        lastLoginAt = now,
+                        status = "ACTIVE"
+                    ),
+                    profile = UserProfile(
+                        displayName = firebaseUser.displayName ?: "Knowledge Seeker",
+                        email = firebaseUser.email ?: "",
+                        handle = randomHandle,
+                        photoUrl = firebaseUser.photoUrl?.toString() ?: ""
+                    )
+                )
+                
+                var success = false
+                var retries = 0
+                while (!success && retries < 3) {
+                    try {
+                        db.collection("handles").document(randomHandle).set(mapOf("uid" to uid)).await()
+                        saveUser(newUser)
+                        AnalyticsRepository.logAppInstall(context)
+                        val instanceId = com.google.firebase.installations.FirebaseInstallations.getInstance().id.await()
+                        syncDeviceToken(context, instanceId)
+                        success = true
+                    } catch (e: Exception) {
+                        retries++
+                        Log.e("AuthRepository", "Failed to claim handle or save user (Auth propagation delay?), retrying... ($retries/3)", e)
+                        kotlinx.coroutines.delay(1000)
+                    }
+                }
+            }
+
+            // Step 2: Attach real-time listener for ongoing updates
+            db.collection("users").document(uid).addSnapshotListener { listenSnapshot, e ->
                 if (e != null) {
                     Log.w("AuthRepository", "User sync listen failed", e)
                     return@addSnapshotListener
                 }
-
-                if (snapshot != null && snapshot.exists()) {
-                    try {
-                        val profile = snapshot.get("profile") as? Map<*, *>
-                        val stats = snapshot.get("stats") as? Map<*, *>
-                        val prefs = snapshot.get("preferences") as? Map<*, *>
-                        val account = snapshot.get("account") as? Map<*, *>
-
-                        // Use the profile name from Firestore. If it's missing, fall back to Auth displayName.
-                        // ONLY fall back to "Knowledge Seeker" if absolutely nothing is set anywhere.
-                        val dbName = profile?.get("displayName") as? String
-                        val resolvedName = if (!dbName.isNullOrBlank()) dbName else (firebaseUser.displayName ?: "Knowledge Seeker")
-
-                        val brainBitesUser = BrainBitesUser(
-                            account = UserAccount(
-                                uid = uid,
-                                createdAt = account?.get("createdAt") as? Long ?: System.currentTimeMillis(),
-                                updatedAt = account?.get("updatedAt") as? Long ?: System.currentTimeMillis(),
-                                lastLoginAt = account?.get("lastLoginAt") as? Long ?: System.currentTimeMillis(),
-                                status = account?.get("status") as? String ?: "ACTIVE"
-                            ),
-                            profile = UserProfile(
-                                displayName = resolvedName,
-                                email = profile?.get("email") as? String ?: firebaseUser.email ?: "",
-                                handle = profile?.get("handle") as? String ?: "",
-                                photoUrl = profile?.get("photoUrl") as? String ?: firebaseUser.photoUrl?.toString() ?: "",
-                                bio = profile?.get("bio") as? String ?: "",
-                                isPublic = profile?.get("isPublic") as? Boolean ?: false
-                            ),
-                            stats = UserStats(
-                                streakCount = (stats?.get("streakCount") as? Long)?.toInt() ?: 0,
-                                factsReadCount = (stats?.get("factsReadCount") as? Long)?.toInt() ?: 0,
-                                favoritesCount = (stats?.get("favoritesCount") as? Long)?.toInt() ?: 0,
-                                sharesCount = (stats?.get("sharesCount") as? Long)?.toInt() ?: 0,
-                                lastActiveAt = stats?.get("lastActiveAt") as? Long ?: 0
-                            ),
-                            preferences = UserPreferences(
-                                dailyGoal = (prefs?.get("dailyGoal") as? Long)?.toInt() ?: 5,
-                                textScale = (prefs?.get("textScale") as? Double)?.toFloat() ?: 1.0f,
-                                hapticsEnabled = prefs?.get("hapticsEnabled") as? Boolean ?: true,
-                                analyticsEnabled = prefs?.get("analyticsEnabled") as? Boolean ?: true,
-                                notificationsEnabled = prefs?.get("notificationsEnabled") as? Boolean ?: true
-                            )
-                        )
-
-                        // Smart Sync: Backfill missing email if it exists in Firebase Auth
-                        val existingEmail = profile?.get("email") as? String
-                        if (existingEmail.isNullOrEmpty() && !firebaseUser.email.isNullOrEmpty()) {
-                            MainScope().launch {
-                                db.collection("users").document(uid)
-                                    .update("profile.email", firebaseUser.email)
-                                    .await()
-                                Log.d("AuthRepository", "Smart Sync: Backfilled email for $uid")
-                            }
-                        }
-
-                        _currentUser.value = brainBitesUser
-                        _isAccountDisabled.value = brainBitesUser.account.status == "DISABLED"
-
-                        // Device Hardening: Ensure current device record is active and up to date
-                        MainScope().launch {
-                            val instanceId = com.google.firebase.installations.FirebaseInstallations.getInstance().id.await()
-                            syncDeviceToken(context, instanceId)
-                        }
-                    } catch (ex: Exception) {
-                        Log.e("AuthRepository", "Error mapping user data", ex)
-                    }
-                } else {
-                    // Create new user record if it doesn't exist
-                    val now = System.currentTimeMillis()
-                    val randomHandle = "user_${now.toString().takeLast(6)}"
-                    val newUser = BrainBitesUser(
-                        account = UserAccount(
-                            uid = uid,
-                            createdAt = now,
-                            updatedAt = now,
-                            lastLoginAt = now,
-                            status = "ACTIVE"
-                        ),
-                        profile = UserProfile(
-                            displayName = firebaseUser.displayName ?: "Knowledge Seeker",
-                            email = firebaseUser.email ?: "",
-                            handle = randomHandle,
-                            photoUrl = firebaseUser.photoUrl?.toString() ?: ""
-                        )
-                    )
-                    MainScope().launch {
-                        var success = false
-                        var retries = 0
-                        while (!success && retries < 3) {
-                            try {
-                                // Claim random handle
-                                db.collection("handles").document(randomHandle).set(mapOf("uid" to uid)).await()
-                                saveUser(newUser)
-                                AnalyticsRepository.logAppInstall(context)
-                                val instanceId = com.google.firebase.installations.FirebaseInstallations.getInstance().id.await()
-                                syncDeviceToken(context, instanceId)
-                                success = true
-                            } catch (e: Exception) {
-                                retries++
-                                Log.e("AuthRepository", "Failed to claim handle or save user (Auth propagation delay?), retrying... ($retries/3)", e)
-                                kotlinx.coroutines.delay(1000)
-                            }
-                        }
-                    }
+                if (listenSnapshot != null && listenSnapshot.exists()) {
+                    parseUserSnapshot(context, firebaseUser, listenSnapshot)
                 }
             }
+
+        } catch (e: Exception) {
+            Log.e("AuthRepository", "Definitive sync failed", e)
+        }
     }
 
     suspend fun updateLastActive() {
