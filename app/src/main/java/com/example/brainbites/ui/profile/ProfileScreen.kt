@@ -57,7 +57,6 @@ fun ProfileScreen(
     val userId by viewModel.userId.collectAsState()
     val userHandle by viewModel.userHandle.collectAsState()
     val userImage by viewModel.userImage.collectAsState()
-    val isPublic by viewModel.isPublicProfile.collectAsState()
     val isAnalytics by viewModel.isAnalyticsEnabled.collectAsState()
 
     var showEditDialog by remember { mutableStateOf(false) }
@@ -90,10 +89,8 @@ fun ProfileScreen(
 
     if (showPrivacyDialog) {
         PrivacySettingsDialog(
-            isPublic = isPublic,
             isAnalytics = isAnalytics,
             onDismiss = { showPrivacyDialog = false },
-            onPublicToggle = { viewModel.updatePublicProfile(it) },
             onAnalyticsToggle = { viewModel.updateAnalyticsEnabled(it) }
         )
     }
@@ -692,19 +689,7 @@ fun EditProfileDialog(
                     )
                 }
 
-                Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
-                    Text("System ID", style = MaterialTheme.typography.labelMedium)
-                    OutlinedTextField(
-                        value = userId,
-                        onValueChange = { },
-                        enabled = false,
-                        placeholder = { Text("unique_id") },
-                        shape = RoundedCornerShape(12.dp),
-                        modifier = Modifier.fillMaxWidth(),
-                        singleLine = true,
-                        colors = textFieldColors
-                    )
-                }
+
 
                 Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
                     Text("Bio", style = MaterialTheme.typography.labelMedium)
@@ -748,10 +733,8 @@ fun EditProfileDialog(
 
 @Composable
 fun PrivacySettingsDialog(
-    isPublic: Boolean,
     isAnalytics: Boolean,
     onDismiss: () -> Unit,
-    onPublicToggle: (Boolean) -> Unit,
     onAnalyticsToggle: (Boolean) -> Unit
 ) {
     AlertDialog(
@@ -760,14 +743,8 @@ fun PrivacySettingsDialog(
         text = {
             Column(verticalArrangement = Arrangement.spacedBy(16.dp)) {
                 PrivacyToggleItem(
-                    title = "Public Profile",
-                    description = "Allow others to see your achievements.",
-                    checked = isPublic,
-                    onCheckedChange = onPublicToggle
-                )
-                PrivacyToggleItem(
                     title = "Anonymous Analytics",
-                    description = "Help us improve BrainBites.",
+                    description = "Help us improve BrainBites by sharing anonymous usage data.",
                     checked = isAnalytics,
                     onCheckedChange = onAnalyticsToggle
                 )

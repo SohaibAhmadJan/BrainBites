@@ -15,7 +15,7 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.foundation.lazy.LazyColumn
-import android.app.TimePickerDialog
+import androidx.compose.foundation.background
 import com.example.brainbites.data.PreferenceManager
 import com.example.brainbites.ui.components.AnimatedEntrance
 import com.example.brainbites.data.theme.ThemeManager
@@ -27,6 +27,7 @@ import com.example.brainbites.data.BiteRepository
 import com.example.brainbites.data.AuthRepository
 import kotlinx.coroutines.launch
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun SettingsScreen() {
     val context = LocalContext.current
@@ -40,16 +41,59 @@ fun SettingsScreen() {
     var notificationsEnabled by remember { mutableStateOf(true) }
     var selectedTime by remember { mutableStateOf("09:00 AM") }
     var showAboutDialog by remember { mutableStateOf(false) }
+    var showTimePicker by remember { mutableStateOf(false) }
 
-    val timePickerDialog = TimePickerDialog(
-        context,
-        { _, hour, minute ->
-            val amPm = if (hour < 12) "AM" else "PM"
-            val displayHour = if (hour == 0 || hour == 12) 12 else hour % 12
-            selectedTime = String.format(java.util.Locale.getDefault(), "%02d:%02d %s", displayHour, minute, amPm)
-        },
-        9, 0, false
+    val timePickerState = rememberTimePickerState(
+        initialHour = 9,
+        initialMinute = 0,
+        is24Hour = false
     )
+
+    if (showTimePicker) {
+        AlertDialog(
+            onDismissRequest = { showTimePicker = false },
+            confirmButton = {
+                TextButton(onClick = {
+                    val hour = timePickerState.hour
+                    val minute = timePickerState.minute
+                    val amPm = if (hour < 12) "AM" else "PM"
+                    val displayHour = if (hour == 0 || hour == 12) 12 else hour % 12
+                    selectedTime = String.format(java.util.Locale.getDefault(), "%02d:%02d %s", displayHour, minute, amPm)
+                    showTimePicker = false
+                }) {
+                    Text("OK")
+                }
+            },
+            dismissButton = {
+                TextButton(onClick = { showTimePicker = false }) {
+                    Text("Cancel")
+                }
+            },
+            text = {
+                TimePicker(
+                    state = timePickerState,
+                    colors = TimePickerDefaults.colors(
+                        clockDialColor = MaterialTheme.colorScheme.surfaceVariant,
+                        clockDialSelectedContentColor = MaterialTheme.colorScheme.onPrimary,
+                        clockDialUnselectedContentColor = MaterialTheme.colorScheme.onSurfaceVariant,
+                        selectorColor = MaterialTheme.colorScheme.primary,
+                        containerColor = MaterialTheme.colorScheme.surface,
+                        periodSelectorBorderColor = MaterialTheme.colorScheme.primary.copy(alpha = 0.5f),
+                        periodSelectorSelectedContainerColor = MaterialTheme.colorScheme.primaryContainer,
+                        periodSelectorUnselectedContainerColor = MaterialTheme.colorScheme.surfaceVariant,
+                        periodSelectorSelectedContentColor = MaterialTheme.colorScheme.onPrimaryContainer,
+                        periodSelectorUnselectedContentColor = MaterialTheme.colorScheme.onSurfaceVariant,
+                        timeSelectorSelectedContainerColor = MaterialTheme.colorScheme.primaryContainer,
+                        timeSelectorUnselectedContainerColor = MaterialTheme.colorScheme.surfaceVariant,
+                        timeSelectorSelectedContentColor = MaterialTheme.colorScheme.onPrimaryContainer,
+                        timeSelectorUnselectedContentColor = MaterialTheme.colorScheme.onSurfaceVariant
+                    )
+                )
+            },
+            containerColor = MaterialTheme.colorScheme.surface,
+            shape = RoundedCornerShape(24.dp)
+        )
+    }
 
     if (showAboutDialog) {
         AlertDialog(
@@ -117,7 +161,7 @@ fun SettingsScreen() {
                     title = "Notification Time",
                     subtitle = selectedTime,
                     icon = Icons.Default.Schedule,
-                    onClick = { timePickerDialog.show() }
+                    onClick = { showTimePicker = true }
                 )
             }
         }
