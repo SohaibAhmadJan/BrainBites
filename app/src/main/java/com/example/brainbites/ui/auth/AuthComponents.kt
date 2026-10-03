@@ -32,9 +32,11 @@ import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.text.input.VisualTransformation
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.compose.foundation.border
 import com.example.brainbites.R
 
 @Composable
@@ -112,6 +114,80 @@ fun PremiumTextField(
             unfocusedContainerColor = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.2f)
         )
     )
+}
+
+@Composable
+fun OtpInputField(
+    otpText: String,
+    otpCount: Int = 6,
+    onOtpTextChange: (String, Boolean) -> Unit
+) {
+    androidx.compose.foundation.text.BasicTextField(
+        value = otpText,
+        onValueChange = {
+            if (it.length <= otpCount) {
+                onOtpTextChange.invoke(it, it.length == otpCount)
+            }
+        },
+        keyboardOptions = KeyboardOptions(
+            keyboardType = KeyboardType.Number,
+            imeAction = ImeAction.Done
+        ),
+        decorationBox = {
+            Row(
+                horizontalArrangement = Arrangement.spacedBy(8.dp, Alignment.CenterHorizontally),
+                modifier = Modifier.fillMaxWidth()
+            ) {
+                repeat(otpCount) { index ->
+                    CharView(
+                        index = index,
+                        text = otpText,
+                        modifier = Modifier
+                            .weight(1f)
+                            .aspectRatio(1f)
+                    )
+                }
+            }
+        }
+    )
+}
+
+@Composable
+private fun CharView(
+    index: Int,
+    text: String,
+    modifier: Modifier = Modifier
+) {
+    val isFocused = text.length == index
+    val char = when {
+        index == text.length -> ""
+        index > text.length -> ""
+        else -> text[index].toString()
+    }
+    
+    val colorScheme = MaterialTheme.colorScheme
+    
+    val borderColor = if (isFocused) colorScheme.primary else colorScheme.outline.copy(alpha = 0.2f)
+    val backgroundColor = if (isFocused) colorScheme.surfaceVariant.copy(alpha = 0.4f) else colorScheme.surfaceVariant.copy(alpha = 0.1f)
+
+    Box(
+        modifier = modifier
+            .background(backgroundColor, RoundedCornerShape(12.dp))
+            .border(
+                width = if (isFocused) 2.dp else 1.dp,
+                color = borderColor,
+                shape = RoundedCornerShape(12.dp)
+            ),
+        contentAlignment = Alignment.Center
+    ) {
+        Text(
+            text = char,
+            style = MaterialTheme.typography.headlineMedium,
+            color = colorScheme.onSurface,
+            fontWeight = FontWeight.Bold,
+            textAlign = TextAlign.Center
+        )
+    }
 }
 
 @Composable

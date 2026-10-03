@@ -53,6 +53,14 @@ fun SignUpScreen(
     var isLoading by remember { mutableStateOf(false) }
     var isGoogleLoading by remember { mutableStateOf(false) }
     var error by remember { mutableStateOf<String?>(null) }
+    var resendTimer by remember { mutableStateOf(300) }
+
+    LaunchedEffect(otpSent, resendTimer) {
+        if (otpSent && resendTimer > 0) {
+            kotlinx.coroutines.delay(1000)
+            resendTimer -= 1
+        }
+    }
     
     val scope = rememberCoroutineScope()
     val scrollState = rememberScrollState()
@@ -188,6 +196,7 @@ fun SignUpScreen(
                                     isLoading = false
                                     if (result.isSuccess) {
                                         otpSent = true
+                                        resendTimer = 300
                                         error = null
                                     } else {
                                         val errorMsg = result.exceptionOrNull()?.message
@@ -204,14 +213,24 @@ fun SignUpScreen(
                         )
                     } else {
                         // OTP Input State
-                        PremiumTextField(
-                            value = otp,
-                            onValueChange = { if (it.length <= 6) { otp = it; error = null } },
-                            label = "6-Digit Code",
-                            icon = Icons.Default.Lock,
-                            keyboardType = KeyboardType.Number,
-                            imeAction = ImeAction.Done
-                        )
+                        Column(
+                            modifier = Modifier.fillMaxWidth(),
+                            horizontalAlignment = Alignment.CenterHorizontally
+                        ) {
+                            Text(
+                                text = "Enter 6-Digit Code",
+                                style = MaterialTheme.typography.labelMedium,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                                modifier = Modifier.padding(bottom = 12.dp)
+                            )
+                            OtpInputField(
+                                otpText = otp,
+                                onOtpTextChange = { value, _ ->
+                                    otp = value
+                                    error = null
+                                }
+                            )
+                        }
 
                         MainActionButton(
                             onClick = {
@@ -235,15 +254,40 @@ fun SignUpScreen(
                         )
 
                         Spacer(modifier = Modifier.height(8.dp))
-                        Text(
-                            text = "Go back",
-                            style = MaterialTheme.typography.bodySmall,
-                            color = MaterialTheme.colorScheme.primary,
-                            modifier = Modifier
-                                .align(Alignment.CenterHorizontally)
-                                .clickable { otpSent = false; otp = "" }
-                                .padding(8.dp)
-                        )
+                        Row(
+                            modifier = Modifier.fillMaxWidth(),
+                            horizontalArrangement = Arrangement.SpaceEvenly
+                        ) {
+                            Text(
+                                text = "Go back",
+                                style = MaterialTheme.typography.bodySmall,
+                                color = MaterialTheme.colorScheme.primary,
+                                modifier = Modifier
+                                    .clickable { otpSent = false; otp = "" }
+                                    .padding(8.dp)
+                            )
+                            
+                            Text(
+                                text = if (resendTimer > 0) "Resend code in ${resendTimer / 60}:${(resendTimer % 60).toString().padStart(2, '0')}" else "Resend Code",
+                                style = MaterialTheme.typography.bodySmall,
+                                color = if (resendTimer > 0) MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.5f) else MaterialTheme.colorScheme.primary,
+                                modifier = Modifier
+                                    .clickable(enabled = resendTimer == 0) {
+                                        if (resendTimer == 0) {
+                                            scope.launch {
+                                                val result = AuthRepository.requestEmailOtp(email)
+                                                if (result.isSuccess) {
+                                                    resendTimer = 300
+                                                    Toast.makeText(context, "New code sent!", Toast.LENGTH_SHORT).show()
+                                                } else {
+                                                    error = result.exceptionOrNull()?.message
+                                                }
+                                            }
+                                        }
+                                    }
+                                    .padding(8.dp)
+                            )
+                        }
                     }
 
                     AuthDivider()
