@@ -55,6 +55,10 @@ class ProfileViewModel(application: Application) : AndroidViewModel(application)
     val isPublicProfile = PreferenceManager.isPublicProfile
     val isAnalyticsEnabled = PreferenceManager.isAnalyticsEnabled
 
+    val isAnonymousUser = AuthRepository.currentUser
+        .map { AuthRepository.isAnonymousUser() }
+        .stateIn(viewModelScope, kotlinx.coroutines.flow.SharingStarted.Lazily, AuthRepository.isAnonymousUser())
+
     init {
         loadStats()
         loadAchievements()

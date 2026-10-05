@@ -58,6 +58,7 @@ fun ProfileScreen(
     val userHandle by viewModel.userHandle.collectAsState()
     val userImage by viewModel.userImage.collectAsState()
     val isAnalytics by viewModel.isAnalyticsEnabled.collectAsState()
+    val isAnonymous by viewModel.isAnonymousUser.collectAsState()
 
     var showEditDialog by remember { mutableStateOf(false) }
     var showPrivacyDialog by remember { mutableStateOf(false) }
@@ -113,6 +114,7 @@ fun ProfileScreen(
         userId = userId,
         userHandle = userHandle,
         userImage = userImage,
+        isAnonymous = isAnonymous,
         onEditClick = { showEditDialog = true },
         onPrivacyClick = { showPrivacyDialog = true },
         onLogoutClick = { showLogoutDialog = true },
@@ -130,6 +132,7 @@ fun ProfileScreenContent(
     userId: String,
     userHandle: String,
     userImage: String,
+    isAnonymous: Boolean,
     onEditClick: () -> Unit,
     onPrivacyClick: () -> Unit,
     onLogoutClick: () -> Unit,
@@ -196,7 +199,8 @@ fun ProfileScreenContent(
                     onEditClick = onEditClick,
                     onPrivacyClick = onPrivacyClick,
                     onLogoutClick = onLogoutClick,
-                    onDeleteAccountClick = onDeleteAccountClick
+                    onDeleteAccountClick = onDeleteAccountClick,
+                    isAnonymous = isAnonymous
                 )
             }
         }
@@ -508,7 +512,8 @@ fun ProfileActionSection(
     onEditClick: () -> Unit,
     onPrivacyClick: () -> Unit,
     onLogoutClick: () -> Unit,
-    onDeleteAccountClick: () -> Unit
+    onDeleteAccountClick: () -> Unit,
+    isAnonymous: Boolean
 ) {
     Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
         Text(
@@ -529,12 +534,21 @@ fun ProfileActionSection(
             contentColor = MaterialTheme.colorScheme.onSurfaceVariant
         )
 
-        ProfileActionItem(
-            title = "Delete Account", 
-            icon = Icons.Default.DeleteForever, 
-            onClick = onDeleteAccountClick,
-            contentColor = MaterialTheme.colorScheme.error
-        )
+        if (isAnonymous) {
+            ProfileActionItem(
+                title = "Sign Up / Log In",
+                icon = Icons.Default.PersonAdd,
+                onClick = onLogoutClick, // Logout drops the anonymous session and returns to login screen
+                contentColor = MaterialTheme.colorScheme.primary
+            )
+        } else {
+            ProfileActionItem(
+                title = "Delete Account", 
+                icon = Icons.Default.DeleteForever, 
+                onClick = onDeleteAccountClick,
+                contentColor = MaterialTheme.colorScheme.error
+            )
+        }
     }
 }
 
@@ -823,6 +837,7 @@ fun ProfileScreenPreview() {
             userId = "knowledge_seeker",
             userHandle = "knowledge_seeker",
             userImage = "🧠",
+            isAnonymous = false,
             onEditClick = {},
             onPrivacyClick = {},
             onLogoutClick = {},
