@@ -63,6 +63,7 @@ fun ProfileScreen(
     var showEditDialog by remember { mutableStateOf(false) }
     var showPrivacyDialog by remember { mutableStateOf(false) }
     var showLogoutDialog by remember { mutableStateOf(false) }
+    var showGuestSignUpDialog by remember { mutableStateOf(false) }
     var profileError by remember { mutableStateOf<String?>(null) }
 
     if (showEditDialog) {
@@ -106,6 +107,16 @@ fun ProfileScreen(
         )
     }
 
+    if (showGuestSignUpDialog) {
+        GuestSignUpDialog(
+            onDismiss = { showGuestSignUpDialog = false },
+            onConfirm = {
+                viewModel.signOut() // This will safely trigger global navigation to the auth graph
+                showGuestSignUpDialog = false
+            }
+        )
+    }
+
     ProfileScreenContent(
         stats = stats,
         achievements = achievements,
@@ -118,6 +129,7 @@ fun ProfileScreen(
         onEditClick = { showEditDialog = true },
         onPrivacyClick = { showPrivacyDialog = true },
         onLogoutClick = { showLogoutDialog = true },
+        onGuestSignUpClick = { showGuestSignUpDialog = true },
         onDeleteAccountClick = onDeleteAccountClick,
         onCollectionClick = onCollectionClick
     )
@@ -136,6 +148,7 @@ fun ProfileScreenContent(
     onEditClick: () -> Unit,
     onPrivacyClick: () -> Unit,
     onLogoutClick: () -> Unit,
+    onGuestSignUpClick: () -> Unit,
     onDeleteAccountClick: () -> Unit,
     onCollectionClick: (String) -> Unit
 ) {
@@ -199,6 +212,7 @@ fun ProfileScreenContent(
                     onEditClick = onEditClick,
                     onPrivacyClick = onPrivacyClick,
                     onLogoutClick = onLogoutClick,
+                    onGuestSignUpClick = onGuestSignUpClick,
                     onDeleteAccountClick = onDeleteAccountClick,
                     isAnonymous = isAnonymous
                 )
@@ -512,6 +526,7 @@ fun ProfileActionSection(
     onEditClick: () -> Unit,
     onPrivacyClick: () -> Unit,
     onLogoutClick: () -> Unit,
+    onGuestSignUpClick: () -> Unit,
     onDeleteAccountClick: () -> Unit,
     isAnonymous: Boolean
 ) {
@@ -538,7 +553,7 @@ fun ProfileActionSection(
             ProfileActionItem(
                 title = "Sign Up / Log In",
                 icon = Icons.Default.PersonAdd,
-                onClick = onLogoutClick, // Logout drops the anonymous session and returns to login screen
+                onClick = onGuestSignUpClick,
                 contentColor = MaterialTheme.colorScheme.primary
             )
         } else {
@@ -585,6 +600,86 @@ fun ProfileActionItem(
                 contentDescription = null,
                 tint = MaterialTheme.colorScheme.outline
             )
+        }
+    }
+}
+
+@Composable
+fun GuestSignUpDialog(
+    onDismiss: () -> Unit,
+    onConfirm: () -> Unit
+) {
+    androidx.compose.ui.window.Dialog(onDismissRequest = onDismiss) {
+        Card(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(16.dp),
+            shape = RoundedCornerShape(32.dp),
+            colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
+            elevation = CardDefaults.cardElevation(defaultElevation = 8.dp)
+        ) {
+            Column(
+                modifier = Modifier.padding(24.dp),
+                horizontalAlignment = Alignment.CenterHorizontally
+            ) {
+                Surface(
+                    modifier = Modifier.size(72.dp),
+                    shape = CircleShape,
+                    color = MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.5f)
+                ) {
+                    Box(contentAlignment = Alignment.Center) {
+                        Icon(
+                            imageVector = Icons.Default.PersonAdd,
+                            contentDescription = null,
+                            tint = MaterialTheme.colorScheme.primary,
+                            modifier = Modifier.size(32.dp)
+                        )
+                    }
+                }
+
+                Spacer(modifier = Modifier.height(20.dp))
+
+                Text(
+                    text = "Save Your Progress!",
+                    style = MaterialTheme.typography.titleLarge,
+                    fontWeight = FontWeight.ExtraBold,
+                    color = MaterialTheme.colorScheme.onSurface,
+                    textAlign = TextAlign.Center
+                )
+
+                Spacer(modifier = Modifier.height(12.dp))
+
+                Text(
+                    text = "Create an account to permanently save your insights, streaks, and bookmarks across all your devices.",
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    textAlign = TextAlign.Center,
+                    lineHeight = 20.sp
+                )
+
+                Spacer(modifier = Modifier.height(28.dp))
+
+                Button(
+                    onClick = onConfirm,
+                    modifier = Modifier.fillMaxWidth().height(52.dp),
+                    shape = RoundedCornerShape(16.dp),
+                    colors = ButtonDefaults.buttonColors(
+                        containerColor = MaterialTheme.colorScheme.primary,
+                        contentColor = MaterialTheme.colorScheme.onPrimary
+                    )
+                ) {
+                    Text("Log In / Sign Up", fontWeight = FontWeight.Bold)
+                }
+
+                Spacer(modifier = Modifier.height(12.dp))
+
+                TextButton(
+                    onClick = onDismiss,
+                    modifier = Modifier.fillMaxWidth()
+                ) {
+                    Text("Not Now", color = MaterialTheme.colorScheme.onSurfaceVariant)
+                }
+            }
         }
     }
 }
@@ -841,6 +936,7 @@ fun ProfileScreenPreview() {
             onEditClick = {},
             onPrivacyClick = {},
             onLogoutClick = {},
+            onGuestSignUpClick = {},
             onDeleteAccountClick = {},
             onCollectionClick = {}
         )
