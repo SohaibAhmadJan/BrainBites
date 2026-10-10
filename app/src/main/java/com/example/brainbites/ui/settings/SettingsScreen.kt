@@ -330,6 +330,13 @@ fun GoalSelector(selectedGoal: Int, onGoalSelected: (Int) -> Unit) {
 
 @Composable
 fun TextScaleSelector(currentScale: Float, onScaleChanged: (Float) -> Unit) {
+    val scaleLabel = when {
+        currentScale <= 0.85f -> "Small"
+        currentScale <= 1.05f -> "Normal"
+        currentScale <= 1.25f -> "Large"
+        else -> "Extra Large"
+    }
+
     Surface(
         color = MaterialTheme.colorScheme.surface,
         shape = RoundedCornerShape(12.dp)
@@ -349,7 +356,7 @@ fun TextScaleSelector(currentScale: Float, onScaleChanged: (Float) -> Unit) {
             )
             Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
                 Text("A", style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
-                Text("Normal", style = MaterialTheme.typography.labelMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                Text(scaleLabel, style = MaterialTheme.typography.labelMedium, fontWeight = FontWeight.Bold, color = MaterialTheme.colorScheme.primary)
                 Text("A", style = MaterialTheme.typography.titleMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
             }
         }
