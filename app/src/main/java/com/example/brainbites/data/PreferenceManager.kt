@@ -17,6 +17,8 @@ object PreferenceManager {
     private const val KEY_USER_HANDLE = "user_handle" // Public @handle
     private const val KEY_PUBLIC_PROFILE = "is_public_profile"
     private const val KEY_ANALYTICS = "is_analytics_enabled"
+    private const val KEY_NOTIFICATIONS = "is_notifications_enabled"
+    private const val KEY_NOTIFICATION_TIME = "daily_notification_time"
     private const val KEY_STREAK = "current_streak_count"
     private const val KEY_LAST_ACTIVE = "last_active_timestamp"
 
@@ -53,6 +55,12 @@ object PreferenceManager {
     private val _isAnalyticsEnabled = MutableStateFlow(true)
     val isAnalyticsEnabled = _isAnalyticsEnabled.asStateFlow()
 
+    private val _isNotificationsEnabled = MutableStateFlow(true)
+    val isNotificationsEnabled = _isNotificationsEnabled.asStateFlow()
+
+    private val _dailyNotificationTime = MutableStateFlow("09:00 AM")
+    val dailyNotificationTime = _dailyNotificationTime.asStateFlow()
+
     private val _streakCount = MutableStateFlow(0)
     val streakCount = _streakCount.asStateFlow()
 
@@ -71,6 +79,8 @@ object PreferenceManager {
         _userHandle.value = prefs.getString(KEY_USER_HANDLE, "") ?: ""
         _isPublicProfile.value = prefs.getBoolean(KEY_PUBLIC_PROFILE, false)
         _isAnalyticsEnabled.value = prefs.getBoolean(KEY_ANALYTICS, true)
+        _isNotificationsEnabled.value = prefs.getBoolean(KEY_NOTIFICATIONS, true)
+        _dailyNotificationTime.value = prefs.getString(KEY_NOTIFICATION_TIME, "09:00 AM") ?: "09:00 AM"
         _streakCount.value = prefs.getInt(KEY_STREAK, 0)
         _lastActiveTimestamp.value = prefs.getLong(KEY_LAST_ACTIVE, 0L)
     }
@@ -86,6 +96,8 @@ object PreferenceManager {
         _userHandle.value = user.profile.handle
         _isPublicProfile.value = user.profile.isPublic
         _isAnalyticsEnabled.value = user.preferences.analyticsEnabled
+        _isNotificationsEnabled.value = user.preferences.notificationsEnabled
+        _dailyNotificationTime.value = user.preferences.dailyNotificationTime
         _streakCount.value = user.stats.streakCount
     }
 
@@ -147,6 +159,18 @@ object PreferenceManager {
         context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
             .edit().putBoolean(KEY_ANALYTICS, enabled).apply()
         _isAnalyticsEnabled.value = enabled
+    }
+
+    fun setNotificationsEnabled(context: Context, enabled: Boolean) {
+        context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
+            .edit().putBoolean(KEY_NOTIFICATIONS, enabled).apply()
+        _isNotificationsEnabled.value = enabled
+    }
+
+    fun setDailyNotificationTime(context: Context, time: String) {
+        context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
+            .edit().putString(KEY_NOTIFICATION_TIME, time).apply()
+        _dailyNotificationTime.value = time
     }
 
     fun updateStreak(context: Context) {

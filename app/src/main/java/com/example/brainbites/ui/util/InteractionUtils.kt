@@ -10,6 +10,9 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.composed
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.graphicsLayer
+import androidx.compose.ui.hapticfeedback.HapticFeedbackType
+import androidx.compose.ui.platform.LocalHapticFeedback
+import com.example.brainbites.data.PreferenceManager
 
 /**
  * A custom modifier that adds a premium "Elastic Bounce" scale effect
@@ -23,6 +26,16 @@ fun Modifier.premiumClickable(
 ): Modifier = composed {
     val interactionSource = remember { MutableInteractionSource() }
     val isPressed by interactionSource.collectIsPressedAsState()
+    
+    val haptic = LocalHapticFeedback.current
+    val hapticsEnabled by PreferenceManager.hapticsEnabled.collectAsState()
+
+    LaunchedEffect(isPressed) {
+        if (isPressed && hapticsEnabled && enabled) {
+            // A subtle, premium-feeling tick
+            haptic.performHapticFeedback(HapticFeedbackType.TextHandleMove)
+        }
+    }
 
     // 1. Elastic Bounce (Scale) Animation
     val scale by animateFloatAsState(

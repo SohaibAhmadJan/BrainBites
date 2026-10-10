@@ -16,25 +16,52 @@ object AutomationManager {
 
     fun initialize(context: Context, scope: CoroutineScope) {
         scope.launch(Dispatchers.Main) {
-            SettingsRepository.settings.collect { settings ->
-                if (settings.automationEnabled) {
-                    scheduleDailyPulse(context, settings)
+            // Listen to User's specific preferences, not global admin settings
+            PreferenceManager.isNotificationsEnabled.collect { enabled ->
+                if (enabled) {
+                    val time = PreferenceManager.dailyNotificationTime.value
+                    scheduleDailyPulse(context, time)
                 } else {
                     cancelDailyPulse(context)
                 }
             }
         }
+        
+        // Also react if the user changes the time while notifications are already enabled
+        scope.launch(Dispatchers.Main) {
+            PreferenceManager.dailyNotificationTime.collect { time ->
+                if (PreferenceManager.isNotificationsEnabled.value) {
+                    scheduleDailyPulse(context, time)
+                }
+            }
+        }
     }
 
-    private fun scheduleDailyPulse(context: Context, settings: AppSettings) {
-        Log.d(TAG, "Scheduling automation: ${settings.dailyNotificationTime} (${settings.notificationFrequency})")
+    private fun scheduleDailyPulse(context: Context, timeStr: String) {
+        Log.d(TAG, "Scheduling personalized offline automation: $timeStr")
         
         val workManager = WorkManager.getInstance(context)
 
-        // Parse time (Expected format "HH:mm")
-        val timeParts = settings.dailyNotificationTime.split(":")
-        val hour = timeParts.getOrNull(0)?.toInt() ?: 9
-        val minute = timeParts.getOrNull(1)?.toInt() ?: 0
+        // Parse format "hh:mm a" (e.g., "09:00 AM" or "02:30 PM")
+        var hour = 9
+        var minute = 0
+        try {
+            val isPm = timeStr.contains("PM", ignoreCase = true)
+            val cleanTime = timeStr.replace(" AM", "", ignoreCase = true).replace(" PM", "", ignoreCase = true)
+            val parts = cleanTime.split(":")
+            if (parts.size == 2) {
+                var rawHour = parts[0].toInt()
+                minute = parts[1].toInt()
+                
+                // Convert 12-hour to 24-hour format for Calendar
+                if (isPm && rawHour != 12) rawHour += 12
+                if (!isPm && rawHour == 12) rawHour = 0
+                
+                hour = rawHour
+            }
+        } catch (e: Exception) {
+            Log.e(TAG, "Error parsing time string: $timeStr", e)
+        }
 
         val calendar = Calendar.getInstance().apply {
             set(Calendar.HOUR_OF_DAY, hour)
@@ -56,17 +83,8 @@ object AutomationManager {
             initialDelay = 0
         }
 
-        val intervalHours = when (settings.notificationFrequency) {
-            "DAILY" -> 24L
-            "2_TIMES_DAILY" -> 12L
-            "3_TIMES_DAILY" -> 8L
-            "4_TIMES_DAILY" -> 6L
-            "6_TIMES_DAILY" -> 4L
-            "8_TIMES_DAILY" -> 3L
-            "EVERY_2_DAYS" -> 48L
-            "WEEKLY" -> 168L
-            else -> 24L
-        }
+        // For local offline user-scheduled tasks, we will rigidly force it to once per day (24 hours).
+        val intervalHours = 24L
 
         val workRequest = PeriodicWorkRequestBuilder<DailyFactWorker>(
             intervalHours, TimeUnit.HOURS

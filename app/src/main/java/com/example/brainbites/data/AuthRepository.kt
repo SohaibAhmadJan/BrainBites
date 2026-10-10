@@ -489,7 +489,8 @@ object AuthRepository {
                     textScale = (prefs?.get("textScale") as? Double)?.toFloat() ?: 1.0f,
                     hapticsEnabled = prefs?.get("hapticsEnabled") as? Boolean ?: true,
                     analyticsEnabled = prefs?.get("analyticsEnabled") as? Boolean ?: true,
-                    notificationsEnabled = prefs?.get("notificationsEnabled") as? Boolean ?: true
+                    notificationsEnabled = prefs?.get("notificationsEnabled") as? Boolean ?: true,
+                    dailyNotificationTime = prefs?.get("dailyNotificationTime") as? String ?: "09:00 AM"
                 )
             )
 
@@ -701,7 +702,14 @@ object AuthRepository {
         }
     }
 
-    suspend fun updateUserPreferences(dailyGoal: Int? = null, textScale: Float? = null, haptics: Boolean? = null, analytics: Boolean? = null, notifications: Boolean? = null) {
+    suspend fun updateUserPreferences(
+        dailyGoal: Int? = null, 
+        textScale: Float? = null, 
+        haptics: Boolean? = null, 
+        analytics: Boolean? = null, 
+        notifications: Boolean? = null,
+        notificationTime: String? = null
+    ) {
         val uid = auth.currentUser?.uid ?: return
         val updates = mutableMapOf<String, Any>()
         dailyGoal?.let { updates["preferences.dailyGoal"] = it }
@@ -709,6 +717,7 @@ object AuthRepository {
         haptics?.let { updates["preferences.hapticsEnabled"] = it }
         analytics?.let { updates["preferences.analyticsEnabled"] = it }
         notifications?.let { updates["preferences.notificationsEnabled"] = it }
+        notificationTime?.let { updates["preferences.dailyNotificationTime"] = it }
         
         if (updates.isEmpty()) return
         

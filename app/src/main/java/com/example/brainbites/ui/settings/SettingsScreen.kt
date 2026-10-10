@@ -38,8 +38,9 @@ fun SettingsScreen() {
     val hapticsEnabled by PreferenceManager.hapticsEnabled.collectAsState()
     val favorites by BiteRepository.getFavoriteFacts(context).collectAsState(initial = emptyList())
 
-    var notificationsEnabled by remember { mutableStateOf(true) }
-    var selectedTime by remember { mutableStateOf("09:00 AM") }
+    val notificationsEnabled by PreferenceManager.isNotificationsEnabled.collectAsState()
+    val selectedTime by PreferenceManager.dailyNotificationTime.collectAsState()
+    
     var showAboutDialog by remember { mutableStateOf(false) }
     var showTimePicker by remember { mutableStateOf(false) }
 
@@ -58,7 +59,9 @@ fun SettingsScreen() {
                     val minute = timePickerState.minute
                     val amPm = if (hour < 12) "AM" else "PM"
                     val displayHour = if (hour == 0 || hour == 12) 12 else hour % 12
-                    selectedTime = String.format(java.util.Locale.getDefault(), "%02d:%02d %s", displayHour, minute, amPm)
+                    val formattedTime = String.format(java.util.Locale.getDefault(), "%02d:%02d %s", displayHour, minute, amPm)
+                    PreferenceManager.setDailyNotificationTime(context, formattedTime)
+                    scope.launch { AuthRepository.updateUserPreferences(notificationTime = formattedTime) }
                     showTimePicker = false
                 }) {
                     Text("OK")
@@ -148,7 +151,7 @@ fun SettingsScreen() {
                     icon = Icons.Default.Notifications,
                     checked = notificationsEnabled,
                     onCheckedChange = { 
-                        notificationsEnabled = it
+                        PreferenceManager.setNotificationsEnabled(context, it)
                         scope.launch { AuthRepository.updateUserPreferences(notifications = it) }
                     }
                 )

@@ -37,7 +37,9 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.foundation.border
+import androidx.compose.runtime.collectAsState
 import com.example.brainbites.R
+import com.example.brainbites.data.PreferenceManager
 
 @Composable
 fun AuthCard(
@@ -225,10 +227,14 @@ fun GoogleButton(
     isLoading: Boolean = false
 ) {
     val view = LocalView.current
+    val hapticsEnabled by PreferenceManager.hapticsEnabled.collectAsState()
+    
     Surface(
         onClick = {
             if (!isLoading) {
-                view.performHapticFeedback(HapticFeedbackConstants.VIRTUAL_KEY)
+                if (hapticsEnabled) {
+                    view.performHapticFeedback(HapticFeedbackConstants.VIRTUAL_KEY)
+                }
                 onClick()
             }
         },
@@ -278,9 +284,13 @@ fun MainActionButton(
     isLoading: Boolean = false
 ) {
     val view = LocalView.current
+    val hapticsEnabled by PreferenceManager.hapticsEnabled.collectAsState()
+    
     Button(
         onClick = {
-            view.performHapticFeedback(HapticFeedbackConstants.VIRTUAL_KEY)
+            if (hapticsEnabled) {
+                view.performHapticFeedback(HapticFeedbackConstants.VIRTUAL_KEY)
+            }
             onClick()
         },
         modifier = modifier

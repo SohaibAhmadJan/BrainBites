@@ -27,7 +27,8 @@ data class UserPreferences(
     val textScale: Float = 1.0f,
     val hapticsEnabled: Boolean = true,
     val analyticsEnabled: Boolean = true,
-    val notificationsEnabled: Boolean = true
+    val notificationsEnabled: Boolean = true,
+    val dailyNotificationTime: String = "09:00 AM" // Format "HH:mm a"
 )
 
 @Serializable
