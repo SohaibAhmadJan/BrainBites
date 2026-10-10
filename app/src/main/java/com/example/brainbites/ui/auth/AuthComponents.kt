@@ -39,7 +39,9 @@ import androidx.compose.ui.unit.sp
 import androidx.compose.foundation.border
 import androidx.compose.runtime.collectAsState
 import com.example.brainbites.R
+import androidx.compose.ui.platform.LocalContext
 import com.example.brainbites.data.PreferenceManager
+import com.example.brainbites.ui.util.triggerPhysicalVibration
 
 @Composable
 fun AuthCard(
@@ -226,14 +228,14 @@ fun GoogleButton(
     modifier: Modifier = Modifier,
     isLoading: Boolean = false
 ) {
-    val view = LocalView.current
+    val context = LocalContext.current
     val hapticsEnabled by PreferenceManager.hapticsEnabled.collectAsState()
     
     Surface(
         onClick = {
             if (!isLoading) {
                 if (hapticsEnabled) {
-                    view.performHapticFeedback(HapticFeedbackConstants.VIRTUAL_KEY)
+                    triggerPhysicalVibration(context)
                 }
                 onClick()
             }
@@ -283,13 +285,13 @@ fun MainActionButton(
     modifier: Modifier = Modifier,
     isLoading: Boolean = false
 ) {
-    val view = LocalView.current
+    val context = LocalContext.current
     val hapticsEnabled by PreferenceManager.hapticsEnabled.collectAsState()
     
     Button(
         onClick = {
             if (hapticsEnabled) {
-                view.performHapticFeedback(HapticFeedbackConstants.VIRTUAL_KEY)
+                triggerPhysicalVibration(context)
             }
             onClick()
         },

@@ -1,5 +1,10 @@
 package com.example.brainbites.ui.util
 
+import android.content.Context
+import android.os.Build
+import android.os.VibrationEffect
+import android.os.Vibrator
+import android.os.VibratorManager
 import androidx.compose.animation.core.*
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
@@ -10,9 +15,31 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.composed
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.graphicsLayer
-import androidx.compose.ui.hapticfeedback.HapticFeedbackType
-import androidx.compose.ui.platform.LocalHapticFeedback
+import androidx.compose.ui.platform.LocalContext
 import com.example.brainbites.data.PreferenceManager
+
+/**
+ * Triggers a direct physical hardware vibration on real Android phones.
+ */
+fun triggerPhysicalVibration(context: Context) {
+    try {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
+            val vibratorManager = context.getSystemService(Context.VIBRATOR_MANAGER_SERVICE) as? VibratorManager
+            val vibrator = vibratorManager?.defaultVibrator
+            vibrator?.vibrate(VibrationEffect.createOneShot(30, VibrationEffect.DEFAULT_AMPLITUDE))
+        } else if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+            @Suppress("DEPRECATION")
+            val vibrator = context.getSystemService(Context.VIBRATOR_SERVICE) as? Vibrator
+            vibrator?.vibrate(VibrationEffect.createOneShot(30, VibrationEffect.DEFAULT_AMPLITUDE))
+        } else {
+            @Suppress("DEPRECATION")
+            val vibrator = context.getSystemService(Context.VIBRATOR_SERVICE) as? Vibrator
+            vibrator?.vibrate(30)
+        }
+    } catch (e: Exception) {
+        // Fallback / ignore if device lacks motor or permission error
+    }
+}
 
 /**
  * A custom modifier that adds a premium "Elastic Bounce" scale effect
@@ -27,15 +54,8 @@ fun Modifier.premiumClickable(
     val interactionSource = remember { MutableInteractionSource() }
     val isPressed by interactionSource.collectIsPressedAsState()
     
-    val haptic = LocalHapticFeedback.current
+    val context = LocalContext.current
     val hapticsEnabled by PreferenceManager.hapticsEnabled.collectAsState()
-
-    LaunchedEffect(isPressed) {
-        if (isPressed && hapticsEnabled && enabled) {
-            // A subtle, premium-feeling tick
-            haptic.performHapticFeedback(HapticFeedbackType.TextHandleMove)
-        }
-    }
 
     // 1. Elastic Bounce (Scale) Animation
     val scale by animateFloatAsState(
@@ -63,7 +83,12 @@ fun Modifier.premiumClickable(
             interactionSource = interactionSource,
             indication = null, // Disable default ripple to use our custom glow
             enabled = enabled,
-            onClick = onClick
+            onClick = {
+                if (hapticsEnabled && enabled) {
+                    triggerPhysicalVibration(context)
+                }
+                onClick()
+            }
         )
         .background(glowColor.copy(alpha = glowAlpha))
 }
